@@ -19,7 +19,7 @@
 6. 参考快期安装目录下的broker.xml，修改CTP.Accounts.xml、CTP.Servers.xml这两个配置文件
 7. 找到软件的插件配置文件C:\Documents and Settings\Administrator\Application Data\SmartQuant Ltd\OpenQuant\Framework\ini\framework.xml
 8. 添加<plugin enabled="True" assembly="QuantBox.OQ.CTP" type="QuantBox.OQ.CTP.QBProvider" x64="False" />到对应位置
-9. 如何使用请查看安装版的readme.html
+9. 如何使用请查看插件的使用说明
 
 ## 如何开发
 1. 确保你的C-CTP接口的dll是最新的
