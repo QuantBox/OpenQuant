@@ -173,7 +173,7 @@ namespace QuantBox.OQ.CTP
                 Connect_TD();
             }
 
-            Console.WriteLine(string.Format("Thread:{0},定时检查连通性", Clock.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")));
+            //Console.WriteLine(string.Format("Thread:{0},定时检查连通性", Clock.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")));
         }
 
         void timerPonstion_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
@@ -509,48 +509,47 @@ namespace QuantBox.OQ.CTP
                     _dateTime = new DateTime(_yyyy, _MM, _dd, HH, mm, ss, pDepthMarketData.UpdateMillisec);
                 }
 
-                //行情过来时是今天累计成交量，得转换成每个tick中成交量之差
-                int volume = pDepthMarketData.Volume - DepthMarket.Volume;
-                if (0 == DepthMarket.Volume)
+                //通过测试，发现IB的Trade与Quote在行情过来时数量是不同的，在这也做到不同
+                if (DepthMarket.LastPrice == pDepthMarketData.LastPrice
+                    && DepthMarket.Volume == pDepthMarketData.Volume)
+                { }
+                else
                 {
-                    //没有接收到最开始的一条，所以这计算每个Bar的数据时肯定超大，强行将设置为0
-                    volume = 0;
-                }                
-                {
-                    //通过测试，发现IB的Trade与Quote在行情过来时数量是不同的，在这也做到不同
-                    if (DepthMarket.LastPrice == pDepthMarketData.LastPrice
-                        && DepthMarket.Volume == pDepthMarketData.Volume)
-                    { }
-                    else
+                    //行情过来时是今天累计成交量，得转换成每个tick中成交量之差
+                    int volume = pDepthMarketData.Volume - DepthMarket.Volume;
+                    if (0 == DepthMarket.Volume)
                     {
-                        Trade trade = new Trade(_dateTime,
-                            pDepthMarketData.LastPrice == double.MaxValue ? 0 : pDepthMarketData.LastPrice,
-                            volume);
-
-                        EmitNewTradeEvent(_dictAltSymbol2Instrument[pDepthMarketData.InstrumentID], trade);
+                        //没有接收到最开始的一条，所以这计算每个Bar的数据时肯定超大，强行将设置为0
+                        volume = 0;
                     }
 
-                    if (
-                        DepthMarket.BidVolume1 == pDepthMarketData.BidVolume1
-                        && DepthMarket.AskVolume1 == pDepthMarketData.AskVolume1
-                        && DepthMarket.BidPrice1 == pDepthMarketData.BidPrice1
-                        && DepthMarket.AskPrice1 == pDepthMarketData.AskPrice1
-                        )
-                    { }
-                    else
-                    {
-                        Quote quote = new Quote(_dateTime,
-                            pDepthMarketData.BidPrice1 == double.MaxValue ? 0 : pDepthMarketData.BidPrice1,
-                            pDepthMarketData.BidVolume1,
-                            pDepthMarketData.AskPrice1 == double.MaxValue ? 0 : pDepthMarketData.AskPrice1,
-                            pDepthMarketData.AskVolume1
-                        );
+                    Trade trade = new Trade(_dateTime,
+                        pDepthMarketData.LastPrice == double.MaxValue ? 0 : pDepthMarketData.LastPrice,
+                        volume);
 
-                        EmitNewQuoteEvent(_dictAltSymbol2Instrument[pDepthMarketData.InstrumentID], quote);
-                    }
-
-                    _dictDepthMarketData[pDepthMarketData.InstrumentID] = pDepthMarketData;
+                    EmitNewTradeEvent(_dictAltSymbol2Instrument[pDepthMarketData.InstrumentID], trade);
                 }
+
+                if (
+                    DepthMarket.BidVolume1 == pDepthMarketData.BidVolume1
+                    && DepthMarket.AskVolume1 == pDepthMarketData.AskVolume1
+                    && DepthMarket.BidPrice1 == pDepthMarketData.BidPrice1
+                    && DepthMarket.AskPrice1 == pDepthMarketData.AskPrice1
+                    )
+                { }
+                else
+                {
+                    Quote quote = new Quote(_dateTime,
+                        pDepthMarketData.BidPrice1 == double.MaxValue ? 0 : pDepthMarketData.BidPrice1,
+                        pDepthMarketData.BidVolume1,
+                        pDepthMarketData.AskPrice1 == double.MaxValue ? 0 : pDepthMarketData.AskPrice1,
+                        pDepthMarketData.AskVolume1
+                    );
+
+                    EmitNewQuoteEvent(_dictAltSymbol2Instrument[pDepthMarketData.InstrumentID], quote);
+                }
+
+                _dictDepthMarketData[pDepthMarketData.InstrumentID] = pDepthMarketData;
             }
         }
         #endregion
@@ -758,10 +757,10 @@ namespace QuantBox.OQ.CTP
         {
             if (OutputLog)
             {
-                Console.WriteLine("时{0},合约{1},方向{2},开平{3},价{4},原量{5},成交{6},提交{7},状态{8},引用{9}",
+                Console.WriteLine("{0},{1},{2},开平{3},价{4},原量{5},成交{6},提交{7},状态{8},引用{9},{10}",
                     pOrder.InsertTime, pOrder.InstrumentID, pOrder.Direction, pOrder.CombOffsetFlag, pOrder.LimitPrice,
                     pOrder.VolumeTotalOriginal, pOrder.VolumeTraded, pOrder.OrderSubmitStatus, pOrder.OrderStatus,
-                    pOrder.OrderRef);
+                    pOrder.OrderRef,pOrder.StatusMsg);
             }
 
             SingleOrder order;
@@ -928,6 +927,13 @@ namespace QuantBox.OQ.CTP
             SingleOrder order;
             if (_OrderRef2Order.TryGetValue(string.Format("{0}:{1}:{2}", _RspUserLogin.FrontID, _RspUserLogin.SessionID, pInputOrderAction.OrderRef), out order))
             {
+                if (OutputLog)
+                {
+                    Console.WriteLine("CTP回应：{0},价{1},变化量{2},引用{3},{4}",
+                        pInputOrderAction.InstrumentID, pInputOrderAction.LimitPrice, pInputOrderAction.VolumeChange, pInputOrderAction.OrderRef,
+                        pRspInfo.ErrorMsg);
+                }
+
                 order.Text = string.Format("{0} {1}", order.Text, pRspInfo.ErrorMsg);
                 EmitCancelReject(order, order.Text);
             }
@@ -938,6 +944,12 @@ namespace QuantBox.OQ.CTP
             SingleOrder order;
             if (_OrderRef2Order.TryGetValue(string.Format("{0}:{1}:{2}", _RspUserLogin.FrontID, _RspUserLogin.SessionID, pOrderAction.OrderRef), out order))
             {
+                if (OutputLog)
+                {
+                    Console.WriteLine("交易所回应：{0},价{1},变化量{2},引用{3},{4}",
+                        pOrderAction.InstrumentID, pOrderAction.LimitPrice, pOrderAction.VolumeChange, pOrderAction.OrderRef,
+                        pRspInfo.ErrorMsg);
+                }
                 order.Text = string.Format("{0} {1}", order.Text, pRspInfo.ErrorMsg);
                 EmitCancelReject(order,order.Text);
             }
@@ -951,6 +963,13 @@ namespace QuantBox.OQ.CTP
             string strKey = string.Format("{0}:{1}:{2}", _RspUserLogin.FrontID, _RspUserLogin.SessionID, pInputOrder.OrderRef);
             if (_OrderRef2Order.TryGetValue(strKey, out order))
             {
+                if (OutputLog)
+                {
+                    Console.WriteLine("CTP回应：{0},{1},开平{2},价{3},原量{4},引用{5},{6}",
+                        pInputOrder.InstrumentID, pInputOrder.Direction, pInputOrder.CombOffsetFlag, pInputOrder.LimitPrice,
+                        pInputOrder.VolumeTotalOriginal,
+                        pInputOrder.OrderRef, pRspInfo.ErrorMsg);
+                }
                 order.Text = string.Format("{0} {1}", order.Text, pRspInfo.ErrorMsg);
                 EmitRejected(order, order.Text);
                 //这些地方没法处理混合报单
@@ -980,6 +999,13 @@ namespace QuantBox.OQ.CTP
             string strKey = string.Format("{0}:{1}:{2}", _RspUserLogin.FrontID, _RspUserLogin.SessionID, pInputOrder.OrderRef);
             if (_OrderRef2Order.TryGetValue(strKey, out order))
             {
+                if (OutputLog)
+                {
+                    Console.WriteLine("交易所回应：{0},{1},开平{2},价{3},原量{4},引用{5},{6}",
+                        pInputOrder.InstrumentID, pInputOrder.Direction, pInputOrder.CombOffsetFlag, pInputOrder.LimitPrice,
+                        pInputOrder.VolumeTotalOriginal,
+                        pInputOrder.OrderRef, pRspInfo.ErrorMsg);
+                }
                 order.Text = string.Format("{0} {1}", order.Text, pRspInfo.ErrorMsg);
                 EmitRejected(order, order.Text);
                 //没得办法，这样全撤了状态就唯一了
