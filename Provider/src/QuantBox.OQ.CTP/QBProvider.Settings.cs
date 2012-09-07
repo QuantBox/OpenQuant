@@ -38,6 +38,9 @@ namespace QuantBox.OQ.CTP
             ExchangeTime
         }
 
+        private const string OpenPrefix = "O|";
+        private const string ClosePrefix = "C|";
+
         #region 参数设置
         private string _ApiTempPath;
         private bool bOutputLog;
@@ -45,6 +48,7 @@ namespace QuantBox.OQ.CTP
         private THOST_TE_RESUME_TYPE _ResumeType;
         private string _SupportMarketOrder;
         private string _SupportCloseToday;
+        private string _DefaultOpenClosePrefix;
 
         [Category("Settings - Other")]
         [Description("设置API生成临时文件的目录")]
@@ -84,6 +88,7 @@ namespace QuantBox.OQ.CTP
         }
 
         [Category("Settings - Other")]
+        [Description("支持市价单的交易所")]
         public string SupportMarketOrder
         {
             get { return _SupportMarketOrder; }
@@ -91,9 +96,17 @@ namespace QuantBox.OQ.CTP
 
 
         [Category("Settings - Other")]
+        [Description("区分平今与平昨的交易所")]
         public string SupportCloseToday
         {
             get { return _SupportCloseToday; }
+        }
+
+        [Category("Settings - Other")]
+        [Description("指定开平，利用Order的Text域指定开平，以“O|”开头表示开仓，以“C|”开头表示平仓")]
+        public string DefaultOpenClosePrefix
+        {
+            get { return _DefaultOpenClosePrefix; }
         }
 
         private BindingList<ServerItem> serversList = new BindingList<ServerItem>();
@@ -123,6 +136,7 @@ namespace QuantBox.OQ.CTP
 
             _SupportMarketOrder = ExchangID.DCE.ToString() + ";" + ExchangID.CZCE.ToString() + ";" + ExchangID.CFFEX.ToString() + ";";
             _SupportCloseToday = ExchangID.SHFE.ToString() + ";";
+            _DefaultOpenClosePrefix = OpenPrefix+";"+ClosePrefix;
 
             serversList.ListChanged += new ListChangedEventHandler(ServersList_ListChanged);
             accountsList.ListChanged += new ListChangedEventHandler(AccountsList_ListChanged);

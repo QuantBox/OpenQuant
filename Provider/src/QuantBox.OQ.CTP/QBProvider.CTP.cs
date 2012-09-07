@@ -606,8 +606,17 @@ namespace QuantBox.OQ.CTP
                 //没有设置就直接用
                 if (inst.TickSize > 0)
                 {
-                    //将价格调整为最小价格的整数倍，此处是否有问题？到底应当是向上调还是向下调呢？
-                    double num = Math.Round(order.Price / inst.TickSize, 0, MidpointRounding.AwayFromZero);
+                    //将价格调整为最小价格的整数倍，此处是否有问题？到底应当是向上调还是向下调呢？此处先这样
+                    double num = 0;
+                    if (order.Side == Side.Buy)
+                    {
+                        num = Math.Round(order.Price / inst.TickSize, 0, MidpointRounding.AwayFromZero);
+                    }
+                    else
+                    {
+                        num = Math.Round(order.Price / inst.TickSize, 0, MidpointRounding.AwayFromZero);
+                    }
+                    
                     price = inst.TickSize * num;
                     string PF = string.Format("{{0:{0}}}", inst.PriceDisplay);
                     price = Convert.ToDouble(string.Format(PF, price));
@@ -640,65 +649,101 @@ namespace QuantBox.OQ.CTP
                     _dbInMemInvestorPosition.GetPositions(altSymbol,
                         TThostFtdcPosiDirectionType.Long, TThostFtdcHedgeFlagType.Speculation, out YdPosition, out TodayPosition);
                 }
-                
 
                 List<SOrderSplitItem> OrderSplitList = new List<SOrderSplitItem>();
                 SOrderSplitItem orderSplitItem;
-                //是否上海？上海先平今，然后平昨，最后开仓
+
+                //根据 梦翔 与 马不停蹄 的提示，新加在Text域中指定开平标志的功能
+                int nOpenCloseFlag = 0;
+                if (order.Text.StartsWith(OpenPrefix))
+                {
+                    nOpenCloseFlag = 1;
+                }
+                else if (order.Text.StartsWith(ClosePrefix))
+                {
+                    nOpenCloseFlag = -1;
+                }                
+
                 int leave = (int)order.OrderQty;
-                if (SupportCloseToday.Contains(altExchange))
+
+                //是否上海？上海先平今，然后平昨，最后开仓
+                //使用do主要是想利用break功能
+                //平仓部分
+                do 
                 {
-                    //先看平今
-                    if (leave > 0 && TodayPosition > 0)
+                    //指定开仓，直接跳过
+                    if (1 == nOpenCloseFlag)
+                        break;
+
+                    if (SupportCloseToday.Contains(altExchange))
                     {
-                        int min = Math.Min(TodayPosition, leave);
-                        leave -= min;
+                        //先看平今
+                        if (leave > 0 && TodayPosition > 0)
+                        {
+                            int min = Math.Min(TodayPosition, leave);
+                            leave -= min;
 
-                        byte[] bytes = { (byte)TThostFtdcOffsetFlagType.CloseToday, (byte)TThostFtdcOffsetFlagType.CloseToday };
-                        szCombOffsetFlag = System.Text.Encoding.Default.GetString(bytes, 0, bytes.Length);
+                            byte[] bytes = { (byte)TThostFtdcOffsetFlagType.CloseToday, (byte)TThostFtdcOffsetFlagType.CloseToday };
+                            szCombOffsetFlag = System.Text.Encoding.Default.GetString(bytes, 0, bytes.Length);
 
-                        orderSplitItem.qty = min;
-                        orderSplitItem.szCombOffsetFlag = szCombOffsetFlag;
-                        OrderSplitList.Add(orderSplitItem);
+                            orderSplitItem.qty = min;
+                            orderSplitItem.szCombOffsetFlag = szCombOffsetFlag;
+                            OrderSplitList.Add(orderSplitItem);
+                        }
+                        if (leave > 0 && YdPosition > 0)
+                        {
+                            int min = Math.Min(YdPosition, leave);
+                            leave -= min;
+
+                            byte[] bytes = { (byte)TThostFtdcOffsetFlagType.CloseYesterday, (byte)TThostFtdcOffsetFlagType.CloseYesterday };
+                            szCombOffsetFlag = System.Text.Encoding.Default.GetString(bytes, 0, bytes.Length);
+
+                            orderSplitItem.qty = min;
+                            orderSplitItem.szCombOffsetFlag = szCombOffsetFlag;
+                            OrderSplitList.Add(orderSplitItem);
+                        }
                     }
-                    if (leave > 0 && YdPosition > 0)
+                    else
                     {
-                        int min = Math.Min(YdPosition, leave);
-                        leave -= min;
+                        //平仓
+                        int position = TodayPosition + YdPosition;
+                        if (leave > 0 && position > 0)
+                        {
+                            int min = Math.Min(position, leave);
+                            leave -= min;
 
-                        byte[] bytes = { (byte)TThostFtdcOffsetFlagType.CloseYesterday, (byte)TThostFtdcOffsetFlagType.CloseYesterday };
-                        szCombOffsetFlag = System.Text.Encoding.Default.GetString(bytes, 0, bytes.Length);
+                            byte[] bytes = { (byte)TThostFtdcOffsetFlagType.Close, (byte)TThostFtdcOffsetFlagType.Close };
+                            szCombOffsetFlag = System.Text.Encoding.Default.GetString(bytes, 0, bytes.Length);
 
-                        orderSplitItem.qty = min;
-                        orderSplitItem.szCombOffsetFlag = szCombOffsetFlag;
-                        OrderSplitList.Add(orderSplitItem);
+                            orderSplitItem.qty = min;
+                            orderSplitItem.szCombOffsetFlag = szCombOffsetFlag;
+                            OrderSplitList.Add(orderSplitItem);
+                        }
                     }
-                }
-                else
+                } while (false);
+
+                do 
                 {
-                    int position = TodayPosition + YdPosition;
-                    if (leave > 0 && position > 0)
-                    {
-                        int min = Math.Min(position, leave);
-                        leave -= min;
+                    //指定平仓，直接跳过
+                    if (-1 == nOpenCloseFlag)
+                        break;
 
-                        byte[] bytes = { (byte)TThostFtdcOffsetFlagType.Close, (byte)TThostFtdcOffsetFlagType.Close };
+                    if (leave > 0)
+                    {
+                        byte[] bytes = { (byte)TThostFtdcOffsetFlagType.Open, (byte)TThostFtdcOffsetFlagType.Open };
                         szCombOffsetFlag = System.Text.Encoding.Default.GetString(bytes, 0, bytes.Length);
 
-                        orderSplitItem.qty = min;
+                        orderSplitItem.qty = leave;
                         orderSplitItem.szCombOffsetFlag = szCombOffsetFlag;
                         OrderSplitList.Add(orderSplitItem);
                     }
-                }
+                } while (false);
 
                 if (leave > 0)
                 {
-                    byte[] bytes = { (byte)TThostFtdcOffsetFlagType.Open, (byte)TThostFtdcOffsetFlagType.Open };
-                    szCombOffsetFlag = System.Text.Encoding.Default.GetString(bytes, 0, bytes.Length);
-
-                    orderSplitItem.qty = leave;
-                    orderSplitItem.szCombOffsetFlag = szCombOffsetFlag;
-                    OrderSplitList.Add(orderSplitItem);
+                    string strErr = string.Format("CTP:还剩余{0}手,你应当是强制指定平仓了，但持仓数小于要平手数",leave);
+                    Console.WriteLine(strErr);
+                    EmitError(-1, -1, strErr);
                 }
 
                 //目前默认只支持投机,并且将第二腿也设置成投机，这样在使用组合时这地方不用再调整
