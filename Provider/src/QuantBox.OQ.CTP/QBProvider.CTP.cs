@@ -730,6 +730,8 @@ namespace QuantBox.OQ.CTP
 
                     if (leave > 0)
                     {
+                        leave = 0;
+
                         byte[] bytes = { (byte)TThostFtdcOffsetFlagType.Open, (byte)TThostFtdcOffsetFlagType.Open };
                         szCombOffsetFlag = System.Text.Encoding.Default.GetString(bytes, 0, bytes.Length);
 
