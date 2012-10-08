@@ -167,7 +167,6 @@ namespace QuantBox.OQ.CTP
 
 
         #region OpenQuant3接口的新方法
-        [Browsable(false)]
         public IMarketDataFilter MarketDataFilter
         {
             get;
