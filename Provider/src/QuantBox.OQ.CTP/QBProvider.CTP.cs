@@ -181,7 +181,7 @@ namespace QuantBox.OQ.CTP
             if (_bTdConnected)
             {
                 TraderApi.TD_ReqQryInvestorPosition(m_pTdApi, "");
-                Console.WriteLine(string.Format("Thread:{0},定时查询持仓", Clock.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")));
+                //Console.WriteLine(string.Format("Thread:{0},定时查询持仓", Clock.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")));
             }            
         }
 
@@ -190,7 +190,7 @@ namespace QuantBox.OQ.CTP
             if (_bTdConnected)
             {
                 TraderApi.TD_ReqQryTradingAccount(m_pTdApi);
-                Console.WriteLine(string.Format("Thread:{0},定时查询资金", Clock.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")));
+                //Console.WriteLine(string.Format("Thread:{0},定时查询资金", Clock.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")));
             }
         }
 
@@ -730,14 +730,14 @@ namespace QuantBox.OQ.CTP
 
                     if (leave > 0)
                     {
-                        leave = 0;
-
                         byte[] bytes = { (byte)TThostFtdcOffsetFlagType.Open, (byte)TThostFtdcOffsetFlagType.Open };
                         szCombOffsetFlag = System.Text.Encoding.Default.GetString(bytes, 0, bytes.Length);
 
                         orderSplitItem.qty = leave;
                         orderSplitItem.szCombOffsetFlag = szCombOffsetFlag;
                         OrderSplitList.Add(orderSplitItem);
+
+                        leave = 0;
                     }
                 } while (false);
 

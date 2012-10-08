@@ -127,6 +127,13 @@ namespace QuantBox.OQ.CTP
             set { accountsList = value; }
         }
 
+        [CategoryAttribute("Settings")]
+        [Description("插件版本信息")]
+        public string Version
+        {
+            get { return Assembly.GetExecutingAssembly().GetName().Version.ToString(); }
+        }
+
         #endregion
         private void InitSettings()
         {
