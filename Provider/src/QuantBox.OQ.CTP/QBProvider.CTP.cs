@@ -509,6 +509,8 @@ namespace QuantBox.OQ.CTP
                     _dateTime = new DateTime(_yyyy, _MM, _dd, HH, mm, ss, pDepthMarketData.UpdateMillisec);
                 }
 
+                Instrument instrument = _dictAltSymbol2Instrument[pDepthMarketData.InstrumentID];
+
                 //通过测试，发现IB的Trade与Quote在行情过来时数量是不同的，在这也做到不同
                 if (DepthMarket.LastPrice == pDepthMarketData.LastPrice
                     && DepthMarket.Volume == pDepthMarketData.Volume)
@@ -527,7 +529,18 @@ namespace QuantBox.OQ.CTP
                         pDepthMarketData.LastPrice == double.MaxValue ? 0 : pDepthMarketData.LastPrice,
                         volume);
 
-                    EmitNewTradeEvent(_dictAltSymbol2Instrument[pDepthMarketData.InstrumentID], trade);
+                    if (null != marketDataFilter)
+                    {
+                        Trade t = marketDataFilter.FilterTrade(trade, instrument.Symbol);
+                        if (null != t)
+                        {
+                            EmitNewTradeEvent(instrument, t);
+                        }
+                    }
+                    else
+                    {
+                        EmitNewTradeEvent(instrument, trade);
+                    }
                 }
 
                 if (
@@ -546,7 +559,18 @@ namespace QuantBox.OQ.CTP
                         pDepthMarketData.AskVolume1
                     );
 
-                    EmitNewQuoteEvent(_dictAltSymbol2Instrument[pDepthMarketData.InstrumentID], quote);
+                    if (null != marketDataFilter)
+                    {
+                        Quote q = marketDataFilter.FilterQuote(quote, instrument.Symbol);
+                        if (null != q)
+                        {
+                            EmitNewQuoteEvent(instrument, q);
+                        }
+                    }
+                    else
+                    {
+                        EmitNewQuoteEvent(instrument, quote);
+                    }                    
                 }
 
                 _dictDepthMarketData[pDepthMarketData.InstrumentID] = pDepthMarketData;

@@ -11,6 +11,7 @@ namespace QuantBox.OQ.CTP
     public partial class QBProvider:IMarketDataProvider
     {
         private IBarFactory factory;
+        private IMarketDataFilter marketDataFilter;
 
         public event MarketDataRequestRejectEventHandler MarketDataRequestReject;
         public event MarketDataSnapshotEventHandler MarketDataSnapshot;
@@ -169,8 +170,8 @@ namespace QuantBox.OQ.CTP
         #region OpenQuant3接口的新方法
         public IMarketDataFilter MarketDataFilter
         {
-            get;
-            set;
+            get { return marketDataFilter; }
+            set { marketDataFilter = value; }
         }
         #endregion
     }
