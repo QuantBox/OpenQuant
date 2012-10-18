@@ -48,13 +48,6 @@ namespace QuantBox.OQ.CTP
             _fnOnRtnTrade_Holder = OnRtnTrade;
         }
 
-        //本处只能用Class不能用Struct，因为一个是传值，一个是传引用
-        //internal class InstMDRecord
-        //{
-        //    public Instrument inst;
-        //    public CThostFtdcDepthMarketDataField DepthMarketData;
-        //}
-
         private IntPtr m_pMsgQueue = IntPtr.Zero;   //消息队列指针
         private IntPtr m_pMdApi = IntPtr.Zero;      //行情对象指针
         private IntPtr m_pTdApi = IntPtr.Zero;      //交易对象指针
@@ -838,7 +831,7 @@ namespace QuantBox.OQ.CTP
             string strKey = string.Format("{0}:{1}:{2}", _RspUserLogin.FrontID, _RspUserLogin.SessionID, pOrder.OrderRef);
             if (_OrderRef2Order.TryGetValue(strKey, out order))
             {
-                order.Text = pOrder.StatusMsg;
+                order.Text = string.Format("{0}|{1}", order.Text, pOrder.StatusMsg);
 
                 //找到对应的报单回应
                 Dictionary<string, CThostFtdcOrderField> _Ref2Action;
@@ -1005,7 +998,7 @@ namespace QuantBox.OQ.CTP
                         pRspInfo.ErrorMsg);
                 }
 
-                order.Text = string.Format("{0} {1}", order.Text, pRspInfo.ErrorMsg);
+                order.Text = string.Format("{0}|{1}", order.Text, pRspInfo.ErrorMsg);
                 EmitCancelReject(order, order.Text);
             }
         }
@@ -1021,7 +1014,7 @@ namespace QuantBox.OQ.CTP
                         pOrderAction.InstrumentID, pOrderAction.LimitPrice, pOrderAction.VolumeChange, pOrderAction.OrderRef,
                         pRspInfo.ErrorMsg);
                 }
-                order.Text = string.Format("{0} {1}", order.Text, pRspInfo.ErrorMsg);
+                order.Text = string.Format("{0}|{1}", order.Text, pRspInfo.ErrorMsg);
                 EmitCancelReject(order,order.Text);
             }
         }
@@ -1041,7 +1034,7 @@ namespace QuantBox.OQ.CTP
                         pInputOrder.VolumeTotalOriginal,
                         pInputOrder.OrderRef, pRspInfo.ErrorMsg);
                 }
-                order.Text = string.Format("{0} {1}", order.Text, pRspInfo.ErrorMsg);
+                order.Text = string.Format("{0}|{1}", order.Text, pRspInfo.ErrorMsg);
                 EmitRejected(order, order.Text);
                 //这些地方没法处理混合报单
                 //没得办法，这样全撤了状态就唯一了
@@ -1077,7 +1070,7 @@ namespace QuantBox.OQ.CTP
                         pInputOrder.VolumeTotalOriginal,
                         pInputOrder.OrderRef, pRspInfo.ErrorMsg);
                 }
-                order.Text = string.Format("{0} {1}", order.Text, pRspInfo.ErrorMsg);
+                order.Text = string.Format("{0}|{1}", order.Text, pRspInfo.ErrorMsg);
                 EmitRejected(order, order.Text);
                 //没得办法，这样全撤了状态就唯一了
                 Dictionary<string, CThostFtdcOrderField> _Ref2Action;

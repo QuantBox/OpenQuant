@@ -28,7 +28,7 @@ namespace QuantBox.OQ.CTP
                 //timerAccount.Enabled = false;
                 //timerAccount.Enabled = true;
                 //timerPonstion.Enabled = false;
-                //timerPonstion.Enabled = true;                
+                //timerPonstion.Enabled = true;    
 
                 BrokerAccount brokerAccount = new BrokerAccount(m_TradingAccount.AccountID);
 
