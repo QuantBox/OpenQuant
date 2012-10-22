@@ -939,6 +939,16 @@ namespace QuantBox.OQ.CTP
                     pTrade.TradeTime, pTrade.InstrumentID, pTrade.Direction, pTrade.OffsetFlag, pTrade.Price, pTrade.Volume, pTrade.OrderRef);
             }
 
+            //将仓位计算提前，防止在OnPositionOpened中下平仓时与“C|”配合出错
+            if (_dbInMemInvestorPosition.UpdateByTrade(pTrade))
+            {
+            }
+            else
+            {
+                //本地计算更新失败，重查一次
+                TraderApi.TD_ReqQryInvestorPosition(m_pTdApi, pTrade.InstrumentID);
+            }
+
             SingleOrder order;
             //找到自己发送的订单，标记成交
             if (_OrderRef2Order.TryGetValue(string.Format("{0}:{1}:{2}", _RspUserLogin.FrontID, _RspUserLogin.SessionID, pTrade.OrderRef), out order))
@@ -972,15 +982,6 @@ namespace QuantBox.OQ.CTP
                     //普通订单，直接通知即可
                     EmitFilled(order, pTrade.Price, pTrade.Volume);
                 }
-            }
-
-            if (_dbInMemInvestorPosition.UpdateByTrade(pTrade))
-            {
-            }
-            else
-            {
-                //本地计算更新失败，重查一次
-                TraderApi.TD_ReqQryInvestorPosition(m_pTdApi, pTrade.InstrumentID);
             }
         }
         #endregion
