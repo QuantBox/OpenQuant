@@ -58,8 +58,8 @@ namespace QuantBox.OQ.CTP
         private volatile bool _bTdConnected = false;
 
         //表示用户操作，也许有需求是用户有多个行情，只连接第一个等
-        private bool _bWantMdConnect = false;
-        private bool _bWantTdConnect = false;
+        private bool _bWantMdConnect;
+        private bool _bWantTdConnect;
 
         private object _lockMd = new object();
         private object _lockTd = new object();
@@ -165,7 +165,6 @@ namespace QuantBox.OQ.CTP
                 Disconnect_TD();
                 Connect_TD();
             }
-
             //Console.WriteLine(string.Format("Thread:{0},定时检查连通性", Clock.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")));
         }
 
@@ -202,12 +201,12 @@ namespace QuantBox.OQ.CTP
             {
                 if (0 == serversList.Count)
                 {
-                    MessageBox.Show("您还没有设置服务器信息，目前只选择第一条进行连接");
+                    MessageBox.Show("您还没有设置 服务器 信息，目前只选择第一条进行连接");
                     break;
                 }
                 if (0 == serversList.Count)
                 {
-                    MessageBox.Show("您还没有设置账号信息，目前只选择第一条进行连接");
+                    MessageBox.Show("您还没有设置 账号 信息，目前只选择第一条进行连接");
                     break;
                 }
 
@@ -240,9 +239,6 @@ namespace QuantBox.OQ.CTP
                 return;
             }
 
-            _bWantMdConnect = true;
-            _bWantTdConnect = true;
-
             //新建目录
             _newTempPath = ApiTempPath + Path.DirectorySeparatorChar + server.BrokerID + Path.DirectorySeparatorChar + account.InvestorId;
             Directory.CreateDirectory(_newTempPath);
@@ -253,15 +249,24 @@ namespace QuantBox.OQ.CTP
             Disconnect_TD();
 
             Connect_MsgQueue();
-            Connect_MD();
-            Connect_TD();
-
-            //建立消息队列读取线程
-            if (null == _thread)
+            if (_bWantMdConnect)
             {
-                _runThread = true;
-                _thread = new Thread(new ThreadStart(ThreadProc));
-                _thread.Start();
+                Connect_MD();
+            }
+            if (_bWantTdConnect)
+            {
+                Connect_TD();
+            }
+
+            if (_bWantMdConnect||_bWantTdConnect)
+            {
+                //建立消息队列读取线程
+                if (null == _thread)
+                {
+                    _runThread = true;
+                    _thread = new Thread(new ThreadStart(ThreadProc));
+                    _thread.Start();
+                }
             }
         }
 
@@ -329,9 +334,6 @@ namespace QuantBox.OQ.CTP
         #region 断开连接
         private void _Disconnect(bool bInThread)
         {
-            _bWantMdConnect = false;
-            _bWantTdConnect = false;
-
             _runThread = false;
             //等线程结束
             if (null != _thread)
@@ -616,201 +618,203 @@ namespace QuantBox.OQ.CTP
             string altSymbol = inst.GetSymbol(this.Name);
             string altExchange = inst.GetSecurityExchange(this.Name);
             
+            //最小变动价格修正
             double price;
-            CThostFtdcDepthMarketDataField DepthMarket;
-            if (_dictDepthMarketData.TryGetValue(altSymbol, out DepthMarket))
+            //没有设置就直接用
+            if (inst.TickSize > 0)
             {
-                //没有设置就直接用
-                if (inst.TickSize > 0)
+                //将价格调整为最小价格的整数倍，此处是否有问题？到底应当是向上调还是向下调呢？此处先这样
+                double num = 0;
+                if (order.Side == Side.Buy)
                 {
-                    //将价格调整为最小价格的整数倍，此处是否有问题？到底应当是向上调还是向下调呢？此处先这样
-                    double num = 0;
-                    if (order.Side == Side.Buy)
-                    {
-                        num = Math.Round(order.Price / inst.TickSize, 0, MidpointRounding.AwayFromZero);
-                    }
-                    else
-                    {
-                        num = Math.Round(order.Price / inst.TickSize, 0, MidpointRounding.AwayFromZero);
-                    }
-                    
-                    price = inst.TickSize * num;
-                    string PF = string.Format("{{0:{0}}}", inst.PriceDisplay);
-                    price = Convert.ToDouble(string.Format(PF, price));
+                    num = Math.Round(order.Price / inst.TickSize, 0, MidpointRounding.AwayFromZero);
                 }
                 else
                 {
-                    price = order.Price;
-                }
-                
-
-                //市价修正
-                if (price >= DepthMarket.UpperLimitPrice)
-                    price = DepthMarket.UpperLimitPrice;
-                else if (price <= DepthMarket.LowerLimitPrice)
-                    price = DepthMarket.LowerLimitPrice;
-
-                int YdPosition = 0;
-                int TodayPosition = 0;
-
-                string szCombOffsetFlag;
-                if (order.Side == Side.Buy)
-                {
-                    //买，先看有没有空单，有就平空单,没有空单，直接买开多单
-                    _dbInMemInvestorPosition.GetPositions(altSymbol,
-                        TThostFtdcPosiDirectionType.Short, TThostFtdcHedgeFlagType.Speculation, out YdPosition, out TodayPosition);
-                }
-                else//是否要区分Side.Sell与Side.SellShort呢？
-                {
-                    //卖，先看有没有多单，有就平多单,没有多单，直接买开空单
-                    _dbInMemInvestorPosition.GetPositions(altSymbol,
-                        TThostFtdcPosiDirectionType.Long, TThostFtdcHedgeFlagType.Speculation, out YdPosition, out TodayPosition);
+                    num = Math.Round(order.Price / inst.TickSize, 0, MidpointRounding.AwayFromZero);
                 }
 
-                List<SOrderSplitItem> OrderSplitList = new List<SOrderSplitItem>();
-                SOrderSplitItem orderSplitItem;
+                price = inst.TickSize * num;
+                string PF = string.Format("{{0:{0}}}", inst.PriceDisplay);
+                price = Convert.ToDouble(string.Format(PF, price));
+            }
+            else
+            {
+                price = order.Price;
+            }
 
-                //根据 梦翔 与 马不停蹄 的提示，新加在Text域中指定开平标志的功能
-                int nOpenCloseFlag = 0;
-                if (order.Text.StartsWith(OpenPrefix))
+            //市价修正，如果不连接行情，此修正不执行，得策略层处理
+            CThostFtdcDepthMarketDataField DepthMarket;
+            if (_dictDepthMarketData.TryGetValue(altSymbol, out DepthMarket))
+            {
+                //if (_bMdConnected)
                 {
-                    nOpenCloseFlag = 1;
+                    if (price >= DepthMarket.UpperLimitPrice)
+                        price = DepthMarket.UpperLimitPrice;
+                    else if (price <= DepthMarket.LowerLimitPrice)
+                        price = DepthMarket.LowerLimitPrice;
                 }
-                else if (order.Text.StartsWith(ClosePrefix))
+            }
+
+            int YdPosition = 0;
+            int TodayPosition = 0;
+
+            string szCombOffsetFlag;
+            if (order.Side == Side.Buy)
+            {
+                //买，先看有没有空单，有就平空单,没有空单，直接买开多单
+                _dbInMemInvestorPosition.GetPositions(altSymbol,
+                    TThostFtdcPosiDirectionType.Short, TThostFtdcHedgeFlagType.Speculation, out YdPosition, out TodayPosition);
+            }
+            else//是否要区分Side.Sell与Side.SellShort呢？
+            {
+                //卖，先看有没有多单，有就平多单,没有多单，直接买开空单
+                _dbInMemInvestorPosition.GetPositions(altSymbol,
+                    TThostFtdcPosiDirectionType.Long, TThostFtdcHedgeFlagType.Speculation, out YdPosition, out TodayPosition);
+            }
+
+            List<SOrderSplitItem> OrderSplitList = new List<SOrderSplitItem>();
+            SOrderSplitItem orderSplitItem;
+
+            //根据 梦翔 与 马不停蹄 的提示，新加在Text域中指定开平标志的功能
+            int nOpenCloseFlag = 0;
+            if (order.Text.StartsWith(OpenPrefix))
+            {
+                nOpenCloseFlag = 1;
+            }
+            else if (order.Text.StartsWith(ClosePrefix))
+            {
+                nOpenCloseFlag = -1;
+            }
+
+            int leave = (int)order.OrderQty;
+
+            //是否上海？上海先平今，然后平昨，最后开仓
+            //使用do主要是想利用break功能
+            //平仓部分
+            do
+            {
+                //指定开仓，直接跳过
+                if (1 == nOpenCloseFlag)
+                    break;
+
+                if (SupportCloseToday.Contains(altExchange))
                 {
-                    nOpenCloseFlag = -1;
-                }                
-
-                int leave = (int)order.OrderQty;
-
-                //是否上海？上海先平今，然后平昨，最后开仓
-                //使用do主要是想利用break功能
-                //平仓部分
-                do 
-                {
-                    //指定开仓，直接跳过
-                    if (1 == nOpenCloseFlag)
-                        break;
-
-                    if (SupportCloseToday.Contains(altExchange))
+                    //先看平今
+                    if (leave > 0 && TodayPosition > 0)
                     {
-                        //先看平今
-                        if (leave > 0 && TodayPosition > 0)
-                        {
-                            int min = Math.Min(TodayPosition, leave);
-                            leave -= min;
+                        int min = Math.Min(TodayPosition, leave);
+                        leave -= min;
 
-                            byte[] bytes = { (byte)TThostFtdcOffsetFlagType.CloseToday, (byte)TThostFtdcOffsetFlagType.CloseToday };
-                            szCombOffsetFlag = System.Text.Encoding.Default.GetString(bytes, 0, bytes.Length);
-
-                            orderSplitItem.qty = min;
-                            orderSplitItem.szCombOffsetFlag = szCombOffsetFlag;
-                            OrderSplitList.Add(orderSplitItem);
-                        }
-                        if (leave > 0 && YdPosition > 0)
-                        {
-                            int min = Math.Min(YdPosition, leave);
-                            leave -= min;
-
-                            byte[] bytes = { (byte)TThostFtdcOffsetFlagType.CloseYesterday, (byte)TThostFtdcOffsetFlagType.CloseYesterday };
-                            szCombOffsetFlag = System.Text.Encoding.Default.GetString(bytes, 0, bytes.Length);
-
-                            orderSplitItem.qty = min;
-                            orderSplitItem.szCombOffsetFlag = szCombOffsetFlag;
-                            OrderSplitList.Add(orderSplitItem);
-                        }
-                    }
-                    else
-                    {
-                        //平仓
-                        int position = TodayPosition + YdPosition;
-                        if (leave > 0 && position > 0)
-                        {
-                            int min = Math.Min(position, leave);
-                            leave -= min;
-
-                            byte[] bytes = { (byte)TThostFtdcOffsetFlagType.Close, (byte)TThostFtdcOffsetFlagType.Close };
-                            szCombOffsetFlag = System.Text.Encoding.Default.GetString(bytes, 0, bytes.Length);
-
-                            orderSplitItem.qty = min;
-                            orderSplitItem.szCombOffsetFlag = szCombOffsetFlag;
-                            OrderSplitList.Add(orderSplitItem);
-                        }
-                    }
-                } while (false);
-
-                do 
-                {
-                    //指定平仓，直接跳过
-                    if (-1 == nOpenCloseFlag)
-                        break;
-
-                    if (leave > 0)
-                    {
-                        byte[] bytes = { (byte)TThostFtdcOffsetFlagType.Open, (byte)TThostFtdcOffsetFlagType.Open };
+                        byte[] bytes = { (byte)TThostFtdcOffsetFlagType.CloseToday, (byte)TThostFtdcOffsetFlagType.CloseToday };
                         szCombOffsetFlag = System.Text.Encoding.Default.GetString(bytes, 0, bytes.Length);
 
-                        orderSplitItem.qty = leave;
+                        orderSplitItem.qty = min;
                         orderSplitItem.szCombOffsetFlag = szCombOffsetFlag;
                         OrderSplitList.Add(orderSplitItem);
-
-                        leave = 0;
                     }
-                } while (false);
+                    if (leave > 0 && YdPosition > 0)
+                    {
+                        int min = Math.Min(YdPosition, leave);
+                        leave -= min;
+
+                        byte[] bytes = { (byte)TThostFtdcOffsetFlagType.CloseYesterday, (byte)TThostFtdcOffsetFlagType.CloseYesterday };
+                        szCombOffsetFlag = System.Text.Encoding.Default.GetString(bytes, 0, bytes.Length);
+
+                        orderSplitItem.qty = min;
+                        orderSplitItem.szCombOffsetFlag = szCombOffsetFlag;
+                        OrderSplitList.Add(orderSplitItem);
+                    }
+                }
+                else
+                {
+                    //平仓
+                    int position = TodayPosition + YdPosition;
+                    if (leave > 0 && position > 0)
+                    {
+                        int min = Math.Min(position, leave);
+                        leave -= min;
+
+                        byte[] bytes = { (byte)TThostFtdcOffsetFlagType.Close, (byte)TThostFtdcOffsetFlagType.Close };
+                        szCombOffsetFlag = System.Text.Encoding.Default.GetString(bytes, 0, bytes.Length);
+
+                        orderSplitItem.qty = min;
+                        orderSplitItem.szCombOffsetFlag = szCombOffsetFlag;
+                        OrderSplitList.Add(orderSplitItem);
+                    }
+                }
+            } while (false);
+
+            do
+            {
+                //指定平仓，直接跳过
+                if (-1 == nOpenCloseFlag)
+                    break;
 
                 if (leave > 0)
                 {
-                    string strErr = string.Format("CTP:还剩余{0}手,你应当是强制指定平仓了，但持仓数小于要平手数",leave);
-                    Console.WriteLine(strErr);
-                    EmitError(-1, -1, strErr);
+                    byte[] bytes = { (byte)TThostFtdcOffsetFlagType.Open, (byte)TThostFtdcOffsetFlagType.Open };
+                    szCombOffsetFlag = System.Text.Encoding.Default.GetString(bytes, 0, bytes.Length);
+
+                    orderSplitItem.qty = leave;
+                    orderSplitItem.szCombOffsetFlag = szCombOffsetFlag;
+                    OrderSplitList.Add(orderSplitItem);
+
+                    leave = 0;
+                }
+            } while (false);
+
+            if (leave > 0)
+            {
+                string strErr = string.Format("CTP:还剩余{0}手,你应当是强制指定平仓了，但持仓数小于要平手数", leave);
+                Console.WriteLine(strErr);
+                EmitError(-1, -1, strErr);
+            }
+
+            //将第二腿也设置成一样，这样在使用组合时这地方不用再调整
+            byte[] bytes2 = { (byte)HedgeFlagType, (byte)HedgeFlagType };
+            string szCombHedgeFlag = System.Text.Encoding.Default.GetString(bytes2, 0, bytes2.Length);
+
+            foreach (SOrderSplitItem it in OrderSplitList)
+            {
+                int nRet = 0;
+
+                switch (order.OrdType)
+                {
+                    case OrdType.Limit:
+                        nRet = TraderApi.TD_SendOrder(m_pTdApi,
+                            altSymbol,
+                            order.Side == Side.Buy ? TThostFtdcDirectionType.Buy : TThostFtdcDirectionType.Sell,
+                            it.szCombOffsetFlag,
+                            szCombHedgeFlag,
+                            it.qty,
+                            price,
+                            TThostFtdcOrderPriceTypeType.LimitPrice,
+                            TThostFtdcTimeConditionType.GFD,
+                            TThostFtdcContingentConditionType.Immediately,
+                            order.StopPx);
+                        break;
+                    case OrdType.Market:
+                        nRet = TraderApi.TD_SendOrder(m_pTdApi,
+                            altSymbol,
+                            order.Side == Side.Buy ? TThostFtdcDirectionType.Buy : TThostFtdcDirectionType.Sell,
+                            it.szCombOffsetFlag,
+                            szCombHedgeFlag,
+                            it.qty,
+                            order.Side == Side.Buy ? DepthMarket.UpperLimitPrice : DepthMarket.LowerLimitPrice,
+                            TThostFtdcOrderPriceTypeType.LimitPrice,
+                            TThostFtdcTimeConditionType.GFD,
+                            TThostFtdcContingentConditionType.Immediately,
+                            order.StopPx);
+                        break;
+                    default:
+                        EmitError(-1, -1, string.Format("没有实现{0}", order.OrdType));
+                        break;
                 }
 
-                //目前默认只支持投机,并且将第二腿也设置成投机，这样在使用组合时这地方不用再调整
-                //byte[] bytes = { (byte)TThostFtdcHedgeFlagType.Speculation, (byte)TThostFtdcHedgeFlagType.Speculation };
-                //string szCombHedgeFlag = System.Text.Encoding.Default.GetString(bytes, 0, bytes.Length);
-                string szCombHedgeFlag = "11";//这样好直接啊！两个投机
-
-                foreach (SOrderSplitItem it in OrderSplitList)
+                if (nRet > 0)
                 {
-                    int nRet = 0;
-
-                    switch (order.OrdType)
-                    {
-                        case OrdType.Limit:
-                            nRet = TraderApi.TD_SendOrder(m_pTdApi,
-                                altSymbol,
-                                order.Side == Side.Buy ? TThostFtdcDirectionType.Buy : TThostFtdcDirectionType.Sell,
-                                it.szCombOffsetFlag,
-                                szCombHedgeFlag,
-                                it.qty,
-                                price,
-                                TThostFtdcOrderPriceTypeType.LimitPrice,
-                                TThostFtdcTimeConditionType.GFD,
-                                TThostFtdcContingentConditionType.Immediately,
-                                order.StopPx);
-                            break;
-                        case OrdType.Market:
-                            nRet = TraderApi.TD_SendOrder(m_pTdApi,
-                                altSymbol,
-                                order.Side == Side.Buy ? TThostFtdcDirectionType.Buy : TThostFtdcDirectionType.Sell,
-                                it.szCombOffsetFlag,
-                                szCombHedgeFlag,
-                                it.qty,
-                                order.Side == Side.Buy ? DepthMarket.UpperLimitPrice : DepthMarket.LowerLimitPrice,
-                                TThostFtdcOrderPriceTypeType.LimitPrice,
-                                TThostFtdcTimeConditionType.GFD,
-                                TThostFtdcContingentConditionType.Immediately,
-                                order.StopPx);
-                            break;
-                        default:
-                            EmitError(-1, -1, string.Format("没有实现{0}", order.OrdType));
-                            break;
-                    }
-
-                    if (nRet > 0)
-                    {
-                        _OrderRef2Order.Add(string.Format("{0}:{1}:{2}", _RspUserLogin.FrontID, _RspUserLogin.SessionID, nRet), order as SingleOrder);
-                    }
+                    _OrderRef2Order.Add(string.Format("{0}:{1}:{2}", _RspUserLogin.FrontID, _RspUserLogin.SessionID, nRet), order as SingleOrder);
                 }
             }
         }

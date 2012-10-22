@@ -106,6 +106,8 @@ namespace QuantBox.OQ.CTP
 
                             _dictAltSymbol2Instrument[altSymbol] = inst;
 
+                            Console.WriteLine("MdApi:订阅合约 {0}",altSymbol);
+
                             MdApi.MD_Subscribe(m_pMdApi, altSymbol);
                         }
                         if (!_bTdConnected)
@@ -132,6 +134,7 @@ namespace QuantBox.OQ.CTP
 
                             _dictDepthMarketData.Remove(altSymbol);
 
+                            Console.WriteLine("MdApi:取消订阅 {0}", altSymbol);
                             MdApi.MD_Unsubscribe(m_pMdApi, altSymbol);
                         }
                         break;

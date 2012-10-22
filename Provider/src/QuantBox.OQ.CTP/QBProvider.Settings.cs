@@ -88,6 +88,15 @@ namespace QuantBox.OQ.CTP
         }
 
         [Category("Settings - Other")]
+        [Description("设置投机套保标志。Speculation:投机、Arbitrage套利、Hedge套保")]
+        [DefaultValue(TThostFtdcHedgeFlagType.Speculation)]
+        public TThostFtdcHedgeFlagType HedgeFlagType
+        {
+            get;
+            set;
+        }
+
+        [Category("Settings - Other")]
         [Description("支持市价单的交易所")]
         public string SupportMarketOrder
         {
@@ -134,12 +143,34 @@ namespace QuantBox.OQ.CTP
             get { return Assembly.GetExecutingAssembly().GetName().Version.ToString(); }
         }
 
+        [CategoryAttribute("Settings")]
+        [Description("连接到行情。此插件不连接行情时底层对不支持市价的报单不会做涨跌停修正，需策略层处理")]
+        [DefaultValue(true)]
+        public bool ConnectToMarketData
+        {
+            get { return _bWantMdConnect; }
+            set { _bWantMdConnect = value; }
+        }
+
+        [CategoryAttribute("Settings")]
+        [Description("连接到交易")]
+        [DefaultValue(true)]
+        public bool ConnectToTrading
+        {
+            get { return _bWantTdConnect; }
+            set { _bWantTdConnect = value; }
+        }
+
         #endregion
         private void InitSettings()
         {
             ApiTempPath = Framework.Installation.TempDir.FullName;
             OutputLog = true;
             ResumeType = THOST_TE_RESUME_TYPE.THOST_TERT_QUICK;
+            HedgeFlagType = TThostFtdcHedgeFlagType.Speculation;
+
+            _bWantMdConnect = true;
+            _bWantTdConnect = true;
 
             _SupportMarketOrder = ExchangID.DCE.ToString() + ";" + ExchangID.CZCE.ToString() + ";" + ExchangID.CFFEX.ToString() + ";";
             _SupportCloseToday = ExchangID.SHFE.ToString() + ";";
