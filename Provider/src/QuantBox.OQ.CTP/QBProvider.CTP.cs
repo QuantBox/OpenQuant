@@ -628,15 +628,17 @@ namespace QuantBox.OQ.CTP
                 if (order.Side == Side.Buy)
                 {
                     num = Math.Round(order.Price / inst.TickSize, 0, MidpointRounding.AwayFromZero);
+                    //num = Math.Ceiling(order.Price / inst.TickSize);
                 }
                 else
                 {
                     num = Math.Round(order.Price / inst.TickSize, 0, MidpointRounding.AwayFromZero);
+                    //num = Math.Floor(order.Price / inst.TickSize);
                 }
 
                 price = inst.TickSize * num;
-                string PF = string.Format("{{0:{0}}}", inst.PriceDisplay);
-                price = Convert.ToDouble(string.Format(PF, price));
+                //string PF = string.Format("{{0:{0}}}", inst.PriceDisplay);
+                //price = Convert.ToDouble(string.Format(PF, price));
             }
             else
             {
@@ -647,13 +649,18 @@ namespace QuantBox.OQ.CTP
             CThostFtdcDepthMarketDataField DepthMarket;
             if (_dictDepthMarketData.TryGetValue(altSymbol, out DepthMarket))
             {
-                //if (_bMdConnected)
-                {
-                    if (price >= DepthMarket.UpperLimitPrice)
-                        price = DepthMarket.UpperLimitPrice;
-                    else if (price <= DepthMarket.LowerLimitPrice)
-                        price = DepthMarket.LowerLimitPrice;
-                }
+                if (price >= DepthMarket.UpperLimitPrice)
+                    price = DepthMarket.UpperLimitPrice;
+                else if (price <= DepthMarket.LowerLimitPrice)
+                    price = DepthMarket.LowerLimitPrice;
+
+                //如果是市价单，先调整价格
+                if (OrdType.Market == order.OrdType)
+                    price = order.Side == Side.Buy ? DepthMarket.UpperLimitPrice : DepthMarket.LowerLimitPrice;
+            }
+            else
+            {
+                //没有订阅行情价，是否改用交易接口补上行情？
             }
 
             int YdPosition = 0;
@@ -775,6 +782,8 @@ namespace QuantBox.OQ.CTP
             byte[] bytes2 = { (byte)HedgeFlagType, (byte)HedgeFlagType };
             string szCombHedgeFlag = System.Text.Encoding.Default.GetString(bytes2, 0, bytes2.Length);
 
+            bool bSupportMarketOrder = SupportMarketOrder.Contains(altExchange);
+
             foreach (SOrderSplitItem it in OrderSplitList)
             {
                 int nRet = 0;
@@ -795,17 +804,34 @@ namespace QuantBox.OQ.CTP
                             order.StopPx);
                         break;
                     case OrdType.Market:
-                        nRet = TraderApi.TD_SendOrder(m_pTdApi,
+                        if (bSupportMarketOrder)
+                        {
+                            nRet = TraderApi.TD_SendOrder(m_pTdApi,
                             altSymbol,
                             order.Side == Side.Buy ? TThostFtdcDirectionType.Buy : TThostFtdcDirectionType.Sell,
                             it.szCombOffsetFlag,
                             szCombHedgeFlag,
                             it.qty,
-                            order.Side == Side.Buy ? DepthMarket.UpperLimitPrice : DepthMarket.LowerLimitPrice,
+                            0,
+                            TThostFtdcOrderPriceTypeType.AnyPrice,
+                            TThostFtdcTimeConditionType.IOC,
+                            TThostFtdcContingentConditionType.Immediately,
+                            order.StopPx);
+                        } 
+                        else
+                        {
+                            nRet = TraderApi.TD_SendOrder(m_pTdApi,
+                            altSymbol,
+                            order.Side == Side.Buy ? TThostFtdcDirectionType.Buy : TThostFtdcDirectionType.Sell,
+                            it.szCombOffsetFlag,
+                            szCombHedgeFlag,
+                            it.qty,
+                            price,
                             TThostFtdcOrderPriceTypeType.LimitPrice,
                             TThostFtdcTimeConditionType.GFD,
                             TThostFtdcContingentConditionType.Immediately,
                             order.StopPx);
+                        }                        
                         break;
                     default:
                         EmitError(-1, -1, string.Format("没有实现{0}", order.OrdType));
