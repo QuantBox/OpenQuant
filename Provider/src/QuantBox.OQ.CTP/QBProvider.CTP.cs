@@ -400,7 +400,10 @@ namespace QuantBox.OQ.CTP
                     _bMdConnected = true;
                 }
                 //这也有个时间，但取出的时间无效
-                Console.WriteLine(string.Format("MdApi:{0},{1},{2}", Clock.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"), result, pRspUserLogin.LoginTime));
+                if (OutputLog)
+                {
+                    Console.WriteLine(string.Format("MdApi:{0},{1},{2}", Clock.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"), result, pRspUserLogin.LoginTime));
+                }
             }
             else if (m_pTdApi == pApi)//交易
             {
@@ -429,7 +432,10 @@ namespace QuantBox.OQ.CTP
                     _dictInstruments.Clear();
                     TraderApi.TD_ReqQryInstrument(m_pTdApi, null);
                 }
-                Console.WriteLine(string.Format("TdApi:{0},{1},{2}", Clock.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"), result, pRspUserLogin.LoginTime));
+                if (OutputLog)
+                {
+                    Console.WriteLine(string.Format("TdApi:{0},{1},{2}", Clock.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"), result, pRspUserLogin.LoginTime));
+                }
             }
 
             if (
@@ -455,7 +461,10 @@ namespace QuantBox.OQ.CTP
                 else
                 {
                     EmitError((int)step, pRspInfo.ErrorID, "MdApi:" + pRspInfo.ErrorMsg);
-                    Console.WriteLine(string.Format("MdApi:{0},{1},{2}", Clock.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"), pRspInfo.ErrorID, pRspInfo.ErrorMsg));
+                    if (OutputLog)
+                    {
+                        Console.WriteLine(string.Format("MdApi:{0},{1},{2}", Clock.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"), pRspInfo.ErrorID, pRspInfo.ErrorMsg));
+                    }
                 }
             }
             else if (m_pTdApi == pApi)//交易
@@ -468,7 +477,10 @@ namespace QuantBox.OQ.CTP
                 else
                 {
                     EmitError((int)step, pRspInfo.ErrorID, "TdApi:" + pRspInfo.ErrorMsg);
-                    Console.WriteLine(string.Format("TdApi:{0},{1},{2}", Clock.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"), pRspInfo.ErrorID, pRspInfo.ErrorMsg));
+                    if (OutputLog)
+                    {
+                        Console.WriteLine(string.Format("TdApi:{0},{1},{2}", Clock.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"), pRspInfo.ErrorID, pRspInfo.ErrorMsg));
+                    }
                 }
             }
             if (!isConnected)//从来没有连接成功过，可能是密码错误，直接退出
@@ -671,13 +683,18 @@ namespace QuantBox.OQ.CTP
             {
                 //买，先看有没有空单，有就平空单,没有空单，直接买开多单
                 _dbInMemInvestorPosition.GetPositions(altSymbol,
-                    TThostFtdcPosiDirectionType.Short, TThostFtdcHedgeFlagType.Speculation, out YdPosition, out TodayPosition);
+                    TThostFtdcPosiDirectionType.Short, HedgeFlagType, out YdPosition, out TodayPosition);//TThostFtdcHedgeFlagType.Speculation
             }
             else//是否要区分Side.Sell与Side.SellShort呢？
             {
                 //卖，先看有没有多单，有就平多单,没有多单，直接买开空单
                 _dbInMemInvestorPosition.GetPositions(altSymbol,
-                    TThostFtdcPosiDirectionType.Long, TThostFtdcHedgeFlagType.Speculation, out YdPosition, out TodayPosition);
+                    TThostFtdcPosiDirectionType.Long, HedgeFlagType, out YdPosition, out TodayPosition);
+            }
+
+            if (OutputLog)
+            {
+                Console.WriteLine("OrderSide:{0},YdPosition:{1},TodayPosition:{2}", order.Side,YdPosition,TodayPosition);
             }
 
             List<SOrderSplitItem> OrderSplitList = new List<SOrderSplitItem>();
