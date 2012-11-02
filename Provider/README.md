@@ -16,7 +16,7 @@
 3. 复制QuantBox.C2CTP.dll这个C-CTP接口的dll
 4. 复制QuantBox.OQ.CTP.dll这个OQ插件，确保此插件的版本正确
 5. 找到软件的插件配置文件C:\Documents and Settings\Administrator\Application Data\SmartQuant Ltd\OpenQuant\Framework\ini\framework.xml
-6. 添加<plugin enabled="True" assembly="QuantBox.OQ.CTP" type="QuantBox.OQ.CTP.QBProvider" x64="False" />到对应位置
+6. 添加< plugin enabled="True" assembly="QuantBox.OQ.CTP" type="QuantBox.OQ.CTP.QBProvider" x64="False" />到对应位置
 7. 如何使用请查看插件的使用说明
 
 ## 如何开发
