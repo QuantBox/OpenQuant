@@ -231,7 +231,7 @@ namespace QuantBox.OQ.CTP
                     break;
                 }
 
-                if (_bWantMdConnect &&0 == server.Trading.Count())
+                if (_bWantMdConnect &&0 == server.MarketData.Count())
                 {
                     MessageBox.Show("行情服务器信息不全");
                     break;
