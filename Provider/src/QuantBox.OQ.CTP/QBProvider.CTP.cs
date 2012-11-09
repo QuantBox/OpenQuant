@@ -87,7 +87,6 @@ namespace QuantBox.OQ.CTP
         private Thread _thread;                     //消息队列轮询线程
 
         //用于行情的时间，只在登录时改动，所以要求开盘时能得到更新
-        private int _yyyyMMdd = 0;
         private int _yyyy = 0;
         private int _MM = 0;
         private int _dd = 0;
@@ -105,7 +104,6 @@ namespace QuantBox.OQ.CTP
             _dictInstruments.Clear();
             _dictAltSymbol2Instrument.Clear();
 
-            _yyyyMMdd = 0;
             _yyyy = 0;
             _MM = 0;
             _dd = 0;
@@ -154,6 +152,14 @@ namespace QuantBox.OQ.CTP
             //网络问题从来没有连上，超时直接跳出
             if (!isConnected)
                 return;
+
+            //只连行情，不连交易，隔夜交易不会重连，所以得重新更新下时间
+            if (_bWantMdConnect && !_bWantTdConnect)
+            {
+                _yyyy = DateTime.Now.Year;
+                _MM = DateTime.Now.Month;
+                _dd = DateTime.Now.Day;
+            }
 
             if (_bWantMdConnect && !_bMdConnected)
             {
@@ -213,11 +219,21 @@ namespace QuantBox.OQ.CTP
                 server = serversList[0];
                 account = accountsList[0];
 
-                if (string.IsNullOrEmpty(server.BrokerID)
-                || 0 == server.Trading.Count()
-                || 0 == server.MarketData.Count())
+                if (string.IsNullOrEmpty(server.BrokerID))
                 {
-                    MessageBox.Show("服务器信息不全");
+                    MessageBox.Show("BrokerID不能为空");
+                    break;
+                }
+
+                if (_bWantTdConnect &&0 == server.Trading.Count())
+                {
+                    MessageBox.Show("交易服务器地址不全");
+                    break;
+                }
+
+                if (_bWantMdConnect &&0 == server.Trading.Count())
+                {
+                    MessageBox.Show("行情服务器信息不全");
                     break;
                 }
 
@@ -398,6 +414,14 @@ namespace QuantBox.OQ.CTP
                 if (ConnectionStatus.E_logined == result)
                 {
                     _bMdConnected = true;
+
+                    //只登录行情时得得更新行情时间，但行情却可以隔夜不断，所以要定时更新
+                    if (!_bWantTdConnect)
+                    {
+                        _yyyy = DateTime.Now.Year;
+                        _MM = DateTime.Now.Month;
+                        _dd = DateTime.Now.Day;
+                    }
                 }
                 //这也有个时间，但取出的时间无效
                 if (OutputLog)
@@ -414,7 +438,7 @@ namespace QuantBox.OQ.CTP
                     _RspUserLogin = pRspUserLogin;
 
                     //用于行情记算时简化时间解码
-                    _yyyyMMdd = int.Parse(pRspUserLogin.TradingDay);
+                    int _yyyyMMdd = int.Parse(pRspUserLogin.TradingDay);
                     _yyyy = _yyyyMMdd / 10000;
                     _MM = (_yyyyMMdd % 10000) / 100;
                     _dd = _yyyyMMdd % 100;
