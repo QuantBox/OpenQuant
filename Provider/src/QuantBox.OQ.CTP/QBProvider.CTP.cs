@@ -719,7 +719,8 @@ namespace QuantBox.OQ.CTP
 
             if (OutputLog)
             {
-                Console.WriteLine("Side:{0},OrderQty:{1},YdPosition:{1},TodayPosition:{2},Text:{3}", order.Side, order.OrderQty, YdPosition, TodayPosition, order.Text);
+                Console.WriteLine("Side:{0},OrderQty:{1},YdPosition:{2},TodayPosition:{3},Text:{4}",
+                    order.Side, order.OrderQty, YdPosition, TodayPosition, order.Text);
             }
 
             List<SOrderSplitItem> OrderSplitList = new List<SOrderSplitItem>();
