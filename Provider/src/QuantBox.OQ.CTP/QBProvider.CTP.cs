@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Principal;
 using System.Threading;
 using System.Windows.Forms;
 using QuantBox.CSharp2C;
@@ -405,6 +406,50 @@ namespace QuantBox.OQ.CTP
         }
         #endregion
 
+        private void UpdateLocalTime(SetTimeMode _SetLocalTimeMode,CThostFtdcRspUserLoginField pRspUserLogin)
+        {
+            string strNewTime;
+            switch (_SetLocalTimeMode)
+            {
+                case SetTimeMode.None:
+                    return;
+                case SetTimeMode.LoginTime:
+                    strNewTime = pRspUserLogin.LoginTime;
+                    break;
+                case SetTimeMode.SHFETime:
+                    strNewTime = pRspUserLogin.SHFETime;
+                    break;
+                case SetTimeMode.DCETime:
+                    strNewTime = pRspUserLogin.DCETime;
+                    break;
+                case SetTimeMode.CZCETime:
+                    strNewTime = pRspUserLogin.CZCETime;
+                    break;
+                case SetTimeMode.FFEXTime:
+                    strNewTime = pRspUserLogin.FFEXTime;
+                    break;
+                default:
+                    return;
+            }
+
+            try
+            {
+                int HH = int.Parse(strNewTime.Substring(0, 2));
+                int mm = int.Parse(strNewTime.Substring(3, 2));
+                int ss = int.Parse(strNewTime.Substring(6, 2));
+
+                DateTime _dateTime = new DateTime(_yyyy, _MM, _dd, HH, mm, ss);
+                DateTime _newDateTime = _dateTime.AddMilliseconds(AddMilliseconds);
+                Console.WriteLine("SetLocalTime:Return:{0},{1}",
+                    WinAPI.SetLocalTime(_newDateTime),
+                    _newDateTime.ToString("yyyy-MM-dd HH:mm:ss.fff"));
+            }
+            catch (System.Exception ex)
+            {
+                Console.WriteLine("{0}不能解析",strNewTime);	
+            }
+        }
+
         #region 连接状态回调
         private void OnConnect(IntPtr pApi, ref CThostFtdcRspUserLoginField pRspUserLogin, ConnectionStatus result)
         {
@@ -422,6 +467,10 @@ namespace QuantBox.OQ.CTP
                         _MM = DateTime.Now.Month;
                         _dd = DateTime.Now.Day;
                     }
+
+                    Console.WriteLine("MdApi:LocalTime:{0},LoginTime:{1},SHFETime:{2},DCETime:{3},CZCETime:{4},FFEXTime:{5}",
+                        DateTime.Now.ToString("HH:mm:ss.fff"), pRspUserLogin.LoginTime, pRspUserLogin.SHFETime,
+                        pRspUserLogin.DCETime, pRspUserLogin.CZCETime, pRspUserLogin.FFEXTime);
                 }
                 //这也有个时间，但取出的时间无效
                 if (OutputLog)
@@ -442,6 +491,12 @@ namespace QuantBox.OQ.CTP
                     _yyyy = _yyyyMMdd / 10000;
                     _MM = (_yyyyMMdd % 10000) / 100;
                     _dd = _yyyyMMdd % 100;
+
+                    Console.WriteLine("TdApi:LocalTime:{0},LoginTime:{1},SHFETime:{2},DCETime:{3},CZCETime:{4},FFEXTime:{5}",
+                        DateTime.Now.ToString("HH:mm:ss.fff"), pRspUserLogin.LoginTime, pRspUserLogin.SHFETime,
+                        pRspUserLogin.DCETime, pRspUserLogin.CZCETime, pRspUserLogin.FFEXTime);
+
+                    UpdateLocalTime(SetLocalTimeMode,pRspUserLogin);
                 }
                 else if (ConnectionStatus.E_confirmed == result)
                 {

@@ -83,6 +83,7 @@
     <Compile Include="QBProvider.Provider.cs" />
     <Compile Include="QBProvider.Settings.cs" />
     <Compile Include="ServerItem.cs" />
+    <Compile Include="WinAPI.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

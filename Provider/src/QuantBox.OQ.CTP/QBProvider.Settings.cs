@@ -38,6 +38,16 @@ namespace QuantBox.OQ.CTP
             ExchangeTime
         }
 
+        public enum SetTimeMode
+        {
+            None,
+            LoginTime,
+            SHFETime,
+            DCETime,
+            CZCETime,
+            FFEXTime
+        }
+
         private const string OpenPrefix = "O|";
         private const string ClosePrefix = "C|";
         private const string CloseTodayPrefix = "T|";
@@ -71,13 +81,31 @@ namespace QuantBox.OQ.CTP
             set { bOutputLog = value; }
         }
 
-        [Category("Settings - Other")]
+        [Category("Settings - Time")]
         [Description("警告！仅保存行情数据时才用交易所时间。交易时使用交易所时间将导致Bar生成错误")]
         [DefaultValue(TimeMode.LocalTime)]
         public TimeMode DateTimeMode
         {
             get { return _TimeMode; }
             set { _TimeMode = value; }
+        }
+
+        [Category("Settings - Time")]
+        [Description("修改本地时间。分别是：不修改、登录交易前置机时间、各大交易所时间。以管理员方式运行才有权限")]
+        [DefaultValue(SetTimeMode.None)]
+        public SetTimeMode SetLocalTimeMode
+        {
+            get;
+            set;
+        }
+
+        [Category("Settings - Time")]
+        [DefaultValue(0)]
+        [Description("修改本地时间时，在取到的时间上添加指定毫秒")]
+        public int AddMilliseconds
+        {
+            get;
+            set;
         }
 
         [Category("Settings - Other")]
