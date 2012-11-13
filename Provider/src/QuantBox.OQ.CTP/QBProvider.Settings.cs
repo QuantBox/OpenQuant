@@ -40,6 +40,8 @@ namespace QuantBox.OQ.CTP
 
         private const string OpenPrefix = "O|";
         private const string ClosePrefix = "C|";
+        private const string CloseTodayPrefix = "T|";
+        private const string CloseYesterdayPrefix = "Y|";
 
         #region 参数设置
         private string _ApiTempPath;
@@ -112,7 +114,7 @@ namespace QuantBox.OQ.CTP
         }
 
         [Category("Settings - Other")]
-        [Description("指定开平，利用Order的Text域指定开平，以“O|”开头表示开仓，以“C|”开头表示平仓")]
+        [Description("指定开平，利用Order的Text域开始部分指定开平，“O|”开仓；“C|”智能平仓；“T|”平今仓；“Y|”平昨仓；")]
         public string DefaultOpenClosePrefix
         {
             get { return _DefaultOpenClosePrefix; }
@@ -174,7 +176,7 @@ namespace QuantBox.OQ.CTP
 
             _SupportMarketOrder = ExchangID.DCE.ToString() + ";" + ExchangID.CZCE.ToString() + ";" + ExchangID.CFFEX.ToString() + ";";
             _SupportCloseToday = ExchangID.SHFE.ToString() + ";";
-            _DefaultOpenClosePrefix = OpenPrefix+";"+ClosePrefix;
+            _DefaultOpenClosePrefix = OpenPrefix + ";" + ClosePrefix+";"+CloseTodayPrefix + ";" + CloseYesterdayPrefix;
 
             serversList.ListChanged += new ListChangedEventHandler(ServersList_ListChanged);
             accountsList.ListChanged += new ListChangedEventHandler(AccountsList_ListChanged);

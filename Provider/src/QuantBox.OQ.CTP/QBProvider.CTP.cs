@@ -735,6 +735,14 @@ namespace QuantBox.OQ.CTP
             {
                 nOpenCloseFlag = -1;
             }
+            else if (order.Text.StartsWith(CloseTodayPrefix))
+            {
+                nOpenCloseFlag = -2;
+            }
+            else if (order.Text.StartsWith(CloseYesterdayPrefix))
+            {
+                nOpenCloseFlag = -3;
+            }
 
             int leave = (int)order.OrderQty;
 
@@ -744,8 +752,32 @@ namespace QuantBox.OQ.CTP
             do
             {
                 //指定开仓，直接跳过
-                if (1 == nOpenCloseFlag)
+                if (nOpenCloseFlag>0)
                     break;
+
+                //表示指定平今与平昨
+                if (nOpenCloseFlag<-1)
+                {
+                    if (-2 == nOpenCloseFlag)
+                    {
+                        byte[] bytes = { (byte)TThostFtdcOffsetFlagType.CloseToday, (byte)TThostFtdcOffsetFlagType.CloseToday };
+                        szCombOffsetFlag = System.Text.Encoding.Default.GetString(bytes, 0, bytes.Length);
+                    }
+                    else
+                    {
+                        //肯定是-3了
+                        byte[] bytes = { (byte)TThostFtdcOffsetFlagType.CloseYesterday, (byte)TThostFtdcOffsetFlagType.CloseYesterday };
+                        szCombOffsetFlag = System.Text.Encoding.Default.GetString(bytes, 0, bytes.Length);
+                    }
+
+                    orderSplitItem.qty = leave;
+                    orderSplitItem.szCombOffsetFlag = szCombOffsetFlag;
+                    OrderSplitList.Add(orderSplitItem);
+
+                    leave = 0;
+
+                    break;
+                }
 
                 if (SupportCloseToday.Contains(altExchange))
                 {
@@ -797,7 +829,7 @@ namespace QuantBox.OQ.CTP
             do
             {
                 //指定平仓，直接跳过
-                if (-1 == nOpenCloseFlag)
+                if (nOpenCloseFlag<0)
                     break;
 
                 if (leave > 0)
