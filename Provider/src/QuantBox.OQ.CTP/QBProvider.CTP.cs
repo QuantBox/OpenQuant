@@ -605,11 +605,15 @@ namespace QuantBox.OQ.CTP
                 {
                     //行情过来时是今天累计成交量，得转换成每个tick中成交量之差
                     int volume = pDepthMarketData.Volume - DepthMarket.Volume;
-                    //如果隔夜运行，会出现今早成交量0-昨收盘成交量，出现负数，所以当发现为负时修改为0
-                    if (0 == DepthMarket.Volume||volume<0)
+                    if (0 == DepthMarket.Volume)
                     {
-                        //没有接收到最开始的一条，所以这计算每个Bar的数据时肯定超大，强行将设置为0
+                        //没有接收到最开始的一条，所以这计算每个Bar的数据时肯定超大，强行设置为0
                         volume = 0;
+                    }
+                    else if (volume<0)
+                    {
+                        //如果隔夜运行，会出现今早成交量0-昨收盘成交量，出现负数，所以当发现为负时要修改
+                        volume = pDepthMarketData.Volume;
                     }
 
                     Trade trade = new Trade(_dateTime,

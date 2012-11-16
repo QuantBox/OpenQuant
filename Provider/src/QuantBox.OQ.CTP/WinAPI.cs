@@ -39,17 +39,5 @@ namespace QuantBox.OQ.CTP
             // 调用API，更新系统时间
             return SetLocalTime(ref systNew);
         }
-
-        [DllImport("Advapi32.dll")]
-        public static extern bool LogonUser(
-               string sUserName,
-               string sDomain,
-               string sUserPassword,
-               uint dwLogonType,
-               uint dwLogonProvider,
-               out System.IntPtr token);
-
-        [DllImport("Kernel32.dll")]
-        public static extern void CloseHandle(System.IntPtr token);
     }
 }
