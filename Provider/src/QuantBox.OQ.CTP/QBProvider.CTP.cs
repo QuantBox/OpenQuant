@@ -580,6 +580,9 @@ namespace QuantBox.OQ.CTP
             CThostFtdcDepthMarketDataField DepthMarket;
             if (_dictDepthMarketData.TryGetValue(pDepthMarketData.InstrumentID, out DepthMarket))
             {
+                //将更新字典的功能提前，因为如果一开始就OnTrade中下单，涨跌停没有更新
+                _dictDepthMarketData[pDepthMarketData.InstrumentID] = pDepthMarketData;
+
                 if (TimeMode.LocalTime == _TimeMode)
                 {
                     //为了生成正确的Bar,使用本地时间
@@ -663,8 +666,6 @@ namespace QuantBox.OQ.CTP
                         EmitNewQuoteEvent(instrument, quote);
                     }                    
                 }
-
-                _dictDepthMarketData[pDepthMarketData.InstrumentID] = pDepthMarketData;
             }
         }
         #endregion
@@ -715,7 +716,27 @@ namespace QuantBox.OQ.CTP
             string altExchange = inst.GetSecurityExchange(this.Name);
             
             //最小变动价格修正
-            double price;
+            double price = order.Price;
+
+            //市价修正，如果不连接行情，此修正不执行，得策略层处理
+            CThostFtdcDepthMarketDataField DepthMarket;
+            //如果取出来了，并且为有效的，涨跌停价将不为0
+            _dictDepthMarketData.TryGetValue(altSymbol, out DepthMarket);
+
+            //市价单模拟
+            if (OrdType.Market == order.OrdType)
+            {
+                //按买卖调整价格
+                if (order.Side == Side.Buy)
+                {
+                    price = DepthMarket.LastPrice + LastPricePlusNTicks * inst.TickSize;
+                }
+                else
+                {
+                    price = DepthMarket.LastPrice - LastPricePlusNTicks * inst.TickSize;
+                }
+            }
+
             //没有设置就直接用
             if (inst.TickSize > 0)
             {
@@ -723,40 +744,30 @@ namespace QuantBox.OQ.CTP
                 double num = 0;
                 if (order.Side == Side.Buy)
                 {
-                    num = Math.Round(order.Price / inst.TickSize, 0, MidpointRounding.AwayFromZero);
-                    //num = Math.Ceiling(order.Price / inst.TickSize);
+                    num = Math.Round(price / inst.TickSize, 0, MidpointRounding.AwayFromZero);
                 }
                 else
                 {
-                    num = Math.Round(order.Price / inst.TickSize, 0, MidpointRounding.AwayFromZero);
-                    //num = Math.Floor(order.Price / inst.TickSize);
+                    num = Math.Round(price / inst.TickSize, 0, MidpointRounding.AwayFromZero);
                 }
 
                 price = inst.TickSize * num;
                 //string PF = string.Format("{{0:{0}}}", inst.PriceDisplay);
-                //price = Convert.ToDouble(string.Format(PF, price));
+                //price = Convert.ToDouble(string.Format(PF, price));                
+            }
+
+            if (0 == DepthMarket.UpperLimitPrice
+                && 0 == DepthMarket.LowerLimitPrice)
+            {
+                //涨跌停无效
             }
             else
             {
-                price = order.Price;
-            }
-
-            //市价修正，如果不连接行情，此修正不执行，得策略层处理
-            CThostFtdcDepthMarketDataField DepthMarket;
-            if (_dictDepthMarketData.TryGetValue(altSymbol, out DepthMarket))
-            {
+                //防止价格超过涨跌停
                 if (price >= DepthMarket.UpperLimitPrice)
                     price = DepthMarket.UpperLimitPrice;
                 else if (price <= DepthMarket.LowerLimitPrice)
                     price = DepthMarket.LowerLimitPrice;
-
-                //如果是市价单，先调整价格
-                if (OrdType.Market == order.OrdType)
-                    price = order.Side == Side.Buy ? DepthMarket.UpperLimitPrice : DepthMarket.LowerLimitPrice;
-            }
-            else
-            {
-                //没有订阅行情价，是否改用交易接口补上行情？
             }
 
             int YdPosition = 0;

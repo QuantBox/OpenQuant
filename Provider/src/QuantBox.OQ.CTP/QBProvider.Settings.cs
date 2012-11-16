@@ -117,7 +117,7 @@ namespace QuantBox.OQ.CTP
             set { _ResumeType = value; }
         }
 
-        [Category("Settings - Other")]
+        [Category("Settings - Order")]
         [Description("设置投机套保标志。Speculation:投机、Arbitrage套利、Hedge套保")]
         [DefaultValue(TThostFtdcHedgeFlagType.Speculation)]
         public TThostFtdcHedgeFlagType HedgeFlagType
@@ -126,7 +126,7 @@ namespace QuantBox.OQ.CTP
             set;
         }
 
-        [Category("Settings - Other")]
+        [Category("Settings - Order")]
         [Description("支持市价单的交易所")]
         public string SupportMarketOrder
         {
@@ -134,18 +134,27 @@ namespace QuantBox.OQ.CTP
         }
 
 
-        [Category("Settings - Other")]
+        [Category("Settings - Order")]
         [Description("区分平今与平昨的交易所")]
         public string SupportCloseToday
         {
             get { return _SupportCloseToday; }
         }
 
-        [Category("Settings - Other")]
+        [Category("Settings - Order")]
         [Description("指定开平，利用Order的Text域开始部分指定开平，“O|”开仓；“C|”智能平仓；“T|”平今仓；“Y|”平昨仓；")]
         public string DefaultOpenClosePrefix
         {
             get { return _DefaultOpenClosePrefix; }
+        }
+
+        [Category("Settings - Order")]
+        [Description("在最新价上调整N跳来模拟市价，超过涨跌停价按涨跌停价报")]
+        [DefaultValue(10)]
+        public int LastPricePlusNTicks
+        {
+            get;
+            set;
         }
 
         private BindingList<ServerItem> serversList = new BindingList<ServerItem>();
@@ -205,6 +214,7 @@ namespace QuantBox.OQ.CTP
             _SupportMarketOrder = ExchangID.DCE.ToString() + ";" + ExchangID.CZCE.ToString() + ";" + ExchangID.CFFEX.ToString() + ";";
             _SupportCloseToday = ExchangID.SHFE.ToString() + ";";
             _DefaultOpenClosePrefix = OpenPrefix + ";" + ClosePrefix+";"+CloseTodayPrefix + ";" + CloseYesterdayPrefix;
+            LastPricePlusNTicks = 10;
 
             serversList.ListChanged += new ListChangedEventHandler(ServersList_ListChanged);
             accountsList.ListChanged += new ListChangedEventHandler(AccountsList_ListChanged);
