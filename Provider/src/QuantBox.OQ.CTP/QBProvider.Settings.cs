@@ -75,10 +75,10 @@ namespace QuantBox.OQ.CTP
         [Category("Settings - Other")]
         [Description("是否输出日志到控制台")]
         [DefaultValue(true)]
-        public bool OutputLog
+        public bool OutputLogToConsole
         {
-            get { return bOutputLog; }
-            set { bOutputLog = value; }
+            get;
+            set;
         }
 
         [Category("Settings - Time")]
@@ -175,7 +175,7 @@ namespace QuantBox.OQ.CTP
             set { accountsList = value; }
         }
 
-        [CategoryAttribute("Settings")]
+        [CategoryAttribute(CATEGORY_INFO)]
         [Description("插件版本信息")]
         public string Version
         {
@@ -200,16 +200,37 @@ namespace QuantBox.OQ.CTP
             set { _bWantTdConnect = value; }
         }
 
+        [CategoryAttribute("Settings - Extension")]
+        [Description("查询合约手续费到全局变量")]
+        [DefaultValue(false)]
+        public bool QryInstrumentCommissionRate
+        {
+            get;
+            set;
+        }
+
+        [CategoryAttribute("Settings - Extension")]
+        [Description("查询合约保证金率到全局变量")]
+        [DefaultValue(false)]
+        public bool QryInstrumentMarginRate
+        {
+            get;
+            set;
+        }
+
         #endregion
         private void InitSettings()
         {
             ApiTempPath = Framework.Installation.TempDir.FullName;
-            OutputLog = true;
+            OutputLogToConsole = true;
             ResumeType = THOST_TE_RESUME_TYPE.THOST_TERT_QUICK;
             HedgeFlagType = TThostFtdcHedgeFlagType.Speculation;
 
             _bWantMdConnect = true;
             _bWantTdConnect = true;
+
+            QryInstrumentCommissionRate = false;
+            QryInstrumentMarginRate = false;
 
             _SupportMarketOrder = ExchangID.DCE.ToString() + ";" + ExchangID.CZCE.ToString() + ";" + ExchangID.CFFEX.ToString() + ";";
             _SupportCloseToday = ExchangID.SHFE.ToString() + ";";

@@ -105,10 +105,30 @@ namespace QuantBox.OQ.CTP
                             }
 
                             _dictAltSymbol2Instrument[altSymbol] = inst;
-
                             Console.WriteLine("MdApi:订阅合约 {0}",altSymbol);
-
                             MdApi.MD_Subscribe(m_pMdApi, altSymbol);
+
+                            if (_bTdConnected)
+                            {
+                                if (QryInstrumentCommissionRate)
+                                {
+                                    CThostFtdcInstrumentCommissionRateField commissionRate;
+                                    if (!_dictCommissionRate.TryGetValue(altSymbol, out commissionRate))
+                                    {
+                                        TraderApi.TD_ReqQryInstrumentCommissionRate(m_pTdApi, altSymbol);
+                                        _dictCommissionRate[altSymbol] = commissionRate;
+                                    }
+                                }
+                                if (QryInstrumentMarginRate)
+                                {
+                                    CThostFtdcInstrumentMarginRateField marginRate;
+                                    if (!_dictMarginRate.TryGetValue(altSymbol, out marginRate))
+                                    {
+                                        TraderApi.TD_ReqQryInstrumentMarginRate(m_pTdApi, altSymbol);
+                                        _dictMarginRate[altSymbol] = marginRate;
+                                    }
+                                }
+                            }                            
                         }
                         if (!_bTdConnected)
                         {
@@ -133,6 +153,8 @@ namespace QuantBox.OQ.CTP
                             string altSymbol = inst.GetSymbol(this.Name);
 
                             _dictDepthMarketData.Remove(altSymbol);
+                            _dictCommissionRate.Remove(altSymbol);
+                            _dictMarginRate.Remove(altSymbol);
 
                             Console.WriteLine("MdApi:取消订阅 {0}", altSymbol);
                             MdApi.MD_Unsubscribe(m_pMdApi, altSymbol);

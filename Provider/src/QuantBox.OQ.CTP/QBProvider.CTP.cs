@@ -13,40 +13,46 @@ using SmartQuant.FIX;
 using SmartQuant.Instruments;
 using SmartQuant.Providers;
 
+
+
 namespace QuantBox.OQ.CTP
 {
     partial class QBProvider
     {
-        private fnOnConnect _fnOnConnect_Holder;
-        private fnOnDisconnect _fnOnDisconnect_Holder;
-        private fnOnErrRtnOrderAction _fnOnErrRtnOrderAction_Holder;
-        private fnOnErrRtnOrderInsert _fnOnErrRtnOrderInsert_Holder;
-        private fnOnRspError _fnOnRspError_Holder;
-        private fnOnRspOrderAction _fnOnRspOrderAction_Holder;
-        private fnOnRspOrderInsert _fnOnRspOrderInsert_Holder;
-        private fnOnRspQryInstrument _fnOnRspQryInstrument_Holder;
-        private fnOnRspQryInvestorPosition _fnOnRspQryInvestorPosition_Holder;
-        private fnOnRspQryTradingAccount _fnOnRspQryTradingAccount_Holder;
-        private fnOnRtnDepthMarketData _fnOnRtnDepthMarketData_Holder;
-        private fnOnRtnOrder _fnOnRtnOrder_Holder;
-        private fnOnRtnTrade _fnOnRtnTrade_Holder;
+        private fnOnConnect                         _fnOnConnect_Holder;
+        private fnOnDisconnect                      _fnOnDisconnect_Holder;
+        private fnOnErrRtnOrderAction               _fnOnErrRtnOrderAction_Holder;
+        private fnOnErrRtnOrderInsert               _fnOnErrRtnOrderInsert_Holder;
+        private fnOnRspError                        _fnOnRspError_Holder;
+        private fnOnRspOrderAction                  _fnOnRspOrderAction_Holder;
+        private fnOnRspOrderInsert                  _fnOnRspOrderInsert_Holder;
+        private fnOnRspQryInstrument                _fnOnRspQryInstrument_Holder;
+        private fnOnRspQryInstrumentCommissionRate  _fnOnRspQryInstrumentCommissionRate_Holder;
+        private fnOnRspQryInstrumentMarginRate      _fnOnRspQryInstrumentMarginRate_Holder;
+        private fnOnRspQryInvestorPosition          _fnOnRspQryInvestorPosition_Holder;
+        private fnOnRspQryTradingAccount            _fnOnRspQryTradingAccount_Holder;
+        private fnOnRtnDepthMarketData              _fnOnRtnDepthMarketData_Holder;
+        private fnOnRtnOrder                        _fnOnRtnOrder_Holder;
+        private fnOnRtnTrade                        _fnOnRtnTrade_Holder;
 
         private void InitCallbacks()
         {
             //由于回调函数可能被GC回收，所以用成员变量将回调函数保存下来
-            _fnOnConnect_Holder = OnConnect;
-            _fnOnDisconnect_Holder = OnDisconnect;
-            _fnOnErrRtnOrderAction_Holder = OnErrRtnOrderAction;
-            _fnOnErrRtnOrderInsert_Holder = OnErrRtnOrderInsert;
-            _fnOnRspError_Holder = OnRspError;
-            _fnOnRspOrderAction_Holder = OnRspOrderAction;
-            _fnOnRspOrderInsert_Holder = OnRspOrderInsert;
-            _fnOnRspQryInstrument_Holder = OnRspQryInstrument;
-            _fnOnRspQryInvestorPosition_Holder = OnRspQryInvestorPosition;
-            _fnOnRspQryTradingAccount_Holder = OnRspQryTradingAccount;
-            _fnOnRtnDepthMarketData_Holder = OnRtnDepthMarketData;
-            _fnOnRtnOrder_Holder = OnRtnOrder;
-            _fnOnRtnTrade_Holder = OnRtnTrade;
+            _fnOnConnect_Holder                         = OnConnect;
+            _fnOnDisconnect_Holder                      = OnDisconnect;
+            _fnOnErrRtnOrderAction_Holder               = OnErrRtnOrderAction;
+            _fnOnErrRtnOrderInsert_Holder               = OnErrRtnOrderInsert;
+            _fnOnRspError_Holder                        = OnRspError;
+            _fnOnRspOrderAction_Holder                  = OnRspOrderAction;
+            _fnOnRspOrderInsert_Holder                  = OnRspOrderInsert;
+            _fnOnRspQryInstrument_Holder                = OnRspQryInstrument;
+            _fnOnRspQryInstrumentCommissionRate_Holder  = OnRspQryInstrumentCommissionRate;
+            _fnOnRspQryInstrumentMarginRate_Holder      = OnRspQryInstrumentMarginRate;
+            _fnOnRspQryInvestorPosition_Holder          = OnRspQryInvestorPosition;
+            _fnOnRspQryTradingAccount_Holder            = OnRspQryTradingAccount;
+            _fnOnRtnDepthMarketData_Holder              = OnRtnDepthMarketData;
+            _fnOnRtnOrder_Holder                        = OnRtnOrder;
+            _fnOnRtnTrade_Holder                        = OnRtnTrade;
         }
 
         private IntPtr m_pMsgQueue = IntPtr.Zero;   //消息队列指针
@@ -81,6 +87,10 @@ namespace QuantBox.OQ.CTP
         private Dictionary<string, CThostFtdcDepthMarketDataField> _dictDepthMarketData = new Dictionary<string, CThostFtdcDepthMarketDataField>();
         //记录合约列表,从实盘合约名到对象的映射
         private Dictionary<string, CThostFtdcInstrumentField> _dictInstruments = new Dictionary<string, CThostFtdcInstrumentField>();
+        //记录手续费率,从实盘合约名到对象的映射
+        private Dictionary<string, CThostFtdcInstrumentCommissionRateField> _dictCommissionRate = new Dictionary<string, CThostFtdcInstrumentCommissionRateField>();
+        //记录保证金率,从实盘合约名到对象的映射
+        private Dictionary<string, CThostFtdcInstrumentMarginRateField> _dictMarginRate = new Dictionary<string, CThostFtdcInstrumentMarginRateField>();
         //记录
         private Dictionary<string, Instrument> _dictAltSymbol2Instrument = new Dictionary<string, Instrument>();
 
@@ -103,6 +113,8 @@ namespace QuantBox.OQ.CTP
             _dbInMemInvestorPosition.Clear();
             _dictDepthMarketData.Clear();
             _dictInstruments.Clear();
+            _dictCommissionRate.Clear();
+            _dictMarginRate.Clear();
             _dictAltSymbol2Instrument.Clear();
 
             _yyyy = 0;
@@ -334,6 +346,8 @@ namespace QuantBox.OQ.CTP
                     TraderApi.CTP_RegOnRspOrderAction(m_pMsgQueue, _fnOnRspOrderAction_Holder);
                     TraderApi.CTP_RegOnRspOrderInsert(m_pMsgQueue, _fnOnRspOrderInsert_Holder);
                     TraderApi.CTP_RegOnRspQryInstrument(m_pMsgQueue, _fnOnRspQryInstrument_Holder);
+                    TraderApi.CTP_RegOnRspQryInstrumentCommissionRate(m_pMsgQueue, _fnOnRspQryInstrumentCommissionRate_Holder);
+                    TraderApi.CTP_RegOnRspQryInstrumentMarginRate(m_pMsgQueue, _fnOnRspQryInstrumentMarginRate_Holder);
                     TraderApi.CTP_RegOnRspQryInvestorPosition(m_pMsgQueue, _fnOnRspQryInvestorPosition_Holder);
                     TraderApi.CTP_RegOnRspQryTradingAccount(m_pMsgQueue, _fnOnRspQryTradingAccount_Holder);
                     TraderApi.CTP_RegOnRtnOrder(m_pMsgQueue, _fnOnRtnOrder_Holder);
@@ -473,9 +487,9 @@ namespace QuantBox.OQ.CTP
                         pRspUserLogin.DCETime, pRspUserLogin.CZCETime, pRspUserLogin.FFEXTime);
                 }
                 //这也有个时间，但取出的时间无效
-                if (OutputLog)
+                if (OutputLogToConsole)
                 {
-                    Console.WriteLine(string.Format("MdApi:{0},{1},{2}", Clock.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"), result, pRspUserLogin.LoginTime));
+                    Console.WriteLine("MdApi:{0},{1},{2}", Clock.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"), result, pRspUserLogin.LoginTime);
                 }
             }
             else if (m_pTdApi == pApi)//交易
@@ -511,9 +525,9 @@ namespace QuantBox.OQ.CTP
                     _dictInstruments.Clear();
                     TraderApi.TD_ReqQryInstrument(m_pTdApi, null);
                 }
-                if (OutputLog)
+                if (OutputLogToConsole)
                 {
-                    Console.WriteLine(string.Format("TdApi:{0},{1},{2}", Clock.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"), result, pRspUserLogin.LoginTime));
+                    Console.WriteLine("TdApi:{0},{1},{2}", Clock.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"), result, pRspUserLogin.LoginTime);
                 }
             }
 
@@ -540,9 +554,9 @@ namespace QuantBox.OQ.CTP
                 else
                 {
                     EmitError((int)step, pRspInfo.ErrorID, "MdApi:" + pRspInfo.ErrorMsg);
-                    if (OutputLog)
+                    if (OutputLogToConsole)
                     {
-                        Console.WriteLine(string.Format("MdApi:{0},{1},{2}", Clock.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"), pRspInfo.ErrorID, pRspInfo.ErrorMsg));
+                        Console.WriteLine("MdApi:{0},{1},{2}", Clock.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"), pRspInfo.ErrorID, pRspInfo.ErrorMsg);
                     }
                 }
             }
@@ -556,9 +570,9 @@ namespace QuantBox.OQ.CTP
                 else
                 {
                     EmitError((int)step, pRspInfo.ErrorID, "TdApi:" + pRspInfo.ErrorMsg);
-                    if (OutputLog)
+                    if (OutputLogToConsole)
                     {
-                        Console.WriteLine(string.Format("TdApi:{0},{1},{2}", Clock.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"), pRspInfo.ErrorID, pRspInfo.ErrorMsg));
+                        Console.WriteLine("TdApi:{0},{1},{2}", Clock.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"), pRspInfo.ErrorID, pRspInfo.ErrorMsg);
                     }
                 }
             }
@@ -787,7 +801,7 @@ namespace QuantBox.OQ.CTP
                     TThostFtdcPosiDirectionType.Long, HedgeFlagType, out YdPosition, out TodayPosition);
             }
 
-            if (OutputLog)
+            if (OutputLogToConsole)
             {
                 Console.WriteLine("Side:{0},OrderQty:{1},YdPosition:{2},TodayPosition:{3},Text:{4}",
                     order.Side, order.OrderQty, YdPosition, TodayPosition, order.Text);
@@ -994,7 +1008,7 @@ namespace QuantBox.OQ.CTP
         #region 报单回报
         private void OnRtnOrder(IntPtr pTraderApi, ref CThostFtdcOrderField pOrder)
         {
-            if (OutputLog)
+            if (OutputLogToConsole)
             {
                 Console.WriteLine("{0},{1},{2},开平{3},价{4},原量{5},成交{6},提交{7},状态{8},引用{9},{10}",
                     pOrder.InsertTime, pOrder.InstrumentID, pOrder.Direction, pOrder.CombOffsetFlag, pOrder.LimitPrice,
@@ -1108,7 +1122,7 @@ namespace QuantBox.OQ.CTP
 
         private void OnRtnTrade(IntPtr pTraderApi, ref CThostFtdcTradeField pTrade)
         {
-            if (OutputLog)
+            if (OutputLogToConsole)
             {
                 Console.WriteLine("时{0},合约{1},方向{2},开平{3},价{4},量{5},引用{6}",
                     pTrade.TradeTime, pTrade.InstrumentID, pTrade.Direction, pTrade.OffsetFlag, pTrade.Price, pTrade.Volume, pTrade.OrderRef);
@@ -1167,7 +1181,7 @@ namespace QuantBox.OQ.CTP
             SingleOrder order;
             if (_OrderRef2Order.TryGetValue(string.Format("{0}:{1}:{2}", _RspUserLogin.FrontID, _RspUserLogin.SessionID, pInputOrderAction.OrderRef), out order))
             {
-                if (OutputLog)
+                if (OutputLogToConsole)
                 {
                     Console.WriteLine("CTP回应：{0},价{1},变化量{2},引用{3},{4}",
                         pInputOrderAction.InstrumentID, pInputOrderAction.LimitPrice, pInputOrderAction.VolumeChange, pInputOrderAction.OrderRef,
@@ -1184,7 +1198,7 @@ namespace QuantBox.OQ.CTP
             SingleOrder order;
             if (_OrderRef2Order.TryGetValue(string.Format("{0}:{1}:{2}", _RspUserLogin.FrontID, _RspUserLogin.SessionID, pOrderAction.OrderRef), out order))
             {
-                if (OutputLog)
+                if (OutputLogToConsole)
                 {
                     Console.WriteLine("交易所回应：{0},价{1},变化量{2},引用{3},{4}",
                         pOrderAction.InstrumentID, pOrderAction.LimitPrice, pOrderAction.VolumeChange, pOrderAction.OrderRef,
@@ -1203,7 +1217,7 @@ namespace QuantBox.OQ.CTP
             string strKey = string.Format("{0}:{1}:{2}", _RspUserLogin.FrontID, _RspUserLogin.SessionID, pInputOrder.OrderRef);
             if (_OrderRef2Order.TryGetValue(strKey, out order))
             {
-                if (OutputLog)
+                if (OutputLogToConsole)
                 {
                     Console.WriteLine("CTP回应：{0},{1},开平{2},价{3},原量{4},引用{5},{6}",
                         pInputOrder.InstrumentID, pInputOrder.Direction, pInputOrder.CombOffsetFlag, pInputOrder.LimitPrice,
@@ -1239,7 +1253,7 @@ namespace QuantBox.OQ.CTP
             string strKey = string.Format("{0}:{1}:{2}", _RspUserLogin.FrontID, _RspUserLogin.SessionID, pInputOrder.OrderRef);
             if (_OrderRef2Order.TryGetValue(strKey, out order))
             {
-                if (OutputLog)
+                if (OutputLogToConsole)
                 {
                     Console.WriteLine("交易所回应：{0},{1},开平{2},价{3},原量{4},引用{5},{6}",
                         pInputOrder.InstrumentID, pInputOrder.Direction, pInputOrder.CombOffsetFlag, pInputOrder.LimitPrice,
@@ -1275,12 +1289,42 @@ namespace QuantBox.OQ.CTP
                 _dictInstruments[pInstrument.InstrumentID] = pInstrument;
                 if (bIsLast)
                 {
-                    Console.WriteLine(string.Format("TdApi:{0},合约列表已经接收完成",
-                        Clock.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")));
+                    Console.WriteLine("TdApi:{0},合约列表已经接收完成",
+                        Clock.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"));
                 }
             }
             else
                 EmitError(nRequestID, pRspInfo.ErrorID, "OnRspQryInstrument:" + pRspInfo.ErrorMsg);
+        }
+        #endregion
+
+        #region 手续费列表
+        private void OnRspQryInstrumentCommissionRate(IntPtr pTraderApi, ref CThostFtdcInstrumentCommissionRateField pInstrumentCommissionRate, ref CThostFtdcRspInfoField pRspInfo, int nRequestID, bool bIsLast)
+        {
+            if (0 == pRspInfo.ErrorID)
+            {
+                _dictCommissionRate[pInstrumentCommissionRate.InstrumentID] = pInstrumentCommissionRate;
+                Console.WriteLine("TdApi:{0},已经接收手续费率 {1}",
+                        Clock.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"),
+                        pInstrumentCommissionRate.InstrumentID);
+            }
+            else
+                EmitError(nRequestID, pRspInfo.ErrorID, "OnRspQryInstrumentCommissionRate:" + pRspInfo.ErrorMsg);
+        }
+        #endregion
+
+        #region 保证金率列表
+        private void OnRspQryInstrumentMarginRate(IntPtr pTraderApi, ref CThostFtdcInstrumentMarginRateField pInstrumentMarginRate, ref CThostFtdcRspInfoField pRspInfo, int nRequestID, bool bIsLast)
+        {
+            if (0 == pRspInfo.ErrorID)
+            {
+                _dictMarginRate[pInstrumentMarginRate.InstrumentID] = pInstrumentMarginRate;
+                Console.WriteLine("TdApi:{0},已经接收保证金率 {1}",
+                        Clock.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"),
+                        pInstrumentMarginRate.InstrumentID);
+            }
+            else
+                EmitError(nRequestID, pRspInfo.ErrorID, "OnRspQryInstrumentMarginRate:" + pRspInfo.ErrorMsg);
         }
         #endregion
 

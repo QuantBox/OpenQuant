@@ -32,6 +32,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="QuantBox.CSharp2C, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>E:\Program Files\SmartQuant Ltd\OpenQuant\Bin\QuantBox.CSharp2C.dll</HintPath>
+    </Reference>
     <Reference Include="SmartQuant, Version=1.0.3762.22305, Culture=neutral, processorArchitecture=x86">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\reference\using\SmartQuant.dll</HintPath>
@@ -65,13 +69,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AccountItem.cs" />
-    <Compile Include="CSharp2C\Callbacks.cs" />
-    <Compile Include="CSharp2C\CommApi.cs" />
-    <Compile Include="CSharp2C\Enum.cs" />
-    <Compile Include="CSharp2C\MdApi.cs" />
-    <Compile Include="CSharp2C\otherTypes.cs" />
-    <Compile Include="CSharp2C\Struct.cs" />
-    <Compile Include="CSharp2C\TraderApi.cs" />
     <Compile Include="DbInMemInvestorPosition.cs" />
     <Compile Include="DbInMemTrade.cs" />
     <Compile Include="OrderRecord.cs" />
@@ -84,6 +81,12 @@
     <Compile Include="QBProvider.Settings.cs" />
     <Compile Include="ServerItem.cs" />
     <Compile Include="WinAPI.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\QuantBox.Helper\QuantBox.Helper.csproj">
+      <Project>{97AE93EC-5897-43C8-8D84-D92B73FE1434}</Project>
+      <Name>QuantBox.Helper</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
