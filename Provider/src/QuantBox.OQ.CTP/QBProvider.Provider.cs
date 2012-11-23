@@ -20,11 +20,6 @@ namespace QuantBox.OQ.CTP
 
         public QBProvider()
         {
-            Singleton.GetInstance().global[Singleton.KEY_INSTRUMENT] = _dictInstruments;
-            Singleton.GetInstance().global[Singleton.KEY_MARKET_DATA] = _dictDepthMarketData;
-            Singleton.GetInstance().global[Singleton.KEY_COMMISSION_RATE] = _dictCommissionRate;
-            Singleton.GetInstance().global[Singleton.KEY_MARGIN_RATE] = _dictMarginRate;
-
             timerConnect.Elapsed += new System.Timers.ElapsedEventHandler(timerConnect_Elapsed);
             timerAccount.Elapsed += new System.Timers.ElapsedEventHandler(timerAccount_Elapsed);
             timerPonstion.Elapsed += new System.Timers.ElapsedEventHandler(timerPonstion_Elapsed);

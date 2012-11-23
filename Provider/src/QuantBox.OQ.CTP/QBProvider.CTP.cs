@@ -6,14 +6,13 @@ using System.Security.Principal;
 using System.Threading;
 using System.Windows.Forms;
 using QuantBox.CSharp2C;
+using QuantBox.Helper;
 using SmartQuant;
 using SmartQuant.Data;
 using SmartQuant.Execution;
 using SmartQuant.FIX;
 using SmartQuant.Instruments;
 using SmartQuant.Providers;
-
-
 
 namespace QuantBox.OQ.CTP
 {
@@ -26,6 +25,7 @@ namespace QuantBox.OQ.CTP
         private fnOnRspError                        _fnOnRspError_Holder;
         private fnOnRspOrderAction                  _fnOnRspOrderAction_Holder;
         private fnOnRspOrderInsert                  _fnOnRspOrderInsert_Holder;
+        private fnOnRspQryDepthMarketData           _fnOnRspQryDepthMarketData_Holder;
         private fnOnRspQryInstrument                _fnOnRspQryInstrument_Holder;
         private fnOnRspQryInstrumentCommissionRate  _fnOnRspQryInstrumentCommissionRate_Holder;
         private fnOnRspQryInstrumentMarginRate      _fnOnRspQryInstrumentMarginRate_Holder;
@@ -45,6 +45,7 @@ namespace QuantBox.OQ.CTP
             _fnOnRspError_Holder                        = OnRspError;
             _fnOnRspOrderAction_Holder                  = OnRspOrderAction;
             _fnOnRspOrderInsert_Holder                  = OnRspOrderInsert;
+            _fnOnRspQryDepthMarketData_Holder           = OnRspQryDepthMarketData;
             _fnOnRspQryInstrument_Holder                = OnRspQryInstrument;
             _fnOnRspQryInstrumentCommissionRate_Holder  = OnRspQryInstrumentCommissionRate;
             _fnOnRspQryInstrumentMarginRate_Holder      = OnRspQryInstrumentMarginRate;
@@ -166,9 +167,14 @@ namespace QuantBox.OQ.CTP
             if (!isConnected)
                 return;
 
-            //只连行情，不连交易，隔夜交易不会重连，所以得重新更新下时间
-            if (_bWantMdConnect && !_bWantTdConnect)
+            //换日了，进行部分内容的清理
+            if (_dd != DateTime.Now.Day)
             {
+                _dictDepthMarketData.Clear();
+                _dictInstruments.Clear();
+                _dictCommissionRate.Clear();
+                _dictMarginRate.Clear();
+
                 _yyyy = DateTime.Now.Year;
                 _MM = DateTime.Now.Month;
                 _dd = DateTime.Now.Day;
@@ -211,6 +217,11 @@ namespace QuantBox.OQ.CTP
         private string _newTempPath;
         private void _Connect()
         {
+            CTPAPI.GetInstance().__RegInstrumentDictionary(_dictInstruments);
+            CTPAPI.GetInstance().__RegInstrumentCommissionRateDictionary(_dictCommissionRate);
+            CTPAPI.GetInstance().__RegInstrumentMarginRateDictionary(_dictMarginRate);
+            CTPAPI.GetInstance().__RegDepthMarketDataDictionary(_dictDepthMarketData);
+
             server = null;
             account = null;
 
@@ -328,6 +339,9 @@ namespace QuantBox.OQ.CTP
                     MdApi.CTP_RegOnRtnDepthMarketData(m_pMsgQueue, _fnOnRtnDepthMarketData_Holder);
                     MdApi.MD_RegMsgQueue2MdApi(m_pMdApi, m_pMsgQueue);
                     MdApi.MD_Connect(m_pMdApi, _newTempPath, string.Join(";", server.MarketData.ToArray()), server.BrokerID, account.InvestorId, account.Password);
+
+                    //向单例对象中注入操作用句柄
+                    CTPAPI.GetInstance().__RegMdApi(m_pMdApi);
                 }
             }
         }
@@ -345,6 +359,7 @@ namespace QuantBox.OQ.CTP
                     TraderApi.CTP_RegOnErrRtnOrderInsert(m_pMsgQueue, _fnOnErrRtnOrderInsert_Holder);
                     TraderApi.CTP_RegOnRspOrderAction(m_pMsgQueue, _fnOnRspOrderAction_Holder);
                     TraderApi.CTP_RegOnRspOrderInsert(m_pMsgQueue, _fnOnRspOrderInsert_Holder);
+                    TraderApi.CTP_RegOnRspQryDepthMarketData(m_pMsgQueue, _fnOnRspQryDepthMarketData_Holder);
                     TraderApi.CTP_RegOnRspQryInstrument(m_pMsgQueue, _fnOnRspQryInstrument_Holder);
                     TraderApi.CTP_RegOnRspQryInstrumentCommissionRate(m_pMsgQueue, _fnOnRspQryInstrumentCommissionRate_Holder);
                     TraderApi.CTP_RegOnRspQryInstrumentMarginRate(m_pMsgQueue, _fnOnRspQryInstrumentMarginRate_Holder);
@@ -357,6 +372,9 @@ namespace QuantBox.OQ.CTP
                         server.BrokerID, account.InvestorId, account.Password,
                         ResumeType,
                         server.UserProductInfo, server.AuthCode);
+
+                    //向单例对象中注入操作用句柄
+                    CTPAPI.GetInstance().__RegTdApi(m_pTdApi);
                 }
             }
         }
@@ -365,6 +383,11 @@ namespace QuantBox.OQ.CTP
         #region 断开连接
         private void _Disconnect(bool bInThread)
         {
+            CTPAPI.GetInstance().__RegInstrumentDictionary(null);
+            CTPAPI.GetInstance().__RegInstrumentCommissionRateDictionary(null);
+            CTPAPI.GetInstance().__RegInstrumentMarginRateDictionary(null);
+            CTPAPI.GetInstance().__RegDepthMarketDataDictionary(null);
+
             _runThread = false;
             //等线程结束
             if (null != _thread)
@@ -400,6 +423,8 @@ namespace QuantBox.OQ.CTP
                     MdApi.MD_RegMsgQueue2MdApi(m_pMdApi, IntPtr.Zero);
                     MdApi.MD_ReleaseMdApi(m_pMdApi);
                     m_pMdApi = IntPtr.Zero;
+
+                    CTPAPI.GetInstance().__RegTdApi(m_pMdApi);
                 }
                 _bMdConnected = false;
             }
@@ -414,6 +439,8 @@ namespace QuantBox.OQ.CTP
                     TraderApi.TD_RegMsgQueue2TdApi(m_pTdApi, IntPtr.Zero);
                     TraderApi.TD_ReleaseTdApi(m_pTdApi);
                     m_pTdApi = IntPtr.Zero;
+
+                    CTPAPI.GetInstance().__RegTdApi(m_pTdApi);
                 }
                 _bTdConnected = false;
             }
@@ -682,6 +709,29 @@ namespace QuantBox.OQ.CTP
                 }
             }
         }
+
+        public void OnRspQryDepthMarketData(IntPtr pTraderApi, ref CThostFtdcDepthMarketDataField pDepthMarketData, ref CThostFtdcRspInfoField pRspInfo, int nRequestID, bool bIsLast)
+        {
+            if (0 == pRspInfo.ErrorID)
+            {
+                CThostFtdcDepthMarketDataField DepthMarket;
+                if (!_dictDepthMarketData.TryGetValue(pDepthMarketData.InstrumentID, out DepthMarket))
+                {
+                    //没找到此元素，保存一下
+                    _dictDepthMarketData[pDepthMarketData.InstrumentID] = pDepthMarketData;
+                }
+                Console.WriteLine("TdApi:{0},已经接收查询深度行情 {1}",
+                        Clock.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"),
+                        pDepthMarketData.InstrumentID);
+                //通知单例
+                CTPAPI.GetInstance().FireOnRspQryDepthMarketData(pDepthMarketData);
+            }
+            else
+                EmitError(nRequestID, pRspInfo.ErrorID, "OnRspQryDepthMarketData:" + pRspInfo.ErrorMsg);
+
+            
+        }
+    
         #endregion
 
         #region 撤单
@@ -1307,6 +1357,9 @@ namespace QuantBox.OQ.CTP
                 Console.WriteLine("TdApi:{0},已经接收手续费率 {1}",
                         Clock.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"),
                         pInstrumentCommissionRate.InstrumentID);
+
+                //通知单例
+                CTPAPI.GetInstance().FireOnRspQryInstrumentCommissionRate(pInstrumentCommissionRate);
             }
             else
                 EmitError(nRequestID, pRspInfo.ErrorID, "OnRspQryInstrumentCommissionRate:" + pRspInfo.ErrorMsg);
@@ -1322,6 +1375,12 @@ namespace QuantBox.OQ.CTP
                 Console.WriteLine("TdApi:{0},已经接收保证金率 {1}",
                         Clock.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"),
                         pInstrumentMarginRate.InstrumentID);
+
+                Console.WriteLine("{0},{1},{2},{3}", pInstrumentMarginRate.LongMarginRatioByMoney, pInstrumentMarginRate.LongMarginRatioByVolume,
+                    pInstrumentMarginRate.ShortMarginRatioByMoney, pInstrumentMarginRate.ShortMarginRatioByVolume);
+
+                //通知单例
+                CTPAPI.GetInstance().FireOnRspQryInstrumentMarginRate(pInstrumentMarginRate);
             }
             else
                 EmitError(nRequestID, pRspInfo.ErrorID, "OnRspQryInstrumentMarginRate:" + pRspInfo.ErrorMsg);

@@ -200,24 +200,6 @@ namespace QuantBox.OQ.CTP
             set { _bWantTdConnect = value; }
         }
 
-        [CategoryAttribute("Settings - Extension")]
-        [Description("查询合约手续费到全局变量")]
-        [DefaultValue(false)]
-        public bool QryInstrumentCommissionRate
-        {
-            get;
-            set;
-        }
-
-        [CategoryAttribute("Settings - Extension")]
-        [Description("查询合约保证金率到全局变量")]
-        [DefaultValue(false)]
-        public bool QryInstrumentMarginRate
-        {
-            get;
-            set;
-        }
-
         #endregion
         private void InitSettings()
         {
@@ -228,9 +210,6 @@ namespace QuantBox.OQ.CTP
 
             _bWantMdConnect = true;
             _bWantTdConnect = true;
-
-            QryInstrumentCommissionRate = false;
-            QryInstrumentMarginRate = false;
 
             _SupportMarketOrder = ExchangID.DCE.ToString() + ";" + ExchangID.CZCE.ToString() + ";" + ExchangID.CFFEX.ToString() + ";";
             _SupportCloseToday = ExchangID.SHFE.ToString() + ";";
