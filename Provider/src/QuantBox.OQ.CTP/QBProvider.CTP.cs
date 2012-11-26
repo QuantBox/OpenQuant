@@ -610,6 +610,7 @@ namespace QuantBox.OQ.CTP
             else
             {
                 ChangeStatus(ProviderStatus.Connecting);
+                EmitDisconnectedEvent();
             }
         }
         #endregion
@@ -778,6 +779,15 @@ namespace QuantBox.OQ.CTP
             Instrument inst = InstrumentManager.Instruments[order.Symbol];
             string altSymbol = inst.GetSymbol(this.Name);
             string altExchange = inst.GetSecurityExchange(this.Name);
+            double tickSize = inst.TickSize;
+
+            CThostFtdcInstrumentField _Instrument;
+            if (_dictInstruments.TryGetValue(altSymbol, out _Instrument))
+            {
+                //从合约列表中取交易所名与tickSize，不再依赖用户手工设置的参数了
+                tickSize = _Instrument.PriceTick;
+                altExchange = _Instrument.ExchangeID;
+            }
             
             //最小变动价格修正
             double price = order.Price;
@@ -793,29 +803,29 @@ namespace QuantBox.OQ.CTP
                 //按买卖调整价格
                 if (order.Side == Side.Buy)
                 {
-                    price = DepthMarket.LastPrice + LastPricePlusNTicks * inst.TickSize;
+                    price = DepthMarket.LastPrice + LastPricePlusNTicks * tickSize;
                 }
                 else
                 {
-                    price = DepthMarket.LastPrice - LastPricePlusNTicks * inst.TickSize;
+                    price = DepthMarket.LastPrice - LastPricePlusNTicks * tickSize;
                 }
             }
 
             //没有设置就直接用
-            if (inst.TickSize > 0)
+            if (tickSize > 0)
             {
                 //将价格调整为最小价格的整数倍，此处是否有问题？到底应当是向上调还是向下调呢？此处先这样
                 double num = 0;
                 if (order.Side == Side.Buy)
                 {
-                    num = Math.Round(price / inst.TickSize, 0, MidpointRounding.AwayFromZero);
+                    num = Math.Round(price / tickSize, 0, MidpointRounding.AwayFromZero);
                 }
                 else
                 {
-                    num = Math.Round(price / inst.TickSize, 0, MidpointRounding.AwayFromZero);
+                    num = Math.Round(price / tickSize, 0, MidpointRounding.AwayFromZero);
                 }
 
-                price = inst.TickSize * num;
+                price = tickSize * num;
                 //string PF = string.Format("{{0:{0}}}", inst.PriceDisplay);
                 //price = Convert.ToDouble(string.Format(PF, price));                
             }
@@ -984,7 +994,7 @@ namespace QuantBox.OQ.CTP
             {
                 string strErr = string.Format("CTP:还剩余{0}手,你应当是强制指定平仓了，但持仓数小于要平手数", leave);
                 Console.WriteLine(strErr);
-                EmitError(-1, -1, strErr);
+                //EmitError(-1, -1, strErr);
             }
 
             //将第二腿也设置成一样，这样在使用组合时这地方不用再调整
