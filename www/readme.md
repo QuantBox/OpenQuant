@@ -10,8 +10,7 @@
 <ol>
 <li>下载并安装OpenQuant 3.x 32bit(由于上期技术只提供了Win32的dll,所以OpenQuant也只能用32位)</li>
 <li>下载并安装SmartQuant内盘期货插件，执行此步前保证OpenQuant已经运行过一次</li>
-<li>选择自己期货公司，会自动下载期货公司的服务器配置信息</li>
-<li>如果找到不自己所在的经纪公司，有可能还未与本团队合作，您可以督促下您的客户经理。您也可以手工配置。</li>
+<li>到快期软件中查找地址信息</li>
 </ol>
 
 <h1>配置</h1>
@@ -39,7 +38,7 @@
 <img src="https://raw.github.com/QuantBox/OpenQuant/master/Provider/www/7.png"/>
 <li>在Data->Import->Instruments->CTP，可以打开合约导入对话框。支持关键字过滤。</li>
 <img src="https://raw.github.com/QuantBox/OpenQuant/master/Provider/www/8.png"/>
-<li>导入合约的方式自动填写了“PriceFormat”和“TickSize”两个属性，这两个属性用于插件报单时对报单价进行规范化处理，不能有错，否则报单出错</li>
+<li>导入合约的方式自动填写了“PriceFormat”和“TickSize”等属性</li>
 <img src="https://raw.github.com/QuantBox/OpenQuant/master/Provider/www/9.png"/>
 <li>查看行情和交易的方式请查看OpenQuant的帮助文档</li>
 </ol>
