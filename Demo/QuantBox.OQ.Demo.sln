@@ -1,0 +1,42 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuantBox.OQ.Demo", "QuantBox.OQ.Demo\QuantBox.OQ.Demo.csproj", "{C318A4A3-A6E8-424A-B0E3-CC9771466F07}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "QunatBox.OQ.Demo.CLI", "QunatBox.OQ.Demo.CLI\QunatBox.OQ.Demo.CLI.vcxproj", "{12BB57A6-7FCB-4883-B628-DDACC047877A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|Mixed Platforms = Debug|Mixed Platforms
+		Debug|Win32 = Debug|Win32
+		Release|Any CPU = Release|Any CPU
+		Release|Mixed Platforms = Release|Mixed Platforms
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C318A4A3-A6E8-424A-B0E3-CC9771466F07}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C318A4A3-A6E8-424A-B0E3-CC9771466F07}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C318A4A3-A6E8-424A-B0E3-CC9771466F07}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{C318A4A3-A6E8-424A-B0E3-CC9771466F07}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{C318A4A3-A6E8-424A-B0E3-CC9771466F07}.Debug|Win32.ActiveCfg = Debug|Any CPU
+		{C318A4A3-A6E8-424A-B0E3-CC9771466F07}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C318A4A3-A6E8-424A-B0E3-CC9771466F07}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C318A4A3-A6E8-424A-B0E3-CC9771466F07}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{C318A4A3-A6E8-424A-B0E3-CC9771466F07}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{C318A4A3-A6E8-424A-B0E3-CC9771466F07}.Release|Win32.ActiveCfg = Release|Any CPU
+		{12BB57A6-7FCB-4883-B628-DDACC047877A}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{12BB57A6-7FCB-4883-B628-DDACC047877A}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{12BB57A6-7FCB-4883-B628-DDACC047877A}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{12BB57A6-7FCB-4883-B628-DDACC047877A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{12BB57A6-7FCB-4883-B628-DDACC047877A}.Debug|Win32.Build.0 = Debug|Win32
+		{12BB57A6-7FCB-4883-B628-DDACC047877A}.Release|Any CPU.ActiveCfg = Release|Win32
+		{12BB57A6-7FCB-4883-B628-DDACC047877A}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{12BB57A6-7FCB-4883-B628-DDACC047877A}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{12BB57A6-7FCB-4883-B628-DDACC047877A}.Release|Win32.ActiveCfg = Release|Win32
+		{12BB57A6-7FCB-4883-B628-DDACC047877A}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
