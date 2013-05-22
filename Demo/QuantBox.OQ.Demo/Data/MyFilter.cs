@@ -9,7 +9,7 @@ using OpenQuant.API.Indicators;
 using OpenQuant.API.Plugins;
 using System.Collections.Generic;
 
-namespace QuantBox.OQ.Demo.Misc
+namespace QuantBox.OQ.Demo.Data
 {
     public class MyFilter : MarketDataFilter
     {

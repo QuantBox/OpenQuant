@@ -41,6 +41,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\Program Files (x86)\SmartQuant Ltd\OpenQuant\Bin\QuantBox.Helper.CTP.dll</HintPath>
     </Reference>
+    <Reference Include="QunatBox.OQ.Extensions, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\SmartQuant Ltd\OpenQuant\Bin\QunatBox.OQ.Extensions.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
@@ -53,6 +57,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Data\DynamicBar_code.cs" />
+    <Compile Include="Data\MyExtFilter_Scenario.cs" />
     <Compile Include="Data\SaveData_code.cs" />
     <Compile Include="Indicator\Test\DPO1_code.cs" />
     <Compile Include="Indicator\Test\DynamicBBU_code.cs" />
@@ -82,7 +87,7 @@
     <Compile Include="Strategys\DrawCircles_code.cs" />
     <Compile Include="Strategys\DualThrust_OpenRange_code.cs" />
     <Compile Include="Strategys\DynamicBreakOut2_code.cs" />
-    <Compile Include="Misc\MyFilter.cs" />
+    <Compile Include="Data\MyFilter.cs" />
     <Compile Include="StopStrategy\LimitAccount_code.cs" />
     <Compile Include="Data\Non-natural_TimeBar_code.cs" />
     <Compile Include="Strategys\PairTrading_code.cs" />
