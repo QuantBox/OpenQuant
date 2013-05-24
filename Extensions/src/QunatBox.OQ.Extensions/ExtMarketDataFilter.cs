@@ -45,6 +45,9 @@ namespace QunatBox.OQ.Extensions
 
         private void EmitNewQuoteEvent(IFIXInstrument instrument, SmartQuant.Data.Quote quote)
         {
+            if (instrument == null || quote == null)
+                return;
+
             // 本想把这行代码放在构造函数中的，结果发现有问题
             // 在QuoteMonitor中可以看到价差，但在策略中并不会触发相应的事件
             var NewQuoteDelegate = (MulticastDelegate)NewQuoteField.GetValue(marketDataProvider);
@@ -62,6 +65,9 @@ namespace QunatBox.OQ.Extensions
 
         private void EmitNewTradeEvent(IFIXInstrument instrument, SmartQuant.Data.Trade trade)
         {
+            if (instrument == null || trade == null)
+                return;
+
             var NewTradeDelegate = (MulticastDelegate)NewTradeField.GetValue(marketDataProvider);
 
             foreach (Delegate dlg in NewTradeDelegate.GetInvocationList())
