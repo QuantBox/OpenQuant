@@ -54,6 +54,9 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="yiwoSDK">
+      <HintPath>libs\yiwoSDK.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Data\DynamicBar_code.cs" />
@@ -71,6 +74,9 @@
     <Compile Include="Indicator\Test\KDJ_code.cs" />
     <Compile Include="Indicator\LookBackDays.cs" />
     <Compile Include="Indicator\PC.cs" />
+    <Compile Include="Msic\QQMsg_code.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Plugins_Functions\CTP_code.cs" />
     <Compile Include="Plugins_Functions\MySpreadMarketData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
