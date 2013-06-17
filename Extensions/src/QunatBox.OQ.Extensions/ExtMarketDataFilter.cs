@@ -45,8 +45,11 @@ namespace QunatBox.OQ.Extensions
 
         private void EmitNewQuoteEvent(IFIXInstrument instrument, SmartQuant.Data.Quote quote)
         {
-            if (instrument == null || quote == null)
+            if (quote == null)
                 return;
+
+            if (instrument == null)
+                throw new ArgumentException("合约不存在,请检查是否创建了合约");
 
             // 本想把这行代码放在构造函数中的，结果发现有问题
             // 在QuoteMonitor中可以看到价差，但在策略中并不会触发相应的事件
@@ -65,8 +68,11 @@ namespace QunatBox.OQ.Extensions
 
         private void EmitNewTradeEvent(IFIXInstrument instrument, SmartQuant.Data.Trade trade)
         {
-            if (instrument == null || trade == null)
+            if (trade == null)
                 return;
+
+            if (instrument == null)
+                throw new ArgumentException("合约不存在,请检查是否创建了合约");
 
             var NewTradeDelegate = (MulticastDelegate)NewTradeField.GetValue(marketDataProvider);
 
