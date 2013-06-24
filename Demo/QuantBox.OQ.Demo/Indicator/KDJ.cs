@@ -37,18 +37,17 @@ namespace QuantBox.OQ.Demo.Indicator
 
         public override double Calculate(int index)
         {
-            if (rsv.Count == 0)
+            int i = index - length + 1;
+            if (i == 0)
             {
-                return double.NaN;
-            }
-            else if (rsv.Count == 1)
-            {
+                // 将前一天初始化为50
                 DateTime dt1 = Input.GetDateTime(index - 1);
                 K.Add(dt1, 50);
                 D.Add(dt1, 50);
             }
+            else if (i < 0)
+                return double.NaN;
 
-            int i = index - length + 1;
             double KValue = K[i];
             double DValue = D[i];
 
