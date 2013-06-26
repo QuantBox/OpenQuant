@@ -29,15 +29,16 @@ namespace QuantBox.OQ.Demo.Indicator
 
         public override double Calculate(int index)
         {
-            if (index - n < 0)
+            int j = index - n;
+            if (j < 0)
                 return double.NaN;
 
             DateTime dt = Input.GetDateTime(index);
 
-            double DIRECTION = Math.Abs(Input[index, BarData.Close] - Input[index - n, BarData.Close]);
+            double DIRECTION = Math.Abs(Input[index, BarData.Close] - Input[j, BarData.Close]);
 
             double VOLATILITY = 0;
-            for (int i = index - n; i < index; ++i)
+            for (int i = j; i < index; ++i)
             {
                 VOLATILITY += Math.Abs(Input[i + 1, BarData.Close] - Input[i, BarData.Close]);
             }
