@@ -31,7 +31,9 @@ namespace QuantBox.OQ.Demo.Plugins_Functions
             CTPAPI.GetInstance().OnRtnInstrumentStatus += new CTPAPI.RtnInstrumentStatus(OnRtnInstrumentStatus);
             // 行情
             CTPAPI.GetInstance().OnRspQryDepthMarketData += new CTPAPI.RspQryDepthMarketData(OnRspQryDepthMarketData);
-            CTPAPI.GetInstance().OnRtnDepthMarketData += new CTPAPI.RtnDepthMarketData(OnRtnDepthMarketData);
+
+            // 此方法已经过期，在插件3.8.2.0中开始废弃
+            //CTPAPI.GetInstance().OnRtnDepthMarketData += new CTPAPI.RtnDepthMarketData(OnRtnDepthMarketData);
         }
 
         public override void OnStrategyStop()
@@ -43,7 +45,9 @@ namespace QuantBox.OQ.Demo.Plugins_Functions
             CTPAPI.GetInstance().OnRtnInstrumentStatus -= new CTPAPI.RtnInstrumentStatus(OnRtnInstrumentStatus);
 
             CTPAPI.GetInstance().OnRspQryDepthMarketData -= new CTPAPI.RspQryDepthMarketData(OnRspQryDepthMarketData);
-            CTPAPI.GetInstance().OnRtnDepthMarketData -= new CTPAPI.RtnDepthMarketData(OnRtnDepthMarketData);
+
+            // 此方法已经过期，在插件3.8.2.0中开始废弃
+            //CTPAPI.GetInstance().OnRtnDepthMarketData -= new CTPAPI.RtnDepthMarketData(OnRtnDepthMarketData);
         }
 
         public override void OnBar(Bar bar)

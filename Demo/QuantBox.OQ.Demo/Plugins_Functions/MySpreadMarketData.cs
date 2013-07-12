@@ -7,6 +7,9 @@ namespace QuantBox.OQ.Demo.Plugins_Functions
     /// <summary>
     /// 生成多个价差的示例
     /// </summary>
+    
+    /* 此方法已经过期，在插件3.8.2.0中开始废弃
+     * 
     public class MySpreadMarketData : ISpreadMarketData
     {
         private Dictionary<string, CThostFtdcDepthMarketDataField> _dict = new Dictionary<string, CThostFtdcDepthMarketDataField>();
@@ -88,6 +91,9 @@ namespace QuantBox.OQ.Demo.Plugins_Functions
             return list;
         }
     }
+     * 
+     * 
+     */
 }
 
 /*
