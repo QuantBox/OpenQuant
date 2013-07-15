@@ -62,7 +62,7 @@
     <Compile Include="Data\DynamicBar_code.cs" />
     <Compile Include="Data\MyExtFilter_Scenario.cs" />
     <Compile Include="Data\SaveData_code.cs" />
-    <Compile Include="Data\TradeConvert_code.cs" />
+    <Compile Include="Data\DataConvert_code.cs" />
     <Compile Include="Indicator\Test\DPO1_code.cs" />
     <Compile Include="Indicator\Test\DynamicBBU_code.cs" />
     <Compile Include="Indicator\Test\KaufmanAMA_code.cs" />
