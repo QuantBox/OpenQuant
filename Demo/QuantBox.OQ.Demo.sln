@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuantBox.OQ.Demo", "QuantBox.OQ.Demo\QuantBox.OQ.Demo.csproj", "{C318A4A3-A6E8-424A-B0E3-CC9771466F07}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "QunatBox.OQ.Demo.CLI", "QunatBox.OQ.Demo.CLI\QunatBox.OQ.Demo.CLI.vcxproj", "{12BB57A6-7FCB-4883-B628-DDACC047877A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "QuantBox.OQ.Demo.CLI", "QuantBox.OQ.Demo.CLI\QuantBox.OQ.Demo.CLI.vcxproj", "{12BB57A6-7FCB-4883-B628-DDACC047877A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

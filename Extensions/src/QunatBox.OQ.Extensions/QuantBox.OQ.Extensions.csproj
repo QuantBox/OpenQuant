@@ -7,8 +7,8 @@
     <ProjectGuid>{30BFE189-3A29-4C23-B675-EBD9655033C1}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>QunatBox.OQ.Extensions</RootNamespace>
-    <AssemblyName>QunatBox.OQ.Extensions</AssemblyName>
+    <RootNamespace>QuantBox.OQ.Extensions</RootNamespace>
+    <AssemblyName>QuantBox.OQ.Extensions</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -16,7 +16,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\..\..\..\..\Program Files %28x86%29\SmartQuant Ltd\OpenQuant\Bin\</OutputPath>
+    <OutputPath>..\..\..\..\..\..\..\Program Files %28x86%29\SmartQuant Ltd\OpenQuant\Bin\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>

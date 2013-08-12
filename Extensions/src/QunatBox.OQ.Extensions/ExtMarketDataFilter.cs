@@ -9,7 +9,7 @@ using SmartQuant.Instruments;
 using SmartQuant.FIX;
 using SmartQuant.Data;
 
-namespace QunatBox.OQ.Extensions
+namespace QuantBox.OQ.Extensions
 {
     public class ExtMarketDataFilter:MarketDataFilter
     {

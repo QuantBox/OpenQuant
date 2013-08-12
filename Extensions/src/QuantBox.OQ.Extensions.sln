@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QunatBox.OQ.Extensions", "QunatBox.OQ.Extensions\QunatBox.OQ.Extensions.csproj", "{30BFE189-3A29-4C23-B675-EBD9655033C1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuantBox.OQ.Extensions", "QunatBox.OQ.Extensions\QuantBox.OQ.Extensions.csproj", "{30BFE189-3A29-4C23-B675-EBD9655033C1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

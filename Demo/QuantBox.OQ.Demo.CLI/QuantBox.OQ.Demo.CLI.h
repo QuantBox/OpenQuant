@@ -4,7 +4,7 @@
 
 using namespace System;
 
-namespace QunatBoxOQDemoCLI {
+namespace QuantBoxOQDemoCLI {
 
 	public class UnmanagedClass
 	{

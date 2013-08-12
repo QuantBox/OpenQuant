@@ -2,9 +2,9 @@
 
 #include "stdafx.h"
 
-#include "QunatBox.OQ.Demo.CLI.h"
+#include "QuantBox.OQ.Demo.CLI.h"
 
-using namespace QunatBoxOQDemoCLI;
+using namespace QuantBoxOQDemoCLI;
 
 void ManagedClass::OnStrategyStart()
 {
