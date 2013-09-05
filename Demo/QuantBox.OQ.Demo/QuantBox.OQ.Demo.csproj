@@ -75,9 +75,11 @@
     <Compile Include="Indicator\Test\KDJ_code.cs" />
     <Compile Include="Indicator\LookBackDays.cs" />
     <Compile Include="Indicator\PC.cs" />
+    <Compile Include="Msic\QQMsg2_code.cs" />
     <Compile Include="Msic\QQMsg_code.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Optimization\Matlab2_Scenario.cs" />
     <Compile Include="Plugins_Functions\CTP_code.cs" />
     <Compile Include="Plugins_Functions\MySpreadMarketData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
