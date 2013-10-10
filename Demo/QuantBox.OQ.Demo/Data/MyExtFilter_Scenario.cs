@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using OpenQuant.API;
 using OpenQuant.API.Engine;
 
-using QunatBox.OQ.Extensions;
+using QuantBox.OQ.Extensions;
 
 namespace QuantBox.OQ.Demo.Data
 {
