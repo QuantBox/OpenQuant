@@ -77,7 +77,7 @@
     <Compile Include="Indicator\Test\KDJ_code.cs" />
     <Compile Include="Indicator\LookBackDays.cs" />
     <Compile Include="Indicator\PC.cs" />
-    <Compile Include="Module\TragetPositionModule.cs" />
+    <Compile Include="Module\TargetPositionModule.cs" />
     <Compile Include="Msic\QQMsg2_code.cs" />
     <Compile Include="Optimization\Matlab2_Scenario.cs" />
     <Compile Include="Plugins_Functions\CTP_code.cs" />

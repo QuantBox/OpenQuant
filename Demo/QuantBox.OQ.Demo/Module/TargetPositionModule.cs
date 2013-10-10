@@ -9,7 +9,7 @@ using System.Text;
 
 namespace QuantBox.OQ.Demo.Module
 {
-    public class TragetPositionModule : Strategy
+    public class TargetPositionModule : Strategy
     {
         public int[] WorkingTime_Financial = { 915, 1130, 1300, 1515 }; //IF
         public int[] WorkingTime_Commodity = { 900, 1015, 1030, 1130, 1330, 1500 }; //商品
