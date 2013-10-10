@@ -134,7 +134,7 @@ namespace QuantBox.OQ.Demo.Helper
                     continue;
 
                 HashSet<Order> set;
-                if (!grid.TryGetValue(key, out set))
+                if (!grid.TryGetValue(k, out set))
                 {
                     continue;
                 }
