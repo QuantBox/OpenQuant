@@ -41,9 +41,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\Program Files (x86)\SmartQuant Ltd\OpenQuant\Bin\QuantBox.Helper.CTP.dll</HintPath>
     </Reference>
-    <Reference Include="QunatBox.OQ.Extensions, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="QuantBox.OQ.Extensions, Version=1.0.0.1, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\Program Files (x86)\SmartQuant Ltd\OpenQuant\Bin\QunatBox.OQ.Extensions.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\Program Files (x86)\SmartQuant Ltd\OpenQuant\Bin\QuantBox.OQ.Extensions.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -54,15 +54,17 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="yiwoSDK">
-      <HintPath>libs\yiwoSDK.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Data\DynamicBar_code.cs" />
     <Compile Include="Data\MyExtFilter_Scenario.cs" />
     <Compile Include="Data\SaveData_code.cs" />
     <Compile Include="Data\DataConvert_code.cs" />
+    <Compile Include="Helper\DualPosition.cs" />
+    <Compile Include="Helper\OpenCloseHelper.cs" />
+    <Compile Include="Helper\OrdersGrid.cs" />
+    <Compile Include="Helper\PositionRecord.cs" />
+    <Compile Include="Helper\PriceHelper.cs" />
     <Compile Include="Indicator\Test\DPO1_code.cs" />
     <Compile Include="Indicator\Test\DynamicBBU_code.cs" />
     <Compile Include="Indicator\Test\KaufmanAMA_code.cs" />
@@ -75,13 +77,10 @@
     <Compile Include="Indicator\Test\KDJ_code.cs" />
     <Compile Include="Indicator\LookBackDays.cs" />
     <Compile Include="Indicator\PC.cs" />
+    <Compile Include="Module\TragetPositionModule.cs" />
     <Compile Include="Msic\QQMsg2_code.cs" />
-    <Compile Include="Msic\QQMsg_code.cs">
-      <SubType>Form</SubType>
-    </Compile>
     <Compile Include="Optimization\Matlab2_Scenario.cs" />
     <Compile Include="Plugins_Functions\CTP_code.cs" />
-    <Compile Include="Plugins_Functions\MySpreadMarketData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Optimization\Matlab_Scenario.cs" />
     <Compile Include="Optimization\SharpeRatio_Scenario.cs" />
