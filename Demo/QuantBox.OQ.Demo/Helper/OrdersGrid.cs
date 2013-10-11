@@ -10,7 +10,7 @@ namespace QuantBox.OQ.Demo.Helper
     {
         private OrderSide Side;
         public SortedList<int, HashSet<Order>> grid;
-        public PriceHelper PriceHelper;
+        public PriceHelper priceHelper;
 
 
         public OrdersGrid(OrderSide Side)
@@ -33,7 +33,7 @@ namespace QuantBox.OQ.Demo.Helper
         public void Add(Order order)
         {
             HashSet<Order> set;
-            int key = PriceHelper.GetKeyByPrice(order.Price, Side);
+            int key = priceHelper.GetKeyByPrice(order.Price, Side);
             if (!grid.TryGetValue(key, out set))
             {
                 set = new HashSet<Order>();
@@ -45,7 +45,7 @@ namespace QuantBox.OQ.Demo.Helper
         public void Remove(Order order)
         {
             HashSet<Order> set;
-            int key = PriceHelper.GetKeyByPrice(order.Price, Side);
+            int key = priceHelper.GetKeyByPrice(order.Price, Side);
             if (!grid.TryGetValue(key, out set))
             {
                 return;
@@ -75,7 +75,7 @@ namespace QuantBox.OQ.Demo.Helper
 
         public double SizeByPrice(double price)
         {
-            int key = PriceHelper.GetKeyByPrice(price, Side);
+            int key = priceHelper.GetKeyByPrice(price, Side);
             HashSet<Order> set;
             if (!grid.TryGetValue(key, out set))
             {
@@ -97,7 +97,7 @@ namespace QuantBox.OQ.Demo.Helper
                 return 0;
 
             int key = grid.Keys[index];
-            return PriceHelper.GetPriceByKey(key);
+            return priceHelper.GetPriceByKey(key);
         }
 
         public int CountIndex()
@@ -127,7 +127,7 @@ namespace QuantBox.OQ.Demo.Helper
         public int CancelExcludePrice(double price)
         {
             int cnt = 0;
-            int key = PriceHelper.GetKeyByPrice(price, Side);
+            int key = priceHelper.GetKeyByPrice(price, Side);
             foreach (int k in grid.Keys)
             {
                 if (k == key)
@@ -156,7 +156,7 @@ namespace QuantBox.OQ.Demo.Helper
             string str = "";
             foreach (var i in grid)
             {
-                double price = PriceHelper.GetPriceByKey(i.Key);
+                double price = priceHelper.GetPriceByKey(i.Key);
                 double sum = 0;
                 foreach (var o in i.Value)
                 {

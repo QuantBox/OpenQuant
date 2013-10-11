@@ -11,10 +11,6 @@ namespace QuantBox.OQ.Demo.Module
 {
     public class TargetPositionModule : Strategy
     {
-        public int[] WorkingTime_Financial = { 915, 1130, 1300, 1515 }; //IF
-        public int[] WorkingTime_Commodity = { 900, 1015, 1030, 1130, 1330, 1500 }; //商品
-        public int[] WorkingTime_AuAg = { 0, 230, 900, 1015, 1030, 1130, 1330, 1500, 2100, 2400 };//au,ag
-
         public DualPosition dualPosition;
         /// <summary>
         /// 目标仓位
@@ -32,14 +28,15 @@ namespace QuantBox.OQ.Demo.Module
         /// 小于等于此数量的平仓单自动以市价发送
         /// </summary>
         public double MarketClosePriceThreshold = 20;
-        /// <summary>
-        /// 交易时段
-        /// </summary>
-        public int[] WorkingTime;
+
+        public TimeHelper timeHelper;
+        public PriceHelper priceHelper;
 
         public override void OnStrategyStart()
         {
-            WorkingTime = WorkingTime_Commodity;
+            timeHelper = new TimeHelper(EnumTradingTime.COMMODITY);
+            priceHelper = new PriceHelper(Instrument.TickSize);
+
             dualPosition = new DualPosition();
 
             // 测试代码
@@ -63,29 +60,6 @@ namespace QuantBox.OQ.Demo.Module
             Process();
         }
 
-        private bool IsWorkingTime()
-        {
-            // 交易时间处理，时间不对就不发单
-            int time = Clock.Now.Hour * 100 + Clock.Now.Minute;
-            int index = -1;
-            for (int i = 0; i < WorkingTime.Length; ++i)
-            {
-                if (time >= WorkingTime[i])
-                {
-                    index = i;
-                    break;
-                }
-            }
-
-            if (index % 2 == 0)
-            {
-                // 休息时间
-                return true;
-            }
-
-            return false;
-        }
-
         // 最小手续费处理原则
         public void Process()
         {
@@ -95,7 +69,7 @@ namespace QuantBox.OQ.Demo.Module
             OrderSide Side = OrderSide.Buy;
             EnumOpenClose oc = EnumOpenClose.OPEN;
 
-            if (!IsWorkingTime())
+            if (!timeHelper.IsTradingTime())
             {
                 return;
             }
@@ -140,58 +114,6 @@ namespace QuantBox.OQ.Demo.Module
             }
         }
 
-        // 得到当前对手价
-        private double GetPrice(OrderSide side)
-        {
-            Quote quote = Quote;
-            Trade trade = Trade;
-            Bar bar = Bar;
-
-            if (quote != null)
-            {
-                if (side == OrderSide.Buy)
-                {
-                    if (quote.Ask != 0)
-                        return quote.Ask;
-                }
-                else
-                {
-                    if (quote.Bid != 0)
-                        return quote.Bid;
-                }
-            }
-
-            if (trade != null)
-                if (trade.Price != 0)
-                    return trade.Price;
-
-            if (bar != null)
-            {
-                if (bar.Close != 0)
-                    return bar.Close;
-
-                if (bar.Open != 0)
-                    return bar.Open;
-            }
-
-            return 0;
-        }
-
-        // 在对手价上加一定跳数
-        private double GetPrice(OrderSide side, double jump)
-        {
-            double price = GetPrice(side);
-            if (side == OrderSide.Buy)
-            {
-                price += jump * Instrument.TickSize;
-            }
-            else
-            {
-                price -= jump * Instrument.TickSize;
-            }
-            return price;
-        }
-
         // 下单操作
         private void SendOrder(OrderSide side, EnumOpenClose oc, double qty)
         {
@@ -219,7 +141,7 @@ namespace QuantBox.OQ.Demo.Module
             }
             else
             {
-                SendLimitOrder(side, qty, GetPrice(side, 2), OpenCloseHelper.GetOpenCloseString(oc));
+                SendLimitOrder(side, qty, priceHelper.GetMatchPrice(this, side, 2), OpenCloseHelper.GetOpenCloseString(oc));
             }
         }
 
@@ -280,7 +202,7 @@ namespace QuantBox.OQ.Demo.Module
             dualPosition.OrderCancelled(order);
 
             // 追单
-            if (!IsWorkingTime())
+            if (!timeHelper.IsTradingTime())
             {
                 return;
             }

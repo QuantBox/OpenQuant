@@ -65,6 +65,7 @@
     <Compile Include="Helper\OrdersGrid.cs" />
     <Compile Include="Helper\PositionRecord.cs" />
     <Compile Include="Helper\PriceHelper.cs" />
+    <Compile Include="Helper\TimeHelper.cs" />
     <Compile Include="Indicator\Test\DPO1_code.cs" />
     <Compile Include="Indicator\Test\DynamicBBU_code.cs" />
     <Compile Include="Indicator\Test\KaufmanAMA_code.cs" />
