@@ -30,12 +30,20 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\..\Program Files (x86)\SmartQuant Ltd\OpenQuant\Bin\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="OpenQuant.API">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\SmartQuant Ltd\OpenQuant\Bin\OpenQuant.API.dll</HintPath>
     </Reference>
     <Reference Include="SmartQuant.Data, Version=1.0.0.0, Culture=neutral, PublicKeyToken=844f265c18b031f9, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\Program Files (x86)\SmartQuant Ltd\OpenQuant\Framework\bin\SmartQuant.Data.dll</HintPath>
+    </Reference>
+    <Reference Include="SmartQuant.Execution, Version=1.0.4997.21109, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\..\..\..\Program Files (x86)\SmartQuant Ltd\OpenQuant\Framework\bin\SmartQuant.Execution.dll</HintPath>
     </Reference>
     <Reference Include="SmartQuant.FIX">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\SmartQuant Ltd\OpenQuant\Framework\bin\SmartQuant.FIX.dll</HintPath>
@@ -55,8 +63,22 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Combiner\GenericCombiner.cs" />
+    <Compile Include="Combiner\CommonOrderItem.cs" />
+    <Compile Include="Combiner\GenericOrderItem.cs" />
+    <Compile Include="Combiner\SPOrderItem.cs" />
+    <Compile Include="Combiner\QuoteOrderItem.cs" />
+    <Compile Include="OrderText\TextSP.cs" />
+    <Compile Include="EnumGroupType.cs" />
     <Compile Include="ExtMarketDataFilter.cs" />
+    <Compile Include="EnumOpenClose.cs" />
+    <Compile Include="Combiner\MultiOrderLeg.cs" />
+    <Compile Include="OrderText\TextParameter.cs" />
+    <Compile Include="OrderText\TextQuote.cs" />
+    <Compile Include="OrderText\TextResponse.cs" />
+    <Compile Include="OrderText\TextRequest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="EnumError.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

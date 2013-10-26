@@ -1,11 +1,6 @@
 ﻿using OpenQuant.API;
-using QuantBox.CSharp2CTP;
-using QuantBox.Helper.CTP;
 using QuantBox.OQ.Demo.Helper;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace QuantBox.OQ.Demo.Module
 {
@@ -38,9 +33,11 @@ namespace QuantBox.OQ.Demo.Module
             priceHelper = new PriceHelper(Instrument.TickSize);
 
             dualPosition = new DualPosition();
+            dualPosition.Sell.PriceHelper = priceHelper;
+            dualPosition.Buy.PriceHelper = priceHelper;
 
             // 测试代码
-            TargetPosition = 3;
+            //TargetPosition = 3;
             dualPosition.Long.Qty = 0;
             dualPosition.Short.Qty = 0;
         }
@@ -55,6 +52,11 @@ namespace QuantBox.OQ.Demo.Module
             Process();
         }
 
+        public override void OnBarOpen(Bar bar)
+        {
+            Process();
+        }
+
         public override void OnBar(Bar bar)
         {
             Process();
@@ -63,16 +65,17 @@ namespace QuantBox.OQ.Demo.Module
         // 最小手续费处理原则
         public void Process()
         {
+            // 非交易时段，无法处理
+            if (!timeHelper.IsTradingTime())
+            {
+                return;
+            }
+
             // 计算仓差
             double dif = TargetPosition - dualPosition.NetQty;
             double qty = 0;
             OrderSide Side = OrderSide.Buy;
             EnumOpenClose oc = EnumOpenClose.OPEN;
-
-            if (!timeHelper.IsTradingTime())
-            {
-                return;
-            }
 
             if (dif == 0)// 持仓量相等
             {
@@ -174,7 +177,8 @@ namespace QuantBox.OQ.Demo.Module
         {
             dualPosition.OrderRejected(order);
 
-            ErrorType et = ParseErrorType.GetError(order.Text);
+            // 这个功能过说依赖于CTP插件，先去了
+            //ErrorType et = ParseErrorType.GetError(order.Text);
 
             double flag = order.Side == OrderSide.Buy ? 1 : -1;
 
@@ -186,9 +190,9 @@ namespace QuantBox.OQ.Demo.Module
             }
 
             // 无法平仓，不重发单
-            if (et == ErrorType.OVER_CLOSETODAY_POSITION
-                || et == ErrorType.OVER_CLOSEYESTERDAY_POSITION
-                || et == ErrorType.OVER_CLOSE_POSITION)
+            //if (et == ErrorType.OVER_CLOSETODAY_POSITION
+            //    || et == ErrorType.OVER_CLOSEYESTERDAY_POSITION
+            //    || et == ErrorType.OVER_CLOSE_POSITION)
             {
                 TargetPosition -= flag * order.LeavesQty;
                 return;

@@ -62,7 +62,9 @@
     <Compile Include="Data\DataConvert_code.cs" />
     <Compile Include="Helper\DualPosition.cs" />
     <Compile Include="Helper\OpenCloseHelper.cs" />
-    <Compile Include="Helper\OrdersGrid.cs" />
+    <Compile Include="Helper\OrderBook_BothSide_Size.cs" />
+    <Compile Include="Helper\OrderBook_OneSide_Size.cs" />
+    <Compile Include="Helper\OrderBook_OneSide_Order.cs" />
     <Compile Include="Helper\PositionRecord.cs" />
     <Compile Include="Helper\PriceHelper.cs" />
     <Compile Include="Helper\TimeHelper.cs" />
@@ -78,6 +80,7 @@
     <Compile Include="Indicator\Test\KDJ_code.cs" />
     <Compile Include="Indicator\LookBackDays.cs" />
     <Compile Include="Indicator\PC.cs" />
+    <Compile Include="Module\TargetOrderBookModule.cs" />
     <Compile Include="Module\TargetPositionModule.cs" />
     <Compile Include="Msic\QQMsg2_code.cs" />
     <Compile Include="Optimization\Matlab2_Scenario.cs" />

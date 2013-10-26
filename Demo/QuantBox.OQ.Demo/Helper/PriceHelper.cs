@@ -28,7 +28,7 @@ namespace QuantBox.OQ.Demo.Helper
             this.TickSize = TickSize;
         }
 
-        public int GetKeyByPrice(double price, OrderSide Side)
+        public int GetLevelByPrice(double price, OrderSide Side)
         {
             price = Math.Min(price, UpperLimitPrice);
             price = Math.Max(price, LowerLimitPrice);
@@ -37,14 +37,14 @@ namespace QuantBox.OQ.Demo.Helper
             return index;
         }
 
-        public double GetPriceByKey(int key)
+        public double GetPriceByLevel(int level)
         {
-            return key * TickSize;
+            return level * TickSize;
         }
 
         public double FixPrice(double price, OrderSide Side)
         {
-            return GetPriceByKey(GetKeyByPrice(price, Side));
+            return GetPriceByLevel(GetLevelByPrice(price, Side));
         }
 
         public double GetMatchPrice(Strategy strategy, OrderSide side)

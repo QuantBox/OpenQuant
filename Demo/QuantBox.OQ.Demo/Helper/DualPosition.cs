@@ -11,8 +11,8 @@ namespace QuantBox.OQ.Demo.Helper
         public PositionRecord Long = new PositionRecord();
         public PositionRecord Short = new PositionRecord();
 
-        public OrdersGrid Buy = new OrdersGrid(OrderSide.Buy);
-        public OrdersGrid Sell = new OrdersGrid(OrderSide.Sell);
+        public OrderBook_OneSide_Order Buy = new OrderBook_OneSide_Order(OrderSide.Buy);
+        public OrderBook_OneSide_Order Sell = new OrderBook_OneSide_Order(OrderSide.Sell);
 
         public double NetQty
         {
