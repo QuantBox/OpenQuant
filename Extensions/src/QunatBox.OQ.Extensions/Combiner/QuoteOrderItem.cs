@@ -16,7 +16,7 @@ namespace QuantBox.OQ.Extensions.Combiner
         public string QuoteID;
         public int StayTime;
 
-        public override void Init(TextRequest t)
+        public override void Init(TextCommon t)
         {
             base.Init(t);
 
@@ -25,7 +25,7 @@ namespace QuantBox.OQ.Extensions.Combiner
             StayTime = q.StayTime;
         }
 
-        public override void Add(SingleOrder order, TextRequest t)
+        public override void Add(SingleOrder order, TextCommon t)
         {
             if (order.Side == Side.Buy)
             {
@@ -48,6 +48,11 @@ namespace QuantBox.OQ.Extensions.Combiner
                 return Buy;
             else
                 return Sell;
+        }
+
+        public override int GetLegNum()
+        {
+            return 2;
         }
 
         public override bool IsCreated()

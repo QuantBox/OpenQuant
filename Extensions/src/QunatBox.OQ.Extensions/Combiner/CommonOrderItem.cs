@@ -12,13 +12,13 @@ namespace QuantBox.OQ.Extensions.Combiner
     {
         public MultiOrderLeg Leg = null;
 
-        public override void Init(TextRequest t)
+        public override void Init(TextCommon t)
         {
             base.Init(t);
             Leg = null;
         }
 
-        public override void Add(SingleOrder order, TextRequest t)
+        public override void Add(SingleOrder order, TextCommon t)
         {
             Leg = new MultiOrderLeg { Order = order, OpenClose = t.OpenClose };
         }
@@ -26,6 +26,11 @@ namespace QuantBox.OQ.Extensions.Combiner
         public override IEnumerable<MultiOrderLeg> GetLegs()
         {
             return new List<MultiOrderLeg>() { Leg };
+        }
+
+        public override int GetLegNum()
+        {
+            return 1;
         }
 
         public override MultiOrderLeg GetLeg(Side side,string instrument)

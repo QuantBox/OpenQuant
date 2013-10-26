@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 namespace QuantBox.OQ.Extensions.OrderText
 {
-    public class TextResponse : TextRequest
+    public class TextResponse : TextCommon
     {
         /// <summary>
         /// 错误类型

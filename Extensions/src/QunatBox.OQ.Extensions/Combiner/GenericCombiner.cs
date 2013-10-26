@@ -9,7 +9,7 @@ namespace QuantBox.OQ.Extensions.Combiner
 {
     public class GenericCombiner<T,U>
         where T : GenericOrderItem,new()
-        where U : TextRequest
+        where U : TextCommon
     {
         private T item = null;
 

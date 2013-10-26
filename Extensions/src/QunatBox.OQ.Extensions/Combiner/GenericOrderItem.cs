@@ -10,16 +10,16 @@ namespace QuantBox.OQ.Extensions.Combiner
 {
     public class GenericOrderItem
     {
-        public TextRequest TextRequest;
+        public TextCommon TextRequest;
 
         public bool IsPendingCancel;
 
-        public virtual void Init(TextRequest t)
+        public virtual void Init(TextCommon t)
         {
             TextRequest = t;
         }
 
-        public virtual void Add(SingleOrder order, TextRequest t)
+        public virtual void Add(SingleOrder order, TextCommon t)
         {
         }
 
@@ -31,6 +31,11 @@ namespace QuantBox.OQ.Extensions.Combiner
         public virtual MultiOrderLeg GetLeg(Side side, string instrument)
         {
             return null;
+        }
+
+        public virtual int GetLegNum()
+        {
+            return 1;
         }
 
         public virtual bool IsCreated()

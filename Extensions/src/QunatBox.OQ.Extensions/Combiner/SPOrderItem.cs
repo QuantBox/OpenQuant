@@ -10,15 +10,15 @@ namespace QuantBox.OQ.Extensions.Combiner
         public int Index;
         public MultiOrderLeg[] Leg = new MultiOrderLeg[2];
 
-        public override void Init(TextRequest t)
+        public override void Init(TextCommon t)
         {
             base.Init(t);
             Index = 0;
         }
 
-        public override void Add(SingleOrder order, TextRequest t)
+        public override void Add(SingleOrder order, TextCommon t)
         {
-            if (Index >= 2)
+            if (Index >= GetLegNum())
                 return;
 
             Leg[Index] = new MultiOrderLeg { Order = order, OpenClose = t.OpenClose };
@@ -42,9 +42,14 @@ namespace QuantBox.OQ.Extensions.Combiner
             return null;
         }
 
+        public override int GetLegNum()
+        {
+            return 2;
+        }
+
         public override bool IsCreated()
         {
-            return Index == 2;
+            return Index == GetLegNum();
         }
 
         public string GetSymbol()
@@ -52,7 +57,7 @@ namespace QuantBox.OQ.Extensions.Combiner
             if (!IsCreated())
                 return null;
 
-            return string.Format("SP {0}/{1}", Leg[0].Order.Symbol, Leg[1].Order.Symbol);
+            return string.Format("{0} {1}/{2}",TextRequest.Type,Leg[0].Order.Symbol, Leg[1].Order.Symbol);
         }
     }
 }

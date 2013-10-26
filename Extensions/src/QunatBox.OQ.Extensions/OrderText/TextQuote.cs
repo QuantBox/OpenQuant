@@ -8,7 +8,7 @@ namespace QuantBox.OQ.Extensions.OrderText
     /// <summary>
     /// 做市商双向报价参数
     /// </summary>
-    public class TextQuote : TextRequest
+    public class TextQuote : TextCommon
     {
         /// <summary>
         /// 报价ID,从交易所的询价请求中取得

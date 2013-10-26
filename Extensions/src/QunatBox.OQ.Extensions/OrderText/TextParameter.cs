@@ -16,10 +16,6 @@ namespace QuantBox.OQ.Extensions.OrderText
         [DefaultValue(EnumGroupType.COMMON)]
         [JsonConverter(typeof(StringEnumConverter))]
         public EnumGroupType Type;
-        /// <summary>
-        /// 很多报单，如何成组，用它
-        /// </summary>
-        public string ID;
 
         private static JsonSerializerSettings jSetting = new JsonSerializerSettings()
         {
