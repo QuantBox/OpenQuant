@@ -1,8 +1,6 @@
 ﻿using OpenQuant.API;
-using System;
+using QuantBox.OQ.Extensions;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace QuantBox.OQ.Demo.Helper
 {
@@ -14,6 +12,8 @@ namespace QuantBox.OQ.Demo.Helper
         public OrderBook_OneSide_Order Buy = new OrderBook_OneSide_Order(OrderSide.Buy);
         public OrderBook_OneSide_Order Sell = new OrderBook_OneSide_Order(OrderSide.Sell);
 
+        public Dictionary<Order, EnumOpenClose> Order_OpenClose = new Dictionary<Order, EnumOpenClose>();
+
         public double NetQty
         {
             get { return Long.Qty - Short.Qty; }
@@ -24,12 +24,57 @@ namespace QuantBox.OQ.Demo.Helper
             get { return Buy.IsPending || Sell.IsPending; }
         }
 
+        public void NewOrder(Order order)
+        {
+            lock (this)
+            {
+                if (!order.IsPendingNew)
+                    return;
+
+                EnumOpenClose OpenClose = OpenCloseHelper.CheckOpenClose(order);
+
+                if (EnumOpenClose.OPEN == OpenClose)
+                {
+                    if (order.Side == OrderSide.Buy)
+                    {
+                        Long.FrozenOpen += order.Qty;
+                    }
+                    else
+                    {
+                        Short.FrozenOpen += order.Qty;
+                    }
+                }
+                else
+                {
+                    if (order.Side == OrderSide.Buy)
+                    {
+                        Short.FrozenClose += order.Qty;
+                    }
+                    else
+                    {
+                        Long.FrozenClose += order.Qty;
+                    }
+                }
+                if (order.Side == OrderSide.Buy)
+                {
+                    Buy.Add(order);
+                }
+                else
+                {
+                    Sell.Add(order);
+                }
+                Order_OpenClose[order] = OpenClose;
+            }
+        }
 
         public void Filled(Order order)
         {
             lock (this)
             {
-                if (EnumOpenClose.OPEN == OpenCloseHelper.CheckOpenClose(order))
+                EnumOpenClose OpenClose = EnumOpenClose.OPEN;
+                Order_OpenClose.TryGetValue(order, out OpenClose);
+
+                if (EnumOpenClose.OPEN == OpenClose)
                 {
                     if (order.Side == OrderSide.Buy)
                     {
@@ -88,56 +133,18 @@ namespace QuantBox.OQ.Demo.Helper
                         Sell.Remove(order);
                     }
                 }
+                Order_OpenClose.Remove(order);
             }
         }
 
-
-        public void NewOrder(Order order)
+        public EnumOpenClose OrderCancelled(Order order)
         {
             lock (this)
             {
-                if (!order.IsPendingNew)
-                    return;
+                EnumOpenClose OpenClose = EnumOpenClose.OPEN;
+                Order_OpenClose.TryGetValue(order, out OpenClose);
 
-                if (EnumOpenClose.OPEN == OpenCloseHelper.CheckOpenClose(order))
-                {
-                    if (order.Side == OrderSide.Buy)
-                    {
-                        Long.FrozenOpen += order.Qty;
-                    }
-                    else
-                    {
-                        Short.FrozenOpen += order.Qty;
-                    }
-                }
-                else
-                {
-                    if (order.Side == OrderSide.Buy)
-                    {
-                        Short.FrozenClose += order.Qty;
-                    }
-                    else
-                    {
-                        Long.FrozenClose += order.Qty;
-                    }
-                }
-                if (order.Side == OrderSide.Buy)
-                {
-                    Buy.Add(order);
-                }
-                else
-                {
-                    Sell.Add(order);
-                }
-            }
-        }
-
-
-        public void OrderCancelled(Order order)
-        {
-            lock (this)
-            {
-                if (PositionSide.Long == OpenCloseHelper.CheckLongShort(order))
+                if (PositionSide.Long == OpenCloseHelper.CheckLongShort(order,OpenClose))
                 {
                     ++Long.CumCancelCnt;
                 }
@@ -146,17 +153,21 @@ namespace QuantBox.OQ.Demo.Helper
                     ++Short.CumCancelCnt;
                 }
 
-
                 OrderRejected(order);
+
+                return OpenClose;
             }
         }
 
 
-        public void OrderRejected(Order order)
+        public EnumOpenClose OrderRejected(Order order)
         {
             lock (this)
             {
-                if (EnumOpenClose.OPEN == OpenCloseHelper.CheckOpenClose(order))
+                EnumOpenClose OpenClose = EnumOpenClose.OPEN;
+                Order_OpenClose.TryGetValue(order, out OpenClose);
+
+                if (EnumOpenClose.OPEN == OpenClose)
                 {
                     if (order.Side == OrderSide.Buy)
                     {
@@ -179,7 +190,6 @@ namespace QuantBox.OQ.Demo.Helper
                     }
                 }
 
-
                 if (order.IsDone)
                 {
                     if (order.Side == OrderSide.Buy)
@@ -191,6 +201,9 @@ namespace QuantBox.OQ.Demo.Helper
                         Sell.Remove(order);
                     }
                 }
+                Order_OpenClose.Remove(order);
+
+                return OpenClose;
             }
         }
 

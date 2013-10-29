@@ -31,6 +31,5 @@ namespace QuantBox.OQ.Extensions
         /// 平今仓位不足
         /// </summary>
         OVER_CLOSEYESTERDAY_POSITION,
-
     }
 }

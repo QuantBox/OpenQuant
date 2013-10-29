@@ -1,9 +1,10 @@
-﻿using QuantBox.OQ.Extensions.OrderText;
+﻿using QuantBox.OQ.Extensions.Combiner;
+using QuantBox.OQ.Extensions.OrderText;
 using SmartQuant.Execution;
 using SmartQuant.FIX;
 using System.Collections.Generic;
 
-namespace QuantBox.OQ.Extensions.Combiner
+namespace QuantBox.OQ.Extensions.OrderItem
 {
     public class SPOrderItem : GenericOrderItem
     {
@@ -57,7 +58,7 @@ namespace QuantBox.OQ.Extensions.Combiner
             if (!IsCreated())
                 return null;
 
-            return string.Format("{0} {1}/{2}",TextRequest.Type,Leg[0].Order.Symbol, Leg[1].Order.Symbol);
+            return string.Format("{0} {1}&{2}",TextRequest.Type,Leg[0].Order.Symbol, Leg[1].Order.Symbol);
         }
     }
 }

@@ -63,12 +63,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Combiner\SPCOrderItem.cs" />
+    <Compile Include="OrderItem\SPDOrderItem.cs" />
+    <Compile Include="OrderItem\SPCOrderItem.cs" />
     <Compile Include="Combiner\GenericCombiner.cs" />
-    <Compile Include="Combiner\CommonOrderItem.cs" />
-    <Compile Include="Combiner\GenericOrderItem.cs" />
-    <Compile Include="Combiner\SPOrderItem.cs" />
-    <Compile Include="Combiner\QuoteOrderItem.cs" />
+    <Compile Include="OrderItem\CommonOrderItem.cs" />
+    <Compile Include="OrderItem\GenericOrderItem.cs" />
+    <Compile Include="OrderItem\SPOrderItem.cs" />
+    <Compile Include="OrderItem\QuoteOrderItem.cs" />
+    <Compile Include="OrderText\TextSPD.cs" />
     <Compile Include="OrderText\TextSPC.cs" />
     <Compile Include="OrderText\TextSP.cs" />
     <Compile Include="EnumGroupType.cs" />

@@ -1,28 +1,38 @@
-﻿using OpenQuant.API;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using Newtonsoft.Json;
+using OpenQuant.API;
+using QuantBox.OQ.Extensions;
+using QuantBox.OQ.Extensions.OrderText;
 
 namespace QuantBox.OQ.Demo.Helper
 {
-    public enum EnumOpenClose
-    {
-        OPEN,
-        CLOSE,
-    }
-
     public class OpenCloseHelper
     {
-        public const string OPEN_PREFIX = "O|";
-        public const string CLOSE_TODAY_PREFIX = "T|";
-        public const string CLOSE_YESTODAY_PREFIX = "Y|";
-        public const string CLOSE_PREFIX = "C|";
-
-
         public static EnumOpenClose CheckOpenClose(Order order)
         {
-            return order.Text.StartsWith(OPEN_PREFIX)?EnumOpenClose.OPEN:EnumOpenClose.CLOSE;
+            string text = order.Text;
+            EnumOpenClose OpenClose = EnumOpenClose.OPEN;
+
+            if (text.StartsWith("{") && text.EndsWith("}"))
+            {
+                TextParameter parameter = JsonConvert.DeserializeObject<TextParameter>(text);
+                switch (parameter.Type)
+                {
+                    case EnumGroupType.COMMON:
+                        {
+                            TextCommon t = JsonConvert.DeserializeObject<TextCommon>(text);
+                            OpenClose = t.OpenClose;
+                        }
+                        break;
+                    case EnumGroupType.QUOTE:
+                        {
+                            TextQuote t = JsonConvert.DeserializeObject<TextQuote>(text);
+                            OpenClose = t.OpenClose;
+                        }
+                        break;
+                }
+            }
+
+            return OpenClose;
         }
 
         public static string GetOpenCloseString(EnumOpenClose oc)
@@ -30,18 +40,21 @@ namespace QuantBox.OQ.Demo.Helper
             switch (oc)
             {
                 case EnumOpenClose.OPEN:
-                    return OPEN_PREFIX;
+                    return TextCommon.Open;
                 case EnumOpenClose.CLOSE:
-                    return CLOSE_TODAY_PREFIX;
+                    return TextCommon.Close;
+                case EnumOpenClose.CLOSE_TODAY:
+                    return TextCommon.CloseToday;
+                case EnumOpenClose.CLOSE_YESTERDAY:
+                    return TextCommon.Close;
                 default:
-                    return OPEN_PREFIX;
+                    return TextCommon.Open;
             }
         }
 
-
-        public static PositionSide CheckLongShort(Order order)
+        public static PositionSide CheckLongShort(Order order,EnumOpenClose OpenClose)
         {
-            if (EnumOpenClose.OPEN == CheckOpenClose(order))
+            if (EnumOpenClose.OPEN == OpenClose)
             {
                 if (order.Side == OrderSide.Buy)
                 {
@@ -60,6 +73,12 @@ namespace QuantBox.OQ.Demo.Helper
                 }
             }
             return PositionSide.Short;
+        }
+
+        public static PositionSide CheckLongShort(Order order)
+        {
+            EnumOpenClose OpenClose = CheckOpenClose(order);
+            return CheckLongShort(order, OpenClose);
         }
     }
 }

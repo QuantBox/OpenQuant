@@ -21,5 +21,15 @@ namespace QuantBox.OQ.Extensions.OrderText
         /// 底层状态信息
         /// </summary>
         public string StatusMsg;
+
+        public static EnumError FromText(string text)
+        {
+            if (text.StartsWith("{") && text.EndsWith("}"))
+            {
+                TextResponse parameter = JsonConvert.DeserializeObject<TextResponse>(text);
+                return parameter.Error;
+            }
+            return EnumError.SUCCESS;
+        }
     }
 }

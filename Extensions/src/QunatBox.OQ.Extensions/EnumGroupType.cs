@@ -16,12 +16,16 @@ namespace QuantBox.OQ.Extensions
         /// </summary>
         QUOTE,
         /// <summary>
-        /// 跨期套利
+        /// 大商所跨期套利
         /// </summary>
         SP,
         /// <summary>
-        /// 跨品种套利
+        /// 大商所跨品种套利
         /// </summary>
-        SPC
+        SPC,
+        /// <summary>
+        /// 郑商所跨期套利
+        /// </summary>
+        SPD,
     }
 }

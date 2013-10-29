@@ -1,12 +1,10 @@
-﻿using QuantBox.OQ.Extensions.OrderText;
+﻿using QuantBox.OQ.Extensions.Combiner;
+using QuantBox.OQ.Extensions.OrderText;
 using SmartQuant.Execution;
 using SmartQuant.FIX;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace QuantBox.OQ.Extensions.Combiner
+namespace QuantBox.OQ.Extensions.OrderItem
 {
     public class GenericOrderItem
     {
