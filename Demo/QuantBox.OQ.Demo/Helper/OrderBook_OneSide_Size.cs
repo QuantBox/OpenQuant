@@ -8,15 +8,15 @@ namespace QuantBox.OQ.Demo.Helper
 {
     public class OrderBook_OneSide_Size : IComparer<int>
     {
-        private OrderSide Side;
-        public SortedList<int, double> grid;
+        public OrderSide Side;
+        public SortedList<int, double> Grid;
         public PriceHelper PriceHelper;
 
 
         public OrderBook_OneSide_Size(OrderSide Side)
         {
             this.Side = Side;
-            grid = new SortedList<int, double>(this);
+            Grid = new SortedList<int, double>(this);
         }
 
         public int Compare(int x, int y)
@@ -29,32 +29,27 @@ namespace QuantBox.OQ.Demo.Helper
             int key = PriceHelper.GetLevelByPrice(price, Side);
             if (size <= 0)
             {
-                grid.Remove(key);
+                Grid.Remove(key);
             }
             else
             {
-                grid[key] = size;
+                Grid[key] = size;
             }
         }
 
         public void Clear()
         {
-            grid.Clear();
+            Grid.Clear();
         }
 
         public int Count
         {
-            get { return grid.Count; }
+            get { return Grid.Count; }
         }
-
-        //public int abc()
-        //{
-        //    grid.k
-        //}
 
         public IEnumerable<KeyValuePair<int, double>> Intersect(OrderBook_OneSide_Size obs)
         {
-            return this.grid.Intersect(obs.grid);
+            return this.Grid.Intersect(obs.Grid);
         }
     }
 }

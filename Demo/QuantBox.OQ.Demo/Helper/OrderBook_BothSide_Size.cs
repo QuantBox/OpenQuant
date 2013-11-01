@@ -10,5 +10,7 @@ namespace QuantBox.OQ.Demo.Helper
     {
         public OrderBook_OneSide_Size Sell = new OrderBook_OneSide_Size(OrderSide.Sell);
         public OrderBook_OneSide_Size Buy = new OrderBook_OneSide_Size(OrderSide.Buy);
+
+
     }
 }

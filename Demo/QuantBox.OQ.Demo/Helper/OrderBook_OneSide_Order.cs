@@ -8,14 +8,15 @@ namespace QuantBox.OQ.Demo.Helper
 {
     public class OrderBook_OneSide_Order : IComparer<int>
     {
-        private OrderSide Side;
-        public SortedList<int, HashSet<Order>> grid;
+        public OrderSide Side;
+        public SortedList<int, HashSet<Order>> Grid;
         public PriceHelper PriceHelper;
+        public HashSet<Order> cancelList = new HashSet<Order>();
 
         public OrderBook_OneSide_Order(OrderSide Side)
         {
             this.Side = Side;
-            grid = new SortedList<int, HashSet<Order>>(this);
+            Grid = new SortedList<int, HashSet<Order>>(this);
         }
 
         public int Compare(int x, int y)
@@ -25,7 +26,17 @@ namespace QuantBox.OQ.Demo.Helper
 
         public bool IsPending
         {
-            get { return grid.Count > 0; }
+            get { return Grid.Count > 0; }
+        }
+
+        public void Clear()
+        {
+            Grid.Clear();
+        }
+
+        public int Count
+        {
+            get { return Grid.Count; }
         }
 
 
@@ -33,10 +44,10 @@ namespace QuantBox.OQ.Demo.Helper
         {
             HashSet<Order> set;
             int key = PriceHelper.GetLevelByPrice(order.Price, Side);
-            if (!grid.TryGetValue(key, out set))
+            if (!Grid.TryGetValue(key, out set))
             {
                 set = new HashSet<Order>();
-                grid.Add(key, set);
+                Grid.Add(key, set);
             }
             set.Add(order);
         }
@@ -45,14 +56,15 @@ namespace QuantBox.OQ.Demo.Helper
         {
             HashSet<Order> set;
             int key = PriceHelper.GetLevelByPrice(order.Price, Side);
-            if (!grid.TryGetValue(key, out set))
+            if (!Grid.TryGetValue(key, out set))
             {
                 return;
             }
             set.Remove(order);
+            cancelList.Remove(order);
             if (set.Count == 0)
             {
-                grid.Remove(key);
+                Grid.Remove(key);
             }
         }
 
@@ -69,33 +81,36 @@ namespace QuantBox.OQ.Demo.Helper
         public double Size()
         {
             double sum = 0;
-            foreach(HashSet<Order> set in grid.Values)
+            foreach(HashSet<Order> set in Grid.Values)
             {
                 sum += Size(set);
             }
             return sum;
         }
 
-        public double SizeByIndex(int index = 0)
+        public double SizeByIndex(int index)
         {
-            if (index < 0 || index >= grid.Count)
+            if (index < 0 || index >= Grid.Count)
                 return 0;
 
-            HashSet<Order> set = grid.Values[index];
+            HashSet<Order> set = Grid.Values[index];
             return Size(set);
         }
 
+        public double SizeByLevel(int level)
+        {
+            HashSet<Order> set;
+            if (!Grid.TryGetValue(level, out set))
+            {
+                return 0;
+            }
+            return Size(set);
+        }
 
         public double SizeByPrice(double price)
         {
             int key = PriceHelper.GetLevelByPrice(price, Side);
-            HashSet<Order> set;
-            if (!grid.TryGetValue(key, out set))
-            {
-                return 0;
-            }
-
-            return Size(set);
+            return SizeByLevel(key);
         }
 
         public int Cancel(HashSet<Order> set)
@@ -106,77 +121,49 @@ namespace QuantBox.OQ.Demo.Helper
                 if (!o.IsDone)
                 {
                     o.Cancel();
+                    cancelList.Add(o);
                     ++cnt;
                 }
             }
             return cnt;
         }
 
-
-        public double PriceByIndex(int index = 0)
-        {
-            if (index < 0 || index >= grid.Count)
-                return 0;
-
-            int key = grid.Keys[index];
-            return PriceHelper.GetPriceByLevel(key);
-        }
-
-        public int CountLevel()
-        {
-            return grid.Count;
-        }
-
-        // 指定index的全撤
         public int CancelByIndex(int index)
         {
-            int cnt = 0;
-            if (index < 0 || index >= grid.Count)
+            if (index < 0 || index >= Grid.Count)
                 return 0;
 
-            HashSet<Order> set = grid.Values[index];
+            HashSet<Order> set = Grid.Values[index];
             return Cancel(set);
         }
 
-        public int CancelByOrderBook(OrderBook_OneSide_Size orderbook)
-        {
-            // 
-            int cnt = 0;
-
-            foreach(var a in grid)
-            {
-                double size = orderbook.grid[a.Key];
-
-            }
-
-            return cnt;
-        }
-
-        public int CancelExcludePrice(double price)
+        public int CancelNotEqualPrice(double price)
         {
             int cnt = 0;
             int key = PriceHelper.GetLevelByPrice(price, Side);
-            foreach (int k in grid.Keys)
+            foreach(var kv in Grid)
             {
-                if (k == key)
-                    continue;
-
-                HashSet<Order> set;
-                if (!grid.TryGetValue(k, out set))
+                if(kv.Key != key)
                 {
-                    continue;
+                    cnt += Cancel(kv.Value);
                 }
-                cnt += Cancel(set);
             }
-
             return cnt;
         }
 
+        public double PriceByIndex(int index)
+        {
+            if (index < 0 || index >= Grid.Count)
+                return 0;
+
+            int key = Grid.Keys[index];
+            return PriceHelper.GetPriceByLevel(key);
+        }
 
         public override string ToString()
         {
             string str = "";
-            foreach (var i in grid)
+            foreach (var i in Grid)
             {
                 double price = PriceHelper.GetPriceByLevel(i.Key);
                 double sum = 0;

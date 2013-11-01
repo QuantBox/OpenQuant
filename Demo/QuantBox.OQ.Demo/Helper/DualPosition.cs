@@ -159,6 +159,12 @@ namespace QuantBox.OQ.Demo.Helper
             }
         }
 
+        public EnumOpenClose GetOpenClose(Order order)
+        {
+            EnumOpenClose OpenClose = EnumOpenClose.OPEN;
+            Order_OpenClose.TryGetValue(order, out OpenClose);
+            return OpenClose;
+        }
 
         public EnumOpenClose OrderRejected(Order order)
         {
@@ -209,18 +215,28 @@ namespace QuantBox.OQ.Demo.Helper
 
         public EnumOpenClose CanClose(OrderSide Side, double qty)
         {
-            bool bCanClose = false;
-            if (Side == OrderSide.Buy)
+            if (CanCloseQty(Side) >= qty)
             {
-                bCanClose = Short.CanClose(qty);
+                return EnumOpenClose.CLOSE;
             }
             else
             {
-                bCanClose = Long.CanClose(qty);
+                return EnumOpenClose.OPEN;
             }
-            if (bCanClose)
-                return EnumOpenClose.CLOSE;
-            return EnumOpenClose.OPEN;
+        }
+
+        public double CanCloseQty(OrderSide Side)
+        {
+            double qty;
+            if (Side == OrderSide.Buy)
+            {
+                qty = Short.CanCloseQty();
+            }
+            else
+            {
+                qty = Long.CanCloseQty();
+            }
+            return qty;
         }
 
         public override string ToString()
