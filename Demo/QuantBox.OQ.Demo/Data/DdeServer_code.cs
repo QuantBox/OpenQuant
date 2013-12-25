@@ -55,7 +55,7 @@ namespace QuantBox.OQ.Demo.Data
             server.SetData(TOPIC_TRADE_PRICE,
                 Instrument.ToString(),
                 1,
-                System.Text.Encoding.ASCII.GetBytes(trade.Price.ToString() + "\0")
+                trade.Price.ToString()
                 );
         }
 
@@ -64,13 +64,13 @@ namespace QuantBox.OQ.Demo.Data
             server.SetData(TOPIC_QUOTE_BID,
                 Instrument.ToString(),
                 1,
-                System.Text.Encoding.ASCII.GetBytes(quote.Bid.ToString() + "\0")
+                quote.Bid.ToString()
                 );
 
             server.SetData(TOPIC_QUOTE_ASK,
                 Instrument.ToString(),
                 1,
-                System.Text.Encoding.ASCII.GetBytes(quote.Ask.ToString() + "\0")
+                quote.Ask.ToString()
                 );
         }
 
@@ -79,7 +79,7 @@ namespace QuantBox.OQ.Demo.Data
             server.SetData(TOPIC_TIME,
                 "Now",
                 1,
-                System.Text.Encoding.ASCII.GetBytes(Clock.Now.ToString() + "\0")
+                Clock.Now.ToString()
                 );
 
             AddTimer(Clock.Now.AddSeconds(2));
@@ -121,6 +121,17 @@ namespace QuantBox.OQ.Demo.Data
             {
                 string key = topic + ":" + item + ":" + format.ToString();
                 _Data[key] = data;
+
+                // 如果数据变化少，变化慢，就用这句，效率高
+                //Advise(topic, item);
+            }
+
+            public void SetData(string topic, string item, int format, string data)
+            {
+                string key = topic + ":" + item + ":" + format.ToString();
+                //_Data[key] = System.Text.Encoding.ASCII.GetBytes(data + "\0");
+                // 最后不加0也不出错，但示例中又是加了0
+                _Data[key] = System.Text.Encoding.ASCII.GetBytes(data);
 
                 // 如果数据变化少，变化慢，就用这句，效率高
                 //Advise(topic, item);
