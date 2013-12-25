@@ -20,11 +20,11 @@ namespace QuantBox.OQ.Demo.Module
         /// <summary>
         /// 小于等于此数量的开仓单自动以市价发送
         /// </summary>
-        public double MarketOpenPriceThreshold = 5;
+        public double MarketOpenQtyThreshold = 5;
         /// <summary>
         /// 小于等于此数量的平仓单自动以市价发送
         /// </summary>
-        public double MarketClosePriceThreshold = 20;
+        public double MarketCloseQtyThreshold = 20;
 
         public TimeHelper TimeHelper;
         public PriceHelper PriceHelper;
@@ -136,12 +136,12 @@ namespace QuantBox.OQ.Demo.Module
             bool bMarketOrder = false;
             if (EnumOpenClose.OPEN == oc)
             {
-                if (qty <= MarketOpenPriceThreshold)
+                if (qty <= MarketOpenQtyThreshold)
                     bMarketOrder = true;
             }
             else
             {
-                if (qty <= MarketClosePriceThreshold)
+                if (qty <= MarketCloseQtyThreshold)
                     bMarketOrder = true;
             }
 
