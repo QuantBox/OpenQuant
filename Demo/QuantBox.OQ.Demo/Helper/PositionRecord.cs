@@ -12,6 +12,10 @@ namespace QuantBox.OQ.Demo.Helper
         /// </summary>
         public double Qty;
         /// <summary>
+        /// 实际持今仓量
+        /// </summary>
+        public double QtyToday;
+        /// <summary>
         /// 挂开仓量
         /// </summary>
         public double FrozenOpen;
@@ -19,6 +23,10 @@ namespace QuantBox.OQ.Demo.Helper
         /// 挂平仓量
         /// </summary>
         public double FrozenClose;
+        /// <summary>
+        /// 挂平今量
+        /// </summary>
+        public double FrozenCloseToday;
         /// <summary>
         /// 开仓手数累计
         /// </summary>
@@ -36,8 +44,10 @@ namespace QuantBox.OQ.Demo.Helper
         public void Reset()
         {
             Qty = 0;
+            QtyToday = 0;
             FrozenOpen = 0;
             FrozenClose = 0;
+            FrozenCloseToday = 0;
             CumOpenQty = 0;
             CumCancelCnt = 0;
             HoldingCost = 0;

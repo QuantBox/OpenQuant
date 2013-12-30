@@ -5,6 +5,7 @@ using System.Windows.Forms;
 
 using OpenQuant.API;
 using OpenQuant.API.Indicators;
+using QuantBox.OQ.Demo.Module;
 
 namespace QuantBox.OQ.Demo.Strategys
 {

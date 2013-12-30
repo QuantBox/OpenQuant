@@ -25,7 +25,7 @@ namespace QuantBox.OQ.Demo.Strategys
         static BarSeries BarSeries1;
         static BarSeries BarSeries2;
 
-        static TimeSeries spreadSeries = new TimeSeries("spread");
+        static TimeSeries spreadSeries;
 
         [Parameter("两合约价格序列回归方程的系数")]
         double Slope = 4.325347;
@@ -57,6 +57,7 @@ namespace QuantBox.OQ.Demo.Strategys
                 Console.WriteLine("合约错误！" + Instrument);
             }
 
+            spreadSeries = new TimeSeries("spread");
             sma = new SMA(spreadSeries, Length);
 
             Draw(spreadSeries, 2);

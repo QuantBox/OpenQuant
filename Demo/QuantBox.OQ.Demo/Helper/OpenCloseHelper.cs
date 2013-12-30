@@ -45,8 +45,6 @@ namespace QuantBox.OQ.Demo.Helper
                     return TextCommon.Close;
                 case EnumOpenClose.CLOSE_TODAY:
                     return TextCommon.CloseToday;
-                case EnumOpenClose.CLOSE_YESTERDAY:
-                    return TextCommon.Close;
                 default:
                     return TextCommon.Open;
             }

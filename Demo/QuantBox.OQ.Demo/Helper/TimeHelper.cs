@@ -50,6 +50,27 @@ namespace QuantBox.OQ.Demo.Helper
             }
         }
 
+        public static EnumTradingTime GetTradingTime(string instrument)
+        {
+            string prefix = instrument.Substring(0, 2);
+            switch(prefix)
+            {
+                case "IF":
+                case "IO":
+                    return EnumTradingTime.FINANCIAL;
+                case "au":
+                case "ag":
+                    return EnumTradingTime.COMMODITY_0230;
+                case "cu":
+                case "al":
+                case "pb":
+                case "zn":
+                    return EnumTradingTime.COMMODITY_0100;
+                default:
+                    return EnumTradingTime.COMMODITY;
+            }
+        }
+
         public bool IsTradingTime(int time)
         {
             int index = -1;

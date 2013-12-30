@@ -12,6 +12,5 @@ namespace QuantBox.OQ.Extensions
         OPEN,
         CLOSE,
         CLOSE_TODAY,
-        CLOSE_YESTERDAY,
     }
 }

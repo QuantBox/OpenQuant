@@ -32,9 +32,12 @@ namespace QuantBox.OQ.Demo.Module
         public TimeHelper TimeHelper;
         public PriceHelper PriceHelper;
 
+        public double dbHighestAfterEntry;
+        public double dbLowestAfterEntry;
+
         public override void OnStrategyStart()
         {
-            TimeHelper = new TimeHelper(EnumTradingTime.COMMODITY);
+            TimeHelper = new TimeHelper(TimeHelper.GetTradingTime(Instrument.Symbol));
             PriceHelper = new PriceHelper(Instrument.TickSize);
 
             DualPosition = new DualPosition();
@@ -128,10 +131,10 @@ namespace QuantBox.OQ.Demo.Module
         // 下单操作
         private void SendOrder(OrderSide side, EnumOpenClose oc, double qty)
         {
-            //if (!TimeHelper.IsTradingTime())
-            //{
-            //    return;
-            //}
+            if (!TimeHelper.IsTradingTime())
+            {
+                return;
+            }
 
             if (qty <= 0)
             {
