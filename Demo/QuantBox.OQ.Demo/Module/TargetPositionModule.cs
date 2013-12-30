@@ -16,14 +16,17 @@ namespace QuantBox.OQ.Demo.Module
         /// <summary>
         /// 每笔最大手数
         /// </summary>
+        [Parameter("每笔最大手数", "TargetPositionModule")]
         public double MaxQtyPerLot = 5;
         /// <summary>
         /// 小于等于此数量的开仓单自动以市价发送
         /// </summary>
+        [Parameter("小于等于此数量的开仓单自动以市价发送", "TargetPositionModule")]
         public double MarketOpenQtyThreshold = 5;
         /// <summary>
         /// 小于等于此数量的平仓单自动以市价发送
         /// </summary>
+        [Parameter("小于等于此数量的平仓单自动以市价发送", "TargetPositionModule")]
         public double MarketCloseQtyThreshold = 20;
 
         public TimeHelper TimeHelper;
@@ -81,7 +84,10 @@ namespace QuantBox.OQ.Demo.Module
 
             if (dif == 0)// 持仓量相等
             {
-                // 把所有的挂单先撤了
+                // 把所有的挂单全撤了
+                DualPosition.Buy.Cancel();
+                DualPosition.Sell.Cancel();
+                return;
             }
             else if (dif > 0 && !DualPosition.IsPending)// 表示要增加净持仓
             {
@@ -122,10 +128,10 @@ namespace QuantBox.OQ.Demo.Module
         // 下单操作
         private void SendOrder(OrderSide side, EnumOpenClose oc, double qty)
         {
-            if (!TimeHelper.IsTradingTime())
-            {
-                return;
-            }
+            //if (!TimeHelper.IsTradingTime())
+            //{
+            //    return;
+            //}
 
             if (qty <= 0)
             {

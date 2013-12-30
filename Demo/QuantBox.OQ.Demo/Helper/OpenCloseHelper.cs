@@ -58,7 +58,6 @@ namespace QuantBox.OQ.Demo.Helper
             {
                 if (order.Side == OrderSide.Buy)
                 {
-
                     return PositionSide.Long;
                 }
             }

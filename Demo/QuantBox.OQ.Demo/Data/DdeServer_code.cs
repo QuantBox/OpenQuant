@@ -91,7 +91,7 @@ namespace QuantBox.OQ.Demo.Data
             private System.Timers.Timer _Timer = new System.Timers.Timer();
             private string _Command = "";
             private IDictionary _Data = new Hashtable();
-            private bool _Update = false;
+            //private bool _Update = false;
 
             public TestServer(string service)
                 : base(service)

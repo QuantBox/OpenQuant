@@ -113,6 +113,16 @@ namespace QuantBox.OQ.Demo.Helper
             return SizeByLevel(key);
         }
 
+        public int Cancel()
+        {
+            int cnt = 0;
+            foreach (var set in Grid.Values)
+            {
+                cnt += Cancel(set);
+            }
+            return cnt;
+        }
+
         public int Cancel(HashSet<Order> set)
         {
             int cnt = 0;

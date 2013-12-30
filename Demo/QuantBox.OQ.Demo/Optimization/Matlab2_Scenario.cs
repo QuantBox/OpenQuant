@@ -54,7 +54,7 @@ namespace QuantBox.OQ.Demo.Optimization
 
             Project project = Solution.Projects[0];
 
-            int line = 0;
+            //int line = 0;
 
             for (int length1 = 3; length1 <= 7; length1++)
             {

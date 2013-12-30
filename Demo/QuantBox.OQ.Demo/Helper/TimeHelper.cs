@@ -8,22 +8,24 @@ namespace QuantBox.OQ.Demo.Helper
 {
     public enum EnumTradingTime
     {
-        FINANCIAL,
-        COMMODITY,
-        AUAG,
+        FINANCIAL,  // 金融
+        COMMODITY,  // 商品
+        COMMODITY_0230, // 黄金、白银
+        COMMODITY_0100,
     }
 
     public class TimeHelper
     {
         public int[] WorkingTime;
-        public int EndOfDay;
+        public int EndOfDay { get; private set; }
 
         public int[] WorkingTime_Financial = { 915, 1130, 1300, 1515 }; //IF
         public int[] WorkingTime_Commodity = { 900, 1015, 1030, 1130, 1330, 1500 }; //商品
-        public int[] WorkingTime_AuAg = { 0, 230, 900, 1015, 1030, 1130, 1330, 1500, 2100, 2400 };//au,ag
+        public int[] WorkingTime_Commodity_0230 = { 0, 230, 900, 1015, 1030, 1130, 1330, 1500, 2100, 2400 };//au,ag
+        public int[] WorkingTime_Commodity_0100 = { 0, 100, 900, 1015, 1030, 1130, 1330, 1500, 2100, 2400 };//铜、铝、铅、锌
 
-        public int EndOfDay_Financial = 1515; //IF
-        public int EndOfDay_Commodity = 1500; //商品
+        private int EndOfDay_Financial = 1515; //IF
+        private int EndOfDay_Commodity = 1500; //商品
 
         public TimeHelper(EnumTradingTime tt)
         {
@@ -37,19 +39,23 @@ namespace QuantBox.OQ.Demo.Helper
                     WorkingTime = WorkingTime_Commodity;
                     EndOfDay = EndOfDay_Commodity;
                     break;
-                case EnumTradingTime.AUAG:
-                    WorkingTime = WorkingTime_AuAg;
+                case EnumTradingTime.COMMODITY_0230:
+                    WorkingTime = WorkingTime_Commodity_0230;
+                    EndOfDay = EndOfDay_Commodity;
+                    break;
+                case EnumTradingTime.COMMODITY_0100:
+                    WorkingTime = WorkingTime_Commodity_0100;
                     EndOfDay = EndOfDay_Commodity;
                     break;
             }
         }
 
-        public bool IsTradingTime(int time,int nOffset)
+        public bool IsTradingTime(int time)
         {
             int index = -1;
             for (int i = 0; i < WorkingTime.Length; ++i)
             {
-                if (time < WorkingTime[i] + (i % 2 == 0 ? 0 : nOffset))
+                if (time < WorkingTime[i])
                 {
                     break;
                 }
@@ -69,26 +75,19 @@ namespace QuantBox.OQ.Demo.Helper
             return false;
         }
 
-        public bool IsTradingTime(DateTime dt, int nOffset)
+        public int GetTime(DateTime dt)
         {
-            int time = dt.Hour * 100 + dt.Minute;
-
-            return IsTradingTime(time, nOffset);
+            return dt.Hour * 100 + dt.Minute;
         }
 
-        public bool IsTradingTime(int nOffset)
+        public bool IsTradingTime(DateTime dt)
         {
-            return IsTradingTime(Clock.Now, nOffset);
+            return IsTradingTime(GetTime(dt));
         }
 
         public bool IsTradingTime()
         {
-            return IsTradingTime(0);
-        }
-
-        public int GetEndOfDay()
-        {
-            return EndOfDay;
+            return IsTradingTime(Clock.Now);
         }
     }
 }
