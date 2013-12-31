@@ -14,9 +14,16 @@ namespace QuantBox.OQ.Demo.Data
     public class DdeServer_code : Strategy
     {
         private const string DDE_SERVER = "OpenQuant";
+
         private const string TOPIC_TRADE_PRICE = "Trade.Price";
+        private const string TOPIC_TRADE_SIZE = "Trade.Size";
+
         private const string TOPIC_QUOTE_BID = "Quote.Bid";
+        private const string TOPIC_QUOTE_BID_SIZE = "Quote.BidSize";
+
         private const string TOPIC_QUOTE_ASK = "Quote.Ask";
+        private const string TOPIC_QUOTE_ASK_SIZE = "Quote.AskSize";
+
         private const string TOPIC_TIME = "Time";
 
         static TestServer server = new TestServer(DDE_SERVER);
@@ -53,6 +60,12 @@ namespace QuantBox.OQ.Demo.Data
                 1,
                 trade.Price
                 );
+
+            server.SetData(TOPIC_TRADE_SIZE,
+                Instrument.ToString(),
+                1,
+                trade.Size
+                );
         }
 
         public override void OnQuote(Quote quote)
@@ -63,10 +76,22 @@ namespace QuantBox.OQ.Demo.Data
                 quote.Bid
                 );
 
+            server.SetData(TOPIC_QUOTE_BID_SIZE,
+                Instrument.ToString(),
+                1,
+                quote.BidSize
+                );
+
             server.SetData(TOPIC_QUOTE_ASK,
                 Instrument.ToString(),
                 1,
                 quote.Ask
+                );
+
+            server.SetData(TOPIC_QUOTE_ASK_SIZE,
+                Instrument.ToString(),
+                1,
+                quote.AskSize
                 );
         }
 
