@@ -68,6 +68,9 @@ namespace QuantBox.OQ.Demo.Strategys
         {
             base.OnStrategyStart();
 
+            // 测试用，自定义交易时间，仿真或实盘时可删除
+            base.TimeHelper = new TimeHelper(new int[] { 0, 2400 }, 1700);
+
             base.TargetPosition = 0;
             base.DualPosition.Long.Qty = 0;
             base.DualPosition.Short.Qty = 0;
@@ -132,6 +135,7 @@ namespace QuantBox.OQ.Demo.Strategys
                 if (TimeHelper.GetTime(Clock.Now.AddMinutes(3)) >= TimeHelper.EndOfDay)
                 {
                     TargetPosition = 0;
+                    TextCommon.Text = "尾盘，清仓";
                     break;
                 }
 
@@ -150,10 +154,12 @@ namespace QuantBox.OQ.Demo.Strategys
                 if (bar.Close > UpLine)
                 {
                     TargetPosition = 1;
+                    TextCommon.Text = "突破上轨，多头";
                 }
                 else if (bar.Close < DownLine)
                 {
                     TargetPosition = -1;
+                    TextCommon.Text = "突破下轨，空头";
                 }
                 else
                 {
@@ -175,37 +181,41 @@ namespace QuantBox.OQ.Demo.Strategys
         {
             do
             {
-                if (base.DualPosition.NetQty == 0)
-                {
-                }
-                else
-                {
-
-                }
-
                 if (base.DualPosition.NetQty > 0)
                 {
                     // 固定点位止损
                     double stoploss = base.DualPosition.Long.AvgPrice - Range * 0.1;
                     if (trade.Price < stoploss)
+                    {
                         TargetPosition = 0;
+                        TextCommon.Text = "固定点位止损";
+                    }
 
                     // 止赢
                     double takeprofit = base.DualPosition.Long.AvgPrice + Range * 1.5;
                     if (trade.Price > takeprofit)
+                    {
                         TargetPosition = 0;
+                        TextCommon.Text = "止赢";
+                    }
                 }
                 else if (base.DualPosition.NetQty < 0)
                 {
                     // 固定点位止损
                     double stoploss = base.DualPosition.Short.AvgPrice + Range * 0.1;
                     if (trade.Price > stoploss)
+                    {
                         TargetPosition = 0;
+                        TextCommon.Text = "固定点位止损";
+                    }
 
                     // 止赢
                     double takeprofit = base.DualPosition.Short.AvgPrice - Range * 1.5;
                     if (trade.Price < takeprofit)
+                    {
                         TargetPosition = 0;
+                        TextCommon.Text = "止赢";
+                    }
                 }
 
             } while (false);

@@ -29,16 +29,52 @@ namespace QuantBox.OQ.Demo.Module
         [Parameter("小于等于此数量的平仓单自动以市价发送", "TargetPositionModule")]
         public double MarketCloseQtyThreshold = 20;
 
-        public TimeHelper TimeHelper;
-        public PriceHelper PriceHelper;
+        protected TimeHelper TimeHelper;
+        protected PriceHelper PriceHelper;
 
-        public double dbHighestAfterEntry;
-        public double dbLowestAfterEntry;
+        protected TextCommon TextCommon;
+
+        /// <summary>
+        /// 入场后的最高价，用于跟踪止损
+        /// </summary>
+        public double HighestAfterEntry = double.MinValue;
+        /// <summary>
+        /// 入场后的最低价，用于跟踪止损
+        /// </summary>
+        public double LowestAfterEntry = double.MaxValue;
+
+        /// <summary>
+        /// 在进行各项计算时到底是使用信号持仓还是实盘持仓呢？
+        /// </summary>
+        /// <returns></returns>
+        public virtual double GetCurrentQty()
+        {
+            // 各项处理时使用实盘持仓
+            return DualPosition.NetQty;
+            // 各项处理时使用信号持仓
+            //return TargetPosition;
+        }
+
+        public void HiLoAfterEntry(double price)
+        {
+            double qty = GetCurrentQty();
+            if (qty == 0)
+            {
+                HighestAfterEntry = double.MinValue;
+                LowestAfterEntry = double.MaxValue;
+            }
+            else
+            {
+                HighestAfterEntry = Math.Max(HighestAfterEntry, price);
+                LowestAfterEntry = Math.Min(LowestAfterEntry, price);
+            }
+        }
 
         public override void OnStrategyStart()
         {
             TimeHelper = new TimeHelper(TimeHelper.GetTradingTime(Instrument.Symbol));
             PriceHelper = new PriceHelper(Instrument.TickSize);
+            TextCommon = new TextCommon() { OpenClose = EnumOpenClose.OPEN };
 
             DualPosition = new DualPosition();
             DualPosition.Sell.PriceHelper = PriceHelper;
@@ -53,21 +89,30 @@ namespace QuantBox.OQ.Demo.Module
         public override void OnTrade(Trade trade)
         {
             Process();
+            HiLoAfterEntry(trade.Price);
         }
 
         public override void OnQuote(Quote quote)
         {
             Process();
+
+            // 如果只有Quote数据，如何更新？
+            // 那就会不用这个目标仓位助手了
+            //if(!DataRequests.HasTradeRequest)
+            //{ 
+            //}
         }
 
         public override void OnBarOpen(Bar bar)
         {
             Process();
+            HiLoAfterEntry(bar.Open);
         }
 
         public override void OnBar(Bar bar)
         {
             Process();
+            HiLoAfterEntry(bar.Close);
         }
 
         // 最小手续费处理原则
@@ -83,7 +128,7 @@ namespace QuantBox.OQ.Demo.Module
             double dif = TargetPosition - DualPosition.NetQty;
             double qty = 0;
             OrderSide Side = OrderSide.Buy;
-            EnumOpenClose oc = EnumOpenClose.OPEN;
+            TextCommon.OpenClose = EnumOpenClose.OPEN;
 
             if (dif == 0)// 持仓量相等
             {
@@ -103,7 +148,7 @@ namespace QuantBox.OQ.Demo.Module
                 {
                     // 按最小数量进行平仓
                     qty = Math.Min(qty, DualPosition.Short.Qty);
-                    oc = EnumOpenClose.CLOSE;
+                    TextCommon.OpenClose = EnumOpenClose.CLOSE;
                 }
             }
             else if (!DualPosition.IsPending) // 减少净持仓
@@ -115,7 +160,7 @@ namespace QuantBox.OQ.Demo.Module
                 {
                     // 按最小数量进行平仓
                     qty = Math.Min(qty, DualPosition.Long.Qty);
-                    oc = EnumOpenClose.CLOSE;
+                    TextCommon.OpenClose = EnumOpenClose.CLOSE;
                 }
             }
 
@@ -124,12 +169,12 @@ namespace QuantBox.OQ.Demo.Module
                 qty = Math.Min(qty, MaxQtyPerLot);
 
                 // 下单
-                SendOrder(Side, oc, qty);
+                SendOrder(Side, qty);
             }
         }
 
         // 下单操作
-        private void SendOrder(OrderSide side, EnumOpenClose oc, double qty)
+        private void SendOrder(OrderSide side, double qty)
         {
             if (!TimeHelper.IsTradingTime())
             {
@@ -143,7 +188,7 @@ namespace QuantBox.OQ.Demo.Module
 
             // 为减少滑点，对数量少的单子直接市价单
             bool bMarketOrder = false;
-            if (EnumOpenClose.OPEN == oc)
+            if (EnumOpenClose.OPEN == TextCommon.OpenClose)
             {
                 if (qty <= MarketOpenQtyThreshold)
                     bMarketOrder = true;
@@ -156,29 +201,34 @@ namespace QuantBox.OQ.Demo.Module
 
             if (bMarketOrder)
             {
-                SendMarketOrder(side, qty, OpenCloseHelper.GetOpenCloseString(oc));
+                SendMarketOrder(side, qty, TextCommon.ToString());
             }
             else
             {
-                SendLimitOrder(side, qty, PriceHelper.GetMatchPrice(this, side, 2), OpenCloseHelper.GetOpenCloseString(oc));
+                SendLimitOrder(side, qty, PriceHelper.GetMatchPrice(this, side, 2), TextCommon.ToString());
             }
         }
 
         // 重新发单
         private void ResendOrder(Order order)
         {
-            SendOrder(order.Side, OpenCloseHelper.CheckOpenClose(order), order.LeavesQty);
+            SendOrder(order.Side, order.LeavesQty);
         }
 
         public override void OnOrderPartiallyFilled(Order order)
         {
             DualPosition.Filled(order);
+            HiLoAfterEntry(order.LastPrice);
+
             // 单子部分成交，不做操作，等单子完全执行完
+            // 等交易完，会有问题，一直挂在上面不操作，新单子也过不来
+            //Process();
         }
 
         public override void OnOrderFilled(Order order)
         {
             DualPosition.Filled(order);
+            HiLoAfterEntry(order.LastPrice);
 
             // 检查仓位是否正确,是否要发新单
             Process();
@@ -187,6 +237,8 @@ namespace QuantBox.OQ.Demo.Module
         public override void OnNewOrder(Order order)
         {
             DualPosition.NewOrder(order);
+
+            // 得加定时器，一定的时间内没有成交完全应当撤单重发，目前没有加这一功能
         }
 
         public override void OnOrderRejected(Order order)

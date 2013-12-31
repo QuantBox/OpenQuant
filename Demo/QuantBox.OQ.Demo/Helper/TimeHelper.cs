@@ -50,6 +50,12 @@ namespace QuantBox.OQ.Demo.Helper
             }
         }
 
+        public TimeHelper(int[] workingTime,int enfOfDay)
+        {
+            WorkingTime = workingTime;
+            EndOfDay = enfOfDay;
+        }
+
         public static EnumTradingTime GetTradingTime(string instrument)
         {
             string prefix = instrument.Substring(0, 2);
