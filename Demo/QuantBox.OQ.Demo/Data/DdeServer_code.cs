@@ -19,27 +19,23 @@ namespace QuantBox.OQ.Demo.Data
         private const string TOPIC_QUOTE_ASK = "Quote.Ask";
         private const string TOPIC_TIME = "Time";
 
-        TestServer server;
+        static TestServer server = new TestServer(DDE_SERVER);
+        static int Counter = 0;
 
         public override void OnStrategyStart()
         {
-            try
+            ++Counter;
+            if (Counter == this.Instruments.Count)
             {
-                server.Unregister();
-            }
-            catch (Exception)
-            {
-            }
-
-            try
-            {
-                server = new TestServer(DDE_SERVER);
-                server.Register();
-                Console.WriteLine("注册DDE服务:" + server.Service);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
+                try
+                {
+                    server.Register();
+                    Console.WriteLine("注册DDE服务:" + server.Service);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                }
             }
 
             AddTimer(Clock.Now.AddSeconds(3));
@@ -91,7 +87,6 @@ namespace QuantBox.OQ.Demo.Data
             private System.Timers.Timer _Timer = new System.Timers.Timer();
             private string _Command = "";
             private IDictionary _Data = new Hashtable();
-            //private bool _Update = false;
 
             public TestServer(string service)
                 : base(service)
@@ -111,10 +106,10 @@ namespace QuantBox.OQ.Demo.Data
                 get { return _Command; }
             }
 
-            public byte[] GetData(string topic, string item, int format)
+            public object GetData(string topic, string item, int format)
             {
                 string key = topic + ":" + item + ":" + format.ToString();
-                return (byte[])_Data[key];
+                return _Data[key];
             }
 
             public void SetData(string topic, string item, int format, byte[] data)
@@ -126,12 +121,11 @@ namespace QuantBox.OQ.Demo.Data
                 //Advise(topic, item);
             }
 
-            public void SetData(string topic, string item, int format, string data)
+            public void SetData(string topic, string item, int format, object data)
             {
                 string key = topic + ":" + item + ":" + format.ToString();
-                //_Data[key] = System.Text.Encoding.ASCII.GetBytes(data + "\0");
                 // 最后不加0也不出错，但示例中又是加了0
-                _Data[key] = System.Text.Encoding.ASCII.GetBytes(data);
+                _Data[key] = data;
 
                 // 如果数据变化少，变化慢，就用这句，效率高
                 //Advise(topic, item);
@@ -244,7 +238,7 @@ namespace QuantBox.OQ.Demo.Data
                 string key = conversation.Topic + ":" + item + ":" + format.ToString();
                 if (_Data.Contains(key))
                 {
-                    return new RequestResult((byte[])_Data[key]);
+                    return new RequestResult(System.Text.Encoding.ASCII.GetBytes(_Data[key].ToString()));
                 }
                 return RequestResult.NotProcessed;
             }
@@ -255,10 +249,11 @@ namespace QuantBox.OQ.Demo.Data
                 string key = topic + ":" + item + ":" + format.ToString();
                 if (_Data.Contains(key))
                 {
-                    return (byte[])_Data[key];
+                    return System.Text.Encoding.ASCII.GetBytes(_Data[key].ToString());
                 }
                 return null;
             }
         }
     }
 }
+
