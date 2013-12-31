@@ -51,7 +51,7 @@ namespace QuantBox.OQ.Demo.Data
             server.SetData(TOPIC_TRADE_PRICE,
                 Instrument.ToString(),
                 1,
-                trade.Price.ToString()
+                trade.Price
                 );
         }
 
@@ -60,13 +60,13 @@ namespace QuantBox.OQ.Demo.Data
             server.SetData(TOPIC_QUOTE_BID,
                 Instrument.ToString(),
                 1,
-                quote.Bid.ToString()
+                quote.Bid
                 );
 
             server.SetData(TOPIC_QUOTE_ASK,
                 Instrument.ToString(),
                 1,
-                quote.Ask.ToString()
+                quote.Ask
                 );
         }
 
@@ -75,7 +75,7 @@ namespace QuantBox.OQ.Demo.Data
             server.SetData(TOPIC_TIME,
                 "Now",
                 1,
-                Clock.Now.ToString()
+                Clock.Now
                 );
 
             AddTimer(Clock.Now.AddSeconds(2));
@@ -112,14 +112,14 @@ namespace QuantBox.OQ.Demo.Data
                 return _Data[key];
             }
 
-            public void SetData(string topic, string item, int format, byte[] data)
-            {
-                string key = topic + ":" + item + ":" + format.ToString();
-                _Data[key] = data;
+            //public void SetData(string topic, string item, int format, byte[] data)
+            //{
+            //    string key = topic + ":" + item + ":" + format.ToString();
+            //    _Data[key] = data;
 
-                // 如果数据变化少，变化慢，就用这句，效率高
-                //Advise(topic, item);
-            }
+            //    // 如果数据变化少，变化慢，就用这句，效率高
+            //    //Advise(topic, item);
+            //}
 
             public void SetData(string topic, string item, int format, object data)
             {
