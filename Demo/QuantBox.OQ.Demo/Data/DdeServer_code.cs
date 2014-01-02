@@ -8,6 +8,7 @@ using OpenQuant.API.Indicators;
 
 using NDde.Server;
 using NDde.Advanced;
+using System.Windows.Forms;
 
 namespace QuantBox.OQ.Demo.Data
 {
@@ -106,7 +107,7 @@ namespace QuantBox.OQ.Demo.Data
             AddTimer(Clock.Now.AddSeconds(2));
         }
 
-
+        #region DDE服务
         private sealed class TestServer : DdeServer
         {
             private System.Timers.Timer _Timer = new System.Timers.Timer();
@@ -279,6 +280,7 @@ namespace QuantBox.OQ.Demo.Data
                 return null;
             }
         }
+        #endregion
     }
 }
 

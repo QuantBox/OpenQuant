@@ -92,6 +92,7 @@
     <Compile Include="Module\TargetOrderBookModule.cs" />
     <Compile Include="Module\TargetPositionModule.cs" />
     <Compile Include="Msic\QQMsg2_code.cs" />
+    <Compile Include="Msic\TB_code.cs" />
     <Compile Include="Optimization\Matlab2_Scenario.cs" />
     <Compile Include="Plugins_Functions\CTP_code.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

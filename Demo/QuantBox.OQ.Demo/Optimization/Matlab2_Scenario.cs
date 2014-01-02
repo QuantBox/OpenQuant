@@ -18,17 +18,26 @@ namespace QuantBox.OQ.Demo.Optimization
     /// </summary>
     public class Matlab2_Scenario : Scenario
     {
+        FileSystemWatcher watcher;
+
         private AutoResetEvent _autoResetEvent = new AutoResetEvent(false);
 
         private void WatcherStrat(string path, string filter)
         {
-            FileSystemWatcher watcher = new FileSystemWatcher();
+            watcher = new FileSystemWatcher();
             watcher.Path = path;
             watcher.Filter = filter;
 
             watcher.Created += new FileSystemEventHandler(OnProcess);
 
             watcher.EnableRaisingEvents = true;
+        }
+
+        private void WatcherStop()
+        {
+            watcher.Created -= new FileSystemEventHandler(OnProcess);
+
+            watcher.EnableRaisingEvents = false;
         }
 
         private void OnProcess(object source, FileSystemEventArgs e)
@@ -88,6 +97,8 @@ namespace QuantBox.OQ.Demo.Optimization
             // 执行完后暂时不退出
             //matlab.Quit();
             //matlab = null;
+
+            WatcherStop();
         }
     }
 }
