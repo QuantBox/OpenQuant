@@ -55,6 +55,10 @@ namespace QuantBox.OQ.Demo.Module
             //return TargetPosition;
         }
 
+        /// <summary>
+        /// 计算入场后的最高价与最低价
+        /// </summary>
+        /// <param name="price"></param>
         public void HiLoAfterEntry(double price)
         {
             double qty = GetCurrentQty();
@@ -115,10 +119,12 @@ namespace QuantBox.OQ.Demo.Module
             HiLoAfterEntry(bar.Close);
         }
 
-        // 最小手续费处理原则
+        /// <summary>
+        /// 进行下单，最小手续费处理原则
+        /// </summary>
         public void Process()
         {
-            // 非交易时段，无法处理
+            // 非交易时段，不处理
             if (!TimeHelper.IsTradingTime())
             {
                 return;
@@ -173,7 +179,11 @@ namespace QuantBox.OQ.Demo.Module
             }
         }
 
-        // 下单操作
+        /// <summary>
+        /// 下单
+        /// </summary>
+        /// <param name="side"></param>
+        /// <param name="qty"></param>
         private void SendOrder(OrderSide side, double qty)
         {
             if (!TimeHelper.IsTradingTime())
@@ -209,7 +219,10 @@ namespace QuantBox.OQ.Demo.Module
             }
         }
 
-        // 重新发单
+        /// <summary>
+        /// 重新发单
+        /// </summary>
+        /// <param name="order"></param>
         private void ResendOrder(Order order)
         {
             SendOrder(order.Side, order.LeavesQty);
@@ -282,6 +295,121 @@ namespace QuantBox.OQ.Demo.Module
         public override void OnOrderCancelReject(Order order)
         {
             // 撤单被拒绝，暂不操作
+        }
+
+        /// <summary>
+        /// 根据入场后的最高与最低价，跟踪止损
+        /// </summary>
+        /// <param name="currentPrice"></param>
+        /// <param name="level"></param>
+        /// <param name="mode"></param>
+        /// <returns>止损了返止损前持仓，可用于后面的反手</returns>
+        public virtual double TrailingStop(double currentPrice, double level, StopMode mode)
+        {
+            double qty = GetCurrentQty();
+            double stop;
+            if (qty > 0)
+            {
+                if (StopMode.Percent == mode)
+                {
+                    stop = HighestAfterEntry * (1.0 - level);
+                }
+                else
+                {
+                    stop = HighestAfterEntry - level;
+                }
+                if (currentPrice < stop)
+                {
+                    TargetPosition = 0;
+                    TextCommon.Text = "跟踪止损，从最高";
+                    return qty;
+                }
+            }
+            else
+            {
+                if (StopMode.Percent == mode)
+                {
+                    stop = LowestAfterEntry * (1.0 + level);
+                }
+                else
+                {
+                    stop = LowestAfterEntry + level;
+                }
+
+                if (currentPrice > stop)
+                {
+                    TargetPosition = 0;
+                    TextCommon.Text = "跟踪止损，从最低";
+                    return qty;
+                }
+            }
+
+            return 0;
+        }
+
+        /// <summary>
+        /// 从入场均价开始算起，固定点位止损
+        /// </summary>
+        /// <param name="currentPrice"></param>
+        /// <param name="level"></param>
+        /// <param name="mode"></param>
+        /// <returns>止损了返止损前持仓，可用于后面的反手</returns>
+        public virtual double FixedStop(double currentPrice, double level, StopMode mode)
+        {
+            double qty = GetCurrentQty();
+            double stop;
+            if (qty > 0)
+            {
+                if (StopMode.Percent == mode)
+                {
+                    stop = DualPosition.Long.AvgPrice * (1.0 - level);
+                }
+                else
+                {
+                    stop = DualPosition.Long.AvgPrice - level;
+                }
+                if (currentPrice < stop)
+                {
+                    TargetPosition = 0;
+                    TextCommon.Text = "固定止损";
+                    return qty;
+                }
+            }
+            else
+            {
+                if (StopMode.Percent == mode)
+                {
+                    stop = DualPosition.Short.AvgPrice * (1.0 + level);
+                }
+                else
+                {
+                    stop = DualPosition.Short.AvgPrice + level;
+                }
+
+                if (currentPrice > stop)
+                {
+                    TargetPosition = 0;
+                    TextCommon.Text = "固定止损";
+                    return qty;
+                }
+            }
+            return 0;
+        }
+
+        /// <summary>
+        /// 尾盘清仓
+        /// </summary>
+        /// <returns>返回上次持仓量</returns>
+        public virtual double ExitOnClose()
+        {
+            double qty = GetCurrentQty();
+            if (TimeHelper.GetTime(Clock.Now.AddMinutes(3)) >= TimeHelper.EndOfDay)
+            {
+                TargetPosition = 0;
+                TextCommon.Text = "尾盘，清仓";
+                return qty;
+            }
+            return 0;
         }
     }
 

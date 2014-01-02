@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using OpenQuant.API;
 using OpenQuant.API.Indicators;
 using QuantBox.OQ.Demo.Module;
+using QuantBox.OQ.Demo.Helper;
 
 namespace QuantBox.OQ.Demo.Strategys
 {
@@ -16,7 +17,7 @@ namespace QuantBox.OQ.Demo.Strategys
     /// 
     /// http://www.smartquant.cn/forum/forum.php?mod=viewthread&tid=113
     /// </summary>
-    public class DoubleMA_Crossover_code : Strategy
+    public class DoubleMA_Crossover_code : TargetPositionModule
     {
         [OptimizationParameter(5, 10, 1)]
         [Parameter("快均线", "SMA")]
@@ -35,16 +36,6 @@ namespace QuantBox.OQ.Demo.Strategys
         SMA fastSMA;
         SMA slowSMA;
 
-        bool isEnabled(DateTime datetime)
-        {
-            int nDatetime = datetime.Hour * 100 + datetime.Minute;
-            if (nDatetime > 900 && nDatetime < 1459)
-            {
-                return true;
-            }
-            return false;
-        }
-
         void LoadHistoricalBars(DateTime datetime)
         {
             DateTime dtEnd = datetime;
@@ -62,6 +53,15 @@ namespace QuantBox.OQ.Demo.Strategys
 
         public override void OnStrategyStart()
         {
+            base.OnStrategyStart();
+
+            // 测试用，自定义交易时间，仿真或实盘时可删除
+            base.TimeHelper = new TimeHelper(new int[] { 0, 2400 }, 1458);
+
+            base.TargetPosition = 0;
+            base.DualPosition.Long.Qty = 0;
+            base.DualPosition.Short.Qty = 0;
+
             LoadHistoricalBars(Clock.Now);
 
             BarSeries bars1min = GetBars(BarType.Time, BarSize);
@@ -78,35 +78,36 @@ namespace QuantBox.OQ.Demo.Strategys
             Cross cross = fastSMA.Crosses(slowSMA, bar);
             if (Cross.Above == cross)
             {
-                ClosePosition("T|买平，等反手");
-                Buy(Qty, "O|买开");
+                base.TargetPosition = 1;
+                TextCommon.Text = "金叉";
             }
             else if (Cross.Below == cross)
             {
-                ClosePosition("T|卖平，等反手");
-                Sell(Qty, "O|卖开");
-
+                base.TargetPosition = -1;
+                TextCommon.Text = "死叉";
             }
-            else if (HasPosition)
+            else
             {
-                //可以在这写些加仓指令
+                // 保持上次的状态
             }
-            return;
+
+            base.OnBar(bar);
         }
 
-        public override void OnPositionOpened()
+        public override void OnTrade(Trade trade)
         {
-            //尾盘平仓
-            DateTime dt = Clock.Now;
-            SetStop(new DateTime(dt.Year, dt.Month, dt.Day, 14, 59, 0));
+            do
+            {
+                // 尾盘平仓
+                if (0 != ExitOnClose())
+                    break;
 
-            //跟踪止损，10个价位
-            SetStop(10, StopType.Trailing, StopMode.Absolute);
-        }
+                // 跟踪止损
+                TrailingStop(trade.Price, 5, StopMode.Absolute);
 
-        public override void OnStopExecuted(Stop stop)
-        {
-            ClosePosition("T|止损平仓");
+            } while (false);
+
+            base.OnTrade(trade);
         }
     }
 

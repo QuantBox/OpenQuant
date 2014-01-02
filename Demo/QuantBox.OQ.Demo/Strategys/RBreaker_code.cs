@@ -6,6 +6,8 @@ using System.Windows.Forms;
 using OpenQuant.API;
 using OpenQuant.API.Indicators;
 using OpenQuant.API.Plugins;
+using QuantBox.OQ.Demo.Module;
+using QuantBox.OQ.Demo.Helper;
 
 namespace QuantBox.OQ.Demo.Strategys
 {
@@ -22,7 +24,7 @@ namespace QuantBox.OQ.Demo.Strategys
     /// 论坛上的TB版
     /// http://www.smartquant.cn/forum/forum.php?mod=viewthread&tid=194
     /// </summary>
-    public class RBreaker_code : Strategy
+    public class RBreaker_code : TargetPositionModule
     {
         //第一次运行时，前一天的开高底收
         [Parameter("前一天最高价", "PreDay")]
@@ -55,11 +57,6 @@ namespace QuantBox.OQ.Demo.Strategys
 
         TimeSeries S1;
         TimeSeries B1;
-
-        [Parameter]
-        int notbef = 900;
-        [Parameter]
-        int notaft = 1500;
 
         long barSize = long.MaxValue;
 
@@ -129,6 +126,15 @@ namespace QuantBox.OQ.Demo.Strategys
 
         public override void OnStrategyStart()
         {
+            base.OnStrategyStart();
+
+            // 测试用，自定义交易时间，仿真或实盘时可删除
+            base.TimeHelper = new TimeHelper(new int[] { 0, 2400 }, 1458);
+
+            base.TargetPosition = 0;
+            base.DualPosition.Long.Qty = 0;
+            base.DualPosition.Short.Qty = 0;
+
             // 自动得到当时时间窗口大小
             foreach (BarRequest barRequest in DataRequests.BarRequests)
             {
@@ -190,21 +196,13 @@ namespace QuantBox.OQ.Demo.Strategys
             S1.Add(bar.DateTime, _S1);
             B1.Add(bar.DateTime, _B1);
 
+            do
+            {
+                // 尾盘平仓
+                if (0 != ExitOnClose())
+                    break;
 
-            int nDateTime = Clock.Now.Hour * 100 + Clock.Now.Minute;
-            if (nDateTime < notbef)
-            {
-                return;
-            }
-            if (nDateTime > notaft)
-            {
-                ClosePosition("T|");
-                return;
-            }
-
-            if (HasPosition)
-            {
-                if (Position.Amount > 0)
+                if (GetCurrentQty() > 0)
                 {
                     if ((HighToday > _ssetup && bar.Close < _S1)
                             || bar.Close < _sbreak)
@@ -212,11 +210,11 @@ namespace QuantBox.OQ.Demo.Strategys
                         string text = string.Format("{0}>{1}&&{2}<{3}",
                                 HighToday, _ssetup,
                                 bar.Close, _S1);
-                        ClosePosition("T|" + text);
-                        Sell(Qty, "O|" + text);
+                        TargetPosition = -1;
+                        TextCommon.Text = text;
                     }
                 }
-                else
+                else if (GetCurrentQty() < 0)
                 {
                     if ((LowToday < _bsetup && bar.Close > _B1)
                             || bar.Close > _bbreak)
@@ -224,22 +222,27 @@ namespace QuantBox.OQ.Demo.Strategys
                         string text = string.Format("{0}>{1}&&{2}<{3}",
                                 LowToday, _bsetup,
                                 bar.Close, _B1);
-                        ClosePosition("T|" + text);
-                        Buy(Qty, "O|" + text);
+                        TargetPosition = 1;
+                        TextCommon.Text = text;
                     }
                 }
-            }
-            else
-            {
-                if (bar.Close > _bbreak)
+                else
                 {
-                    Buy(Qty, string.Format("O|{0}>{1}", bar.Close, _bbreak));
+                    if (bar.Close > _bbreak)
+                    {
+                        TargetPosition = 1;
+                        TextCommon.Text = string.Format("{0}>{1}", bar.Close, _bbreak);
+                    }
+                    if (bar.Close < _sbreak)
+                    {
+                        TargetPosition = -1;
+                        TextCommon.Text = string.Format("{0}<{1}", bar.Close, _bbreak);
+                    }
                 }
-                if (bar.Close < _sbreak)
-                {
-                    Sell(Qty, string.Format("O|{0}<{1}", bar.Close, _bbreak));
-                }
-            }
+
+            } while (false);
+
+            base.OnBar(bar);
         }
     }
 

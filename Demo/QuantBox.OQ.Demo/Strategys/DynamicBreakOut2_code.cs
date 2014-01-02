@@ -6,6 +6,8 @@ using OpenQuant.API.Indicators;
 using OpenQuant.API.Plugins;
 
 using QuantBox.OQ.Demo.Indicator;
+using QuantBox.OQ.Demo.Module;
+using QuantBox.OQ.Demo.Helper;
 
 namespace QuantBox.OQ.Demo.Strategys
 {
@@ -19,7 +21,7 @@ namespace QuantBox.OQ.Demo.Strategys
     /// 网上的TS代码
     /// http://www.programtrading.tw/viewtopic.php?t=504
     /// </summary>
-    public class DynamicBreakOut2_code : Strategy
+    public class DynamicBreakOut2_code : TargetPositionModule
     {
         [Parameter("指标窗口长度（LookBackDays）的上限")]
         int ceilingAmt = 60;
@@ -46,6 +48,15 @@ namespace QuantBox.OQ.Demo.Strategys
 
         public override void OnStrategyStart()
         {
+            base.OnStrategyStart();
+
+            // 测试用，自定义交易时间，仿真或实盘时可删除
+            base.TimeHelper = new TimeHelper(new int[] { 0, 2400 }, 1458);
+
+            base.TargetPosition = 0;
+            base.DualPosition.Long.Qty = 0;
+            base.DualPosition.Short.Qty = 0;
+
             bars86400 = GetBars(BarType.Time, 86400);
 
             smd30 = new SMD(bars86400, 30);
@@ -70,6 +81,8 @@ namespace QuantBox.OQ.Demo.Strategys
             Draw(dnBandSeries, 0);
             Draw(buyPointSeries, 0);
             Draw(sellPointSeries, 0);
+
+            base.OnStrategyStart();
         }
 
         public override void OnBar(Bar bar)
@@ -96,29 +109,40 @@ namespace QuantBox.OQ.Demo.Strategys
             buyPointSeries.Add(bar.DateTime, buyPoint);
             sellPointSeries.Add(bar.DateTime, sellPoint);
 
-            //  下面代码可能有问题
-            if (HasPosition)
+            do
             {
-                if (Position.Amount > 0 && Bar.Close < longLiqPoint)
+                if (GetCurrentQty()>0)
                 {
-                    ClosePosition("T|");
+                    if (bar.Close < longLiqPoint)
+                    {
+                        TargetPosition = 0;
+                        TextCommon.Text = "低于多头流动点";
+                    }
                 }
-                if (Position.Amount < 0 && Bar.Close > shortLiqPoint)
+                else if (GetCurrentQty() < 0)
                 {
-                    ClosePosition("T|");
+                    if (bar.Close > shortLiqPoint)
+                    {
+                        TargetPosition = 0;
+                        TextCommon.Text = "高于空头流动点";
+                    }
                 }
-            }
-            else
-            {
-                if (Bar.Close > upBand)// && Bar.Close >= buyPoint
+                else
                 {
-                    Buy(Qty, "O|");
+                    if (bar.Close > upBand)
+                    {
+                        TargetPosition = 1;
+                        TextCommon.Text = "突破上轨开仓";
+                    }
+                    else if (bar.Close < dnBand)
+                    {
+                        TargetPosition = -1;
+                        TextCommon.Text = "突破下轨开仓";
+                    }
                 }
-                if (Bar.Close < dnBand)// && Bar.Close <= sellPoint
-                {
-                    Sell(Qty, "O|");
-                }
-            }
+            } while (false);
+
+            base.OnBar(bar);
         }
     }
 }
