@@ -9,6 +9,9 @@ using QuantBox.OQ.Demo.Module;
 
 namespace QuantBox.OQ.Demo.Msic
 {
+    /// <summary>
+    /// 在TB或MC一类的软件中使用FileAppend记下目标仓位，由OQ发单
+    /// </summary>
     public class TB_code : TargetPositionModule
     {
         FileSystemWatcher watcher;
@@ -39,7 +42,10 @@ namespace QuantBox.OQ.Demo.Msic
             {
                 Console.WriteLine("{0},{1}", e.ChangeType, e.FullPath);
 
-                GetLastLine(e.FullPath);
+                ParseLine(GetLastLine(e.FullPath));
+
+                // 调用父类的下单处理
+                Process();
             }
         }
 
@@ -52,6 +58,8 @@ namespace QuantBox.OQ.Demo.Msic
 
         public override void OnStrategyStop()
         {
+            base.OnStrategyStop();
+
             WatcherStop();
         }
 
@@ -73,7 +81,15 @@ namespace QuantBox.OQ.Demo.Msic
 
         public void ParseLine(string line)
         {
-
+            try
+            {
+                // 这个地方最最后一行只有一个目标仓位
+                base.TargetPosition = double.Parse(line);
+            }
+            catch (Exception)
+            {
+                // 没有识别出来就啥都不做
+            }
         }
     }
 }
