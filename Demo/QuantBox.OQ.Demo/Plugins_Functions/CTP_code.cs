@@ -29,8 +29,6 @@ namespace QuantBox.OQ.Demo.Plugins_Functions
             CTPAPI.GetInstance().OnRspQryInstrumentCommissionRate += new CTPAPI.RspQryInstrumentCommissionRate(OnRspQryInstrumentCommissionRate);
             // 交易所状态
             CTPAPI.GetInstance().OnRtnInstrumentStatus += new CTPAPI.RtnInstrumentStatus(OnRtnInstrumentStatus);
-            // 行情
-            CTPAPI.GetInstance().OnRspQryDepthMarketData += new CTPAPI.RspQryDepthMarketData(OnRspQryDepthMarketData);
 
             CTPAPI.GetInstance().OnRspQryTradingAccount += new CTPAPI.RspQryTradingAccount(OnRspQryTradingAccount);
 
@@ -60,8 +58,6 @@ namespace QuantBox.OQ.Demo.Plugins_Functions
             CTPAPI.GetInstance().OnRspQryInstrumentCommissionRate -= new CTPAPI.RspQryInstrumentCommissionRate(OnRspQryInstrumentCommissionRate);
             
             CTPAPI.GetInstance().OnRtnInstrumentStatus -= new CTPAPI.RtnInstrumentStatus(OnRtnInstrumentStatus);
-
-            CTPAPI.GetInstance().OnRspQryDepthMarketData -= new CTPAPI.RspQryDepthMarketData(OnRspQryDepthMarketData);
 
             CTPAPI.GetInstance().OnRspQryTradingAccount -= new CTPAPI.RspQryTradingAccount(OnRspQryTradingAccount);
 

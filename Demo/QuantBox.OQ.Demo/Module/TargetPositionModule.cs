@@ -304,7 +304,7 @@ namespace QuantBox.OQ.Demo.Module
         /// <param name="level"></param>
         /// <param name="mode"></param>
         /// <returns>止损了返止损前持仓，可用于后面的反手</returns>
-        public virtual double TrailingStop(double currentPrice, double level, StopMode mode)
+        public virtual double TrailingStop(double currentPrice, double level, StopMode mode,string text)
         {
             double qty = GetCurrentQty();
             double stop;
@@ -321,7 +321,7 @@ namespace QuantBox.OQ.Demo.Module
                 if (currentPrice < stop)
                 {
                     TargetPosition = 0;
-                    TextCommon.Text = "跟踪止损，从最高";
+                    TextCommon.Text = text;
                     return qty;
                 }
             }
@@ -339,7 +339,7 @@ namespace QuantBox.OQ.Demo.Module
                 if (currentPrice > stop)
                 {
                     TargetPosition = 0;
-                    TextCommon.Text = "跟踪止损，从最低";
+                    TextCommon.Text = text;
                     return qty;
                 }
             }
@@ -354,7 +354,7 @@ namespace QuantBox.OQ.Demo.Module
         /// <param name="level"></param>
         /// <param name="mode"></param>
         /// <returns>止损了返止损前持仓，可用于后面的反手</returns>
-        public virtual double FixedStop(double currentPrice, double level, StopMode mode)
+        public virtual double FixedStop(double currentPrice, double level, StopMode mode, string text)
         {
             double qty = GetCurrentQty();
             double stop;
@@ -371,7 +371,7 @@ namespace QuantBox.OQ.Demo.Module
                 if (currentPrice < stop)
                 {
                     TargetPosition = 0;
-                    TextCommon.Text = "固定止损";
+                    TextCommon.Text = text;
                     return qty;
                 }
             }
@@ -389,7 +389,7 @@ namespace QuantBox.OQ.Demo.Module
                 if (currentPrice > stop)
                 {
                     TargetPosition = 0;
-                    TextCommon.Text = "固定止损";
+                    TextCommon.Text = text;
                     return qty;
                 }
             }

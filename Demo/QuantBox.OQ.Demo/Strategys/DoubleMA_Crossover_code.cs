@@ -103,7 +103,7 @@ namespace QuantBox.OQ.Demo.Strategys
                     break;
 
                 // 跟踪止损
-                TrailingStop(trade.Price, 5, StopMode.Absolute);
+                TrailingStop(trade.Price, 5, StopMode.Absolute, "跟踪止损");
 
             } while (false);
 
