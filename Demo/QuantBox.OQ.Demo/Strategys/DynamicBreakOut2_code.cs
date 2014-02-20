@@ -116,7 +116,7 @@ namespace QuantBox.OQ.Demo.Strategys
                     if (bar.Close < longLiqPoint)
                     {
                         TargetPosition = 0;
-                        TextCommon.Text = "低于多头流动点";
+                        TextParameter.Text = "低于多头流动点";
                     }
                 }
                 else if (GetCurrentQty() < 0)
@@ -124,7 +124,7 @@ namespace QuantBox.OQ.Demo.Strategys
                     if (bar.Close > shortLiqPoint)
                     {
                         TargetPosition = 0;
-                        TextCommon.Text = "高于空头流动点";
+                        TextParameter.Text = "高于空头流动点";
                     }
                 }
                 else
@@ -132,12 +132,12 @@ namespace QuantBox.OQ.Demo.Strategys
                     if (bar.Close > upBand)
                     {
                         TargetPosition = 1;
-                        TextCommon.Text = "突破上轨开仓";
+                        TextParameter.Text = "突破上轨开仓";
                     }
                     else if (bar.Close < dnBand)
                     {
                         TargetPosition = -1;
-                        TextCommon.Text = "突破下轨开仓";
+                        TextParameter.Text = "突破下轨开仓";
                     }
                 }
             } while (false);

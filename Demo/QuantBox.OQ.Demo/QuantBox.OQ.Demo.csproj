@@ -112,6 +112,7 @@
     <Compile Include="Data\MyFilter.cs" />
     <Compile Include="StopStrategy\LimitAccount_code.cs" />
     <Compile Include="Data\Non-natural_TimeBar_code.cs" />
+    <Compile Include="Strategys\PairTrading2_code.cs" />
     <Compile Include="Strategys\PairTrading_code.cs" />
     <Compile Include="Strategys\RBreaker_code.cs" />
   </ItemGroup>

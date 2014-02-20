@@ -79,12 +79,12 @@ namespace QuantBox.OQ.Demo.Strategys
             if (Cross.Above == cross)
             {
                 base.TargetPosition = 1;
-                TextCommon.Text = "金叉";
+                TextParameter.Text = "金叉";
             }
             else if (Cross.Below == cross)
             {
                 base.TargetPosition = -1;
-                TextCommon.Text = "死叉";
+                TextParameter.Text = "死叉";
             }
             else
             {

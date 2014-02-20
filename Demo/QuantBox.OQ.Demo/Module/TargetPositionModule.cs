@@ -32,7 +32,7 @@ namespace QuantBox.OQ.Demo.Module
         protected TimeHelper TimeHelper;
         protected PriceHelper PriceHelper;
 
-        protected TextCommon TextCommon;
+        protected TextCommon TextParameter;
 
         /// <summary>
         /// 入场后的最高价，用于跟踪止损
@@ -78,7 +78,7 @@ namespace QuantBox.OQ.Demo.Module
         {
             TimeHelper = new TimeHelper(TimeHelper.GetTradingTime(Instrument.Symbol));
             PriceHelper = new PriceHelper(Instrument.TickSize);
-            TextCommon = new TextCommon() { OpenClose = EnumOpenClose.OPEN };
+            TextParameter = new TextCommon() { OpenClose = EnumOpenClose.OPEN };
 
             DualPosition = new DualPosition();
             DualPosition.Sell.PriceHelper = PriceHelper;
@@ -122,7 +122,7 @@ namespace QuantBox.OQ.Demo.Module
         /// <summary>
         /// 进行下单，最小手续费处理原则
         /// </summary>
-        public void Process()
+        public virtual void Process()
         {
             // 非交易时段，不处理
             if (!TimeHelper.IsTradingTime())
@@ -134,7 +134,7 @@ namespace QuantBox.OQ.Demo.Module
             double dif = TargetPosition - DualPosition.NetQty;
             double qty = 0;
             OrderSide Side = OrderSide.Buy;
-            TextCommon.OpenClose = EnumOpenClose.OPEN;
+            TextParameter.OpenClose = EnumOpenClose.OPEN;
 
             if (dif == 0)// 持仓量相等
             {
@@ -154,7 +154,7 @@ namespace QuantBox.OQ.Demo.Module
                 {
                     // 按最小数量进行平仓
                     qty = Math.Min(qty, DualPosition.Short.Qty);
-                    TextCommon.OpenClose = EnumOpenClose.CLOSE;
+                    TextParameter.OpenClose = EnumOpenClose.CLOSE;
                 }
             }
             else if (!DualPosition.IsPending) // 减少净持仓
@@ -166,7 +166,7 @@ namespace QuantBox.OQ.Demo.Module
                 {
                     // 按最小数量进行平仓
                     qty = Math.Min(qty, DualPosition.Long.Qty);
-                    TextCommon.OpenClose = EnumOpenClose.CLOSE;
+                    TextParameter.OpenClose = EnumOpenClose.CLOSE;
                 }
             }
 
@@ -198,7 +198,7 @@ namespace QuantBox.OQ.Demo.Module
 
             // 为减少滑点，对数量少的单子直接市价单
             bool bMarketOrder = false;
-            if (EnumOpenClose.OPEN == TextCommon.OpenClose)
+            if (EnumOpenClose.OPEN == TextParameter.OpenClose)
             {
                 if (qty <= MarketOpenQtyThreshold)
                     bMarketOrder = true;
@@ -211,11 +211,11 @@ namespace QuantBox.OQ.Demo.Module
 
             if (bMarketOrder)
             {
-                SendMarketOrder(side, qty, TextCommon.ToString());
+                SendMarketOrder(side, qty, TextParameter.ToString());
             }
             else
             {
-                SendLimitOrder(side, qty, PriceHelper.GetMatchPrice(this, side, 2), TextCommon.ToString());
+                SendLimitOrder(side, qty, PriceHelper.GetMatchPrice(this, side, 2), TextParameter.ToString());
             }
         }
 
@@ -321,7 +321,7 @@ namespace QuantBox.OQ.Demo.Module
                 if (currentPrice < stop)
                 {
                     TargetPosition = 0;
-                    TextCommon.Text = text;
+                    TextParameter.Text = text;
                     return qty;
                 }
             }
@@ -339,7 +339,7 @@ namespace QuantBox.OQ.Demo.Module
                 if (currentPrice > stop)
                 {
                     TargetPosition = 0;
-                    TextCommon.Text = text;
+                    TextParameter.Text = text;
                     return qty;
                 }
             }
@@ -371,7 +371,7 @@ namespace QuantBox.OQ.Demo.Module
                 if (currentPrice < stop)
                 {
                     TargetPosition = 0;
-                    TextCommon.Text = text;
+                    TextParameter.Text = text;
                     return qty;
                 }
             }
@@ -389,7 +389,7 @@ namespace QuantBox.OQ.Demo.Module
                 if (currentPrice > stop)
                 {
                     TargetPosition = 0;
-                    TextCommon.Text = text;
+                    TextParameter.Text = text;
                     return qty;
                 }
             }
@@ -406,7 +406,7 @@ namespace QuantBox.OQ.Demo.Module
             if (TimeHelper.GetTime(Clock.Now.AddMinutes(3)) >= TimeHelper.EndOfDay)
             {
                 TargetPosition = 0;
-                TextCommon.Text = "尾盘，清仓";
+                TextParameter.Text = "尾盘，清仓";
                 return qty;
             }
             return 0;

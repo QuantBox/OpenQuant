@@ -14,22 +14,23 @@ namespace QuantBox.OQ.Demo.Helper
 
             if (text.StartsWith("{") && text.EndsWith("}"))
             {
-                TextParameter parameter = JsonConvert.DeserializeObject<TextParameter>(text);
-                switch (parameter.Type)
-                {
-                    case EnumGroupType.COMMON:
-                        {
-                            TextCommon t = JsonConvert.DeserializeObject<TextCommon>(text);
-                            OpenClose = t.OpenClose;
-                        }
-                        break;
-                    case EnumGroupType.QUOTE:
-                        {
-                            TextQuote t = JsonConvert.DeserializeObject<TextQuote>(text);
-                            OpenClose = t.OpenClose;
-                        }
-                        break;
-                }
+                TextCommon parameter = JsonConvert.DeserializeObject<TextCommon>(text);
+                OpenClose = parameter.OpenClose;
+                //switch (parameter.Type)
+                //{
+                //    case EnumGroupType.COMMON:
+                //        {
+                //            TextCommon t = JsonConvert.DeserializeObject<TextCommon>(text);
+                //            OpenClose = t.OpenClose;
+                //        }
+                //        break;
+                //    case EnumGroupType.QUOTE:
+                //        {
+                //            TextQuote t = JsonConvert.DeserializeObject<TextQuote>(text);
+                //            OpenClose = t.OpenClose;
+                //        }
+                //        break;
+                //}
             }
 
             return OpenClose;

@@ -150,12 +150,12 @@ namespace QuantBox.OQ.Demo.Strategys
                 if (bar.Close > UpLine)
                 {
                     TargetPosition = 1;
-                    TextCommon.Text = "突破上轨，多头";
+                    TextParameter.Text = "突破上轨，多头";
                 }
                 else if (bar.Close < DownLine)
                 {
                     TargetPosition = -1;
-                    TextCommon.Text = "突破下轨，空头";
+                    TextParameter.Text = "突破下轨，空头";
                 }
                 else
                 {

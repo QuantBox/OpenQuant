@@ -211,7 +211,7 @@ namespace QuantBox.OQ.Demo.Strategys
                                 HighToday, _ssetup,
                                 bar.Close, _S1);
                         TargetPosition = -1;
-                        TextCommon.Text = text;
+                        TextParameter.Text = text;
                     }
                 }
                 else if (GetCurrentQty() < 0)
@@ -223,7 +223,7 @@ namespace QuantBox.OQ.Demo.Strategys
                                 LowToday, _bsetup,
                                 bar.Close, _B1);
                         TargetPosition = 1;
-                        TextCommon.Text = text;
+                        TextParameter.Text = text;
                     }
                 }
                 else
@@ -231,12 +231,12 @@ namespace QuantBox.OQ.Demo.Strategys
                     if (bar.Close > _bbreak)
                     {
                         TargetPosition = 1;
-                        TextCommon.Text = string.Format("{0}>{1}", bar.Close, _bbreak);
+                        TextParameter.Text = string.Format("{0}>{1}", bar.Close, _bbreak);
                     }
                     if (bar.Close < _sbreak)
                     {
                         TargetPosition = -1;
-                        TextCommon.Text = string.Format("{0}<{1}", bar.Close, _bbreak);
+                        TextParameter.Text = string.Format("{0}<{1}", bar.Close, _bbreak);
                     }
                 }
 
