@@ -28,6 +28,11 @@ namespace QuantBox.OQ.Demo.Module
         /// </summary>
         [Parameter("小于等于此数量的平仓单自动以市价发送", "TargetPositionModule")]
         public double MarketCloseQtyThreshold = 20;
+        /// <summary>
+        /// 对手价上加N跳下单
+        /// </summary>
+        [Parameter("对手价上加N跳下单", "TargetPositionModule")]
+        public int Jump = 2;
 
         protected TimeHelper TimeHelper;
         protected PriceHelper PriceHelper;
@@ -215,7 +220,7 @@ namespace QuantBox.OQ.Demo.Module
             }
             else
             {
-                SendLimitOrder(side, qty, PriceHelper.GetMatchPrice(this, side, 2), TextParameter.ToString());
+                SendLimitOrder(side, qty, PriceHelper.GetMatchPrice(this, side, Jump), TextParameter.ToString());
             }
         }
 
@@ -321,7 +326,9 @@ namespace QuantBox.OQ.Demo.Module
                 if (currentPrice < stop)
                 {
                     TargetPosition = 0;
-                    TextParameter.Text = text;
+                    TextParameter.Text = string.Format("跟踪止损 - 最高{0},止损{1}>当前{2}|{3}",
+                        HighestAfterEntry,stop,currentPrice,
+                        text);
                     return qty;
                 }
             }
@@ -339,7 +346,9 @@ namespace QuantBox.OQ.Demo.Module
                 if (currentPrice > stop)
                 {
                     TargetPosition = 0;
-                    TextParameter.Text = text;
+                    TextParameter.Text = string.Format("跟踪止损 - 最低{0},止损{1}<当前{2}|{3}",
+                        HighestAfterEntry, stop, currentPrice,
+                        text);
                     return qty;
                 }
             }
@@ -371,7 +380,9 @@ namespace QuantBox.OQ.Demo.Module
                 if (currentPrice < stop)
                 {
                     TargetPosition = 0;
-                    TextParameter.Text = text;
+                    TextParameter.Text = string.Format("固定止损 - 多头均价{0},止损{1}>当前{2}|{3}",
+                        DualPosition.Long.AvgPrice, stop, currentPrice,
+                        text);
                     return qty;
                 }
             }
@@ -389,7 +400,9 @@ namespace QuantBox.OQ.Demo.Module
                 if (currentPrice > stop)
                 {
                     TargetPosition = 0;
-                    TextParameter.Text = text;
+                    TextParameter.Text = string.Format("固定止损 - 空头均价{0},止损{1}<当前{2}|{3}",
+                        DualPosition.Long.AvgPrice, stop, currentPrice,
+                        text);
                     return qty;
                 }
             }
@@ -400,13 +413,13 @@ namespace QuantBox.OQ.Demo.Module
         /// 尾盘清仓
         /// </summary>
         /// <returns>返回上次持仓量</returns>
-        public virtual double ExitOnClose()
+        public virtual double ExitOnClose(int time,string text)
         {
             double qty = GetCurrentQty();
-            if (TimeHelper.GetTime(Clock.Now.AddMinutes(3)) >= TimeHelper.EndOfDay)
+            if (TimeHelper.GetTime(Clock.Now.AddMinutes(time)) >= TimeHelper.EndOfDay)
             {
                 TargetPosition = 0;
-                TextParameter.Text = "尾盘，清仓";
+                TextParameter.Text = string.Format("尾盘，清仓|{0}",text);
                 return qty;
             }
             return 0;

@@ -199,7 +199,7 @@ namespace QuantBox.OQ.Demo.Strategys
             do
             {
                 // 尾盘平仓
-                if (0 != ExitOnClose())
+                if (0 != ExitOnClose(3,""))
                     break;
 
                 if (GetCurrentQty() > 0)

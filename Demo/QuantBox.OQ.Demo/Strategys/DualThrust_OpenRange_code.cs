@@ -132,7 +132,7 @@ namespace QuantBox.OQ.Demo.Strategys
             do
             {
                 // 尾盘平仓
-                if (0 != ExitOnClose())
+                if (0 != ExitOnClose(3,""))
                     break;
 
                 // 日线数据上不处理
@@ -179,11 +179,11 @@ namespace QuantBox.OQ.Demo.Strategys
             do
             {
                 // 尾盘平仓
-                if (0 != ExitOnClose())
+                if (0 != ExitOnClose(3,""))
                     break;
 
                 // 跟踪止损
-                TrailingStop(trade.Price, 5, StopMode.Absolute, "跟踪止损");
+                TrailingStop(trade.Price, 5, StopMode.Absolute, "");
 
             } while (false);
             
