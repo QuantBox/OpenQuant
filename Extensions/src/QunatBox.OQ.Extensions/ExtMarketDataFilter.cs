@@ -21,8 +21,39 @@ namespace QuantBox.OQ.Extensions
         private IMarketDataProvider marketDataProvider;
         private IBarFactory factory;
 
+        private string _NewBarOpen;
+        private string _NewBar;
+        private string _NewMarketBar;
+
         public ExtMarketDataFilter(MarketDataProvider provider)
+            : this(provider,null, null, null)
         {
+        }
+
+        public ExtMarketDataFilter(MarketDataProvider provider,string Name)
+        {
+            switch(Name)
+            {
+                case "Simulator": // 3.9.2
+                    this.Init(provider, "Jfm54PNt0q", "et95r7Su4r", "Sfk5bbMxSg");
+                    break;
+                default:
+                    this.Init(provider, "NewBarOpen", "NewBar", "NewMarketBar");
+                    break;
+            }
+        }
+
+        public ExtMarketDataFilter(MarketDataProvider provider, string NewBarOpen, string NewBar, string NewMarketBar)
+        {
+            this.Init(provider,NewBarOpen,NewBar,NewMarketBar);
+        }
+
+        private void Init(MarketDataProvider provider, string NewBarOpen, string NewBar, string NewMarketBar)
+        {
+            _NewBar = NewBar;
+            _NewBarOpen = NewBarOpen;
+            _NewMarketBar = NewMarketBar;
+
             //得到OpenQuant.API.MarketDataProvider内的SmartQuant.Providers.IMarketDataProvider接口
             marketDataProvider = (IMarketDataProvider)provider.GetType().GetField("provider", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(provider);
             factory = marketDataProvider.BarFactory;
@@ -30,7 +61,6 @@ namespace QuantBox.OQ.Extensions
             // 遍历，得到对应的事件
             foreach (var e in marketDataProvider.GetType().GetFields(BindingFlags.Instance | BindingFlags.NonPublic))
             {
-                //Console.WriteLine(e);
                 switch (e.FieldType.ToString())
                 {
                     case "SmartQuant.Providers.QuoteEventHandler":
@@ -44,40 +74,29 @@ namespace QuantBox.OQ.Extensions
                     case "SmartQuant.Providers.BarEventHandler":
                         // 有三个这样的事件，怎么识别呢？
                         // 由于混淆了代码，没法识别，只能人工先判断
-                        // 判断的方法，在策略中对应的事件中加断点，看Call Stack
-                        // 然后反编译找到事件
-                        // 测试，找到每种插件的事件名
-                        switch(e.Name)
+                        // 判断的方法，1.断点，
+                        // 2.模拟下的 v8UpctWIWM(SeriesObjectEventArgs args1)
+                        if (e.Name == _NewBarOpen)
                         {
-                                // Simulator
-                            case "et95r7Su4r":
-                                NewBarField = e;
-                                break;
-                            case "Jfm54PNt0q":
-                                NewBarOpenField = e;
-                                break;
-                            case "Sfk5bbMxSg":
-                                NewMarketBarField = e;
-                                break;
-
-                                // CTP
-                            case "NewBar":
-                                NewBarField = e;
-                                break;
-                            case "NewBarOpen":
-                                NewBarOpenField = e;
-                                break;
-                            case "NewMarketBar":
-                                NewMarketBarField = e;
-                                break;
-                            default:
-                                Console.WriteLine("{0} 没有识别出来，需人工处理并再编译！",e.Name);
-                                break;
+                            NewBarOpenField = e;
+                        }
+                        else if (e.Name == _NewBar)
+                        {
+                            NewBarField = e;
+                        }
+                        else if (e.Name == _NewMarketBar)
+                        {
+                            NewMarketBarField = e;
+                        }
+                        else
+                        {
+                            Console.WriteLine("{0} 没有识别出来，需人工处理！", e.Name);
                         }
                         break;
                 }
             }
         }
+
 
         private void EmitNewQuoteEvent(IFIXInstrument instrument, SmartQuant.Data.Quote quote)
         {
@@ -128,8 +147,14 @@ namespace QuantBox.OQ.Extensions
             if (bar == null)
                 return;
 
+            if (_NewBar == null)
+                return;
+
             if (instrument == null)
                 throw new ArgumentException("合约不存在,请检查是否创建了合约");
+
+            if (NewBarField == null)
+                throw new ArgumentException("事件没有正确识别");
 
             var NewBarDelegate = (MulticastDelegate)NewBarField.GetValue(marketDataProvider);
 
@@ -144,8 +169,14 @@ namespace QuantBox.OQ.Extensions
             if (bar == null)
                 return;
 
+            if (_NewBarOpen == null)
+                return;
+
             if (instrument == null)
                 throw new ArgumentException("合约不存在,请检查是否创建了合约");
+
+            if (NewBarOpenField == null && _NewBarOpen != null)
+                throw new ArgumentException("事件没有正确识别");
 
             var NewBarOpenDelegate = (MulticastDelegate)NewBarOpenField.GetValue(marketDataProvider);
 
@@ -178,12 +209,12 @@ namespace QuantBox.OQ.Extensions
             EmitNewTradeEvent(inst, trade);
         }
 
-        public void EmitBar(string instrument, DateTime time, byte providerId, double open, double high, double low, double close, long volume,long openInt, long size)
+        public void EmitBar(string instrument,DateTime time, byte providerId, double open, double high, double low, double close, long volume,long openInt, long size)
         {
-            SmartQuant.Data.Bar bar = new SmartQuant.Data.Bar(time, open, high, low, close, volume,size)
+            SmartQuant.Data.Bar bar = new SmartQuant.Data.Bar(SmartQuant.Data.BarType.Time,size,time,time.AddSeconds(size), open, high, low, close, volume,openInt)
             {
                 ProviderId = providerId,
-                OpenInt = openInt,
+                IsComplete = true,
             };
 
             SmartQuant.Instruments.Instrument inst = SmartQuant.Instruments.InstrumentManager.Instruments[instrument];

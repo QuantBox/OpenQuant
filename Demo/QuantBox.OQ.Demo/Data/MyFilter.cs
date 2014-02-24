@@ -22,7 +22,7 @@ namespace QuantBox.OQ.Demo.Data
             int nDatetime = datetime.Hour * 100 + datetime.Minute;
 
             TimeHelper th;
-            if(TimeHelpers.TryGetValue(symbol,out th))
+            if(!TimeHelpers.TryGetValue(symbol,out th))
             {
                 th = new TimeHelper(symbol);
                 TimeHelpers[symbol] = th;
