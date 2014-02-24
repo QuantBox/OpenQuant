@@ -8,48 +8,27 @@ using OpenQuant.API.Engine;
 using OpenQuant.API.Indicators;
 using OpenQuant.API.Plugins;
 using System.Collections.Generic;
+using QuantBox.OQ.Demo.Helper;
 
 namespace QuantBox.OQ.Demo.Data
 {
     public class MyFilter : MarketDataFilter
     {
-        Dictionary<string, Trade> goodTrades = new Dictionary<string, Trade>(); 
+        Dictionary<string, Trade> goodTrades = new Dictionary<string, Trade>();
+        Dictionary<string, TimeHelper> TimeHelpers = new Dictionary<string, TimeHelper>();
 
         bool isRightTime(string symbol, DateTime datetime)
         {
             int nDatetime = datetime.Hour * 100 + datetime.Minute;
 
-            // 股指与商品的时间不同
-            if (symbol.StartsWith("IF"))
+            TimeHelper th;
+            if(TimeHelpers.TryGetValue(symbol,out th))
             {
-                if (nDatetime < 915)
-                    return false;
-                else if (nDatetime < 1130)
-                    return true;
-                else if (nDatetime < 1300)
-                    return false;
-                else if (nDatetime < 1515)
-                    return true;
-                else
-                    return false;
+                th = new TimeHelper(symbol);
+                TimeHelpers[symbol] = th;
             }
-            else
-            {
-                if (nDatetime < 900)
-                    return false;
-                else if (nDatetime < 1015)
-                    return true;
-                else if (nDatetime < 1030)
-                    return false;
-                else if (nDatetime < 1130)
-                    return true;
-                else if (nDatetime < 1330)
-                    return false;
-                else if (nDatetime < 1500)
-                    return true;
-                else
-                    return false;
-            }
+
+            return th.IsTradingTime(datetime);
         }
 
         public override Bar FilterBarOpen(Bar bar, string symbol)

@@ -76,7 +76,7 @@ namespace QuantBox.OQ.Demo.Module
 
         public override void OnStrategyStart()
         {
-            TimeHelper = new TimeHelper(TimeHelper.GetTradingTime(Instrument.Symbol));
+            TimeHelper = new TimeHelper(Instrument.Symbol);
             PriceHelper = new PriceHelper(Instrument.TickSize);
             TextParameter = new TextCommon() { OpenClose = EnumOpenClose.OPEN };
 

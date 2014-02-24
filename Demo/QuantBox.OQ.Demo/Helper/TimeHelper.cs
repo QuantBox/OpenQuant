@@ -50,6 +50,10 @@ namespace QuantBox.OQ.Demo.Helper
             }
         }
 
+        public TimeHelper(string instrument):this(GetTradingTime(instrument))
+        {
+        }
+
         public TimeHelper(int[] workingTime,int enfOfDay)
         {
             WorkingTime = workingTime;
