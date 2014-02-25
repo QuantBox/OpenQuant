@@ -36,6 +36,7 @@ namespace QuantBox.OQ.Demo.Module
 
         protected TimeHelper TimeHelper;
         protected PriceHelper PriceHelper;
+        protected CloseTodayHelper CloseTodayHelper;
 
         protected TextCommon TextParameter;
 
@@ -84,10 +85,12 @@ namespace QuantBox.OQ.Demo.Module
             TimeHelper = new TimeHelper(Instrument.Symbol);
             PriceHelper = new PriceHelper(Instrument.TickSize);
             TextParameter = new TextCommon() { OpenClose = EnumOpenClose.OPEN };
+            CloseTodayHelper = new CloseTodayHelper(EnumExchangID.SHFE);
 
             DualPosition = new DualPosition();
             DualPosition.Sell.PriceHelper = PriceHelper;
             DualPosition.Buy.PriceHelper = PriceHelper;
+            DualPosition.CloseTodayHelper = CloseTodayHelper;
 
             // 测试代码
             //TargetPosition = 3;
@@ -144,8 +147,7 @@ namespace QuantBox.OQ.Demo.Module
             if (dif == 0)// 持仓量相等
             {
                 // 把所有的挂单全撤了
-                DualPosition.Buy.Cancel();
-                DualPosition.Sell.Cancel();
+                DualPosition.Cancel();
                 return;
             }
             else if (dif > 0 && !DualPosition.IsPending)// 表示要增加净持仓
@@ -155,11 +157,13 @@ namespace QuantBox.OQ.Demo.Module
                 qty = dif;
                 Side = OrderSide.Buy;
 
-                if (DualPosition.Short.Qty > 0)
+                EnumOpenClose oc = EnumOpenClose.CLOSE;
+                double q = CloseTodayHelper.GetCloseAndQty(DualPosition.Short,out oc);
+                if(q>0)
                 {
                     // 按最小数量进行平仓
-                    qty = Math.Min(qty, DualPosition.Short.Qty);
-                    TextParameter.OpenClose = EnumOpenClose.CLOSE;
+                    qty = Math.Min(qty, q);
+                    TextParameter.OpenClose = oc;
                 }
             }
             else if (!DualPosition.IsPending) // 减少净持仓
@@ -167,11 +171,13 @@ namespace QuantBox.OQ.Demo.Module
                 qty = -dif;
                 Side = OrderSide.Sell;
 
-                if (DualPosition.Long.Qty > 0)
+                EnumOpenClose oc = EnumOpenClose.CLOSE;
+                double q = CloseTodayHelper.GetCloseAndQty(DualPosition.Long, out oc);
+                if (q > 0)
                 {
                     // 按最小数量进行平仓
-                    qty = Math.Min(qty, DualPosition.Long.Qty);
-                    TextParameter.OpenClose = EnumOpenClose.CLOSE;
+                    qty = Math.Min(qty, q);
+                    TextParameter.OpenClose = oc;
                 }
             }
 
@@ -294,7 +300,7 @@ namespace QuantBox.OQ.Demo.Module
         {
             DualPosition.OrderCancelled(order);
 
-            ResendOrder(order);
+            //ResendOrder(order);
         }
 
         public override void OnOrderCancelReject(Order order)

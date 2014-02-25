@@ -71,6 +71,7 @@
     <Compile Include="Data\MyExtFilter_Scenario.cs" />
     <Compile Include="Data\SaveData_code.cs" />
     <Compile Include="Data\DataConvert_code.cs" />
+    <Compile Include="Helper\CloseTodayHelper.cs" />
     <Compile Include="Helper\DualPosition.cs" />
     <Compile Include="Helper\OpenCloseHelper.cs" />
     <Compile Include="Helper\OrderBook_BothSide_Size.cs" />

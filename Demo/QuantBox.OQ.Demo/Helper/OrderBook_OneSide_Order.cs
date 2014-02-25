@@ -42,132 +42,168 @@ namespace QuantBox.OQ.Demo.Helper
 
         public void Add(Order order)
         {
-            HashSet<Order> set;
-            int key = PriceHelper.GetLevelByPrice(order.Price, Side);
-            if (!Grid.TryGetValue(key, out set))
+            lock(this)
             {
-                set = new HashSet<Order>();
-                Grid.Add(key, set);
+                HashSet<Order> set;
+                int key = PriceHelper.GetLevelByPrice(order.Price, Side);
+                if (!Grid.TryGetValue(key, out set))
+                {
+                    set = new HashSet<Order>();
+                    Grid.Add(key, set);
+                }
+                set.Add(order);
             }
-            set.Add(order);
         }
 
         public void Remove(Order order)
         {
-            HashSet<Order> set;
-            int key = PriceHelper.GetLevelByPrice(order.Price, Side);
-            if (!Grid.TryGetValue(key, out set))
+            lock (this)
             {
-                return;
-            }
-            set.Remove(order);
-            cancelList.Remove(order);
-            if (set.Count == 0)
-            {
-                Grid.Remove(key);
+                HashSet<Order> set;
+                int key = PriceHelper.GetLevelByPrice(order.Price, Side);
+                if (!Grid.TryGetValue(key, out set))
+                {
+                    return;
+                }
+                set.Remove(order);
+                cancelList.Remove(order);
+                if (set.Count == 0)
+                {
+                    Grid.Remove(key);
+                }
             }
         }
 
         public double Size(HashSet<Order> set)
         {
-            double sum = 0;
-            foreach (var o in set)
+            lock (this)
             {
-                sum += o.LeavesQty;
+                double sum = 0;
+                foreach (var o in set)
+                {
+                    sum += o.LeavesQty;
+                }
+                return sum;
             }
-            return sum;
         }
 
         public double Size()
         {
-            double sum = 0;
-            foreach(HashSet<Order> set in Grid.Values)
+            lock (this)
             {
-                sum += Size(set);
+                double sum = 0;
+                foreach (HashSet<Order> set in Grid.Values)
+                {
+                    sum += Size(set);
+                }
+                return sum;
             }
-            return sum;
         }
 
         public double SizeByIndex(int index)
         {
-            if (index < 0 || index >= Grid.Count)
-                return 0;
+            lock (this)
+            {
+                if (index < 0 || index >= Grid.Count)
+                    return 0;
 
-            HashSet<Order> set = Grid.Values[index];
-            return Size(set);
+                HashSet<Order> set = Grid.Values[index];
+                return Size(set);
+            }
         }
 
         public double SizeByLevel(int level)
         {
-            HashSet<Order> set;
-            if (!Grid.TryGetValue(level, out set))
+            lock (this)
             {
-                return 0;
+                HashSet<Order> set;
+                if (!Grid.TryGetValue(level, out set))
+                {
+                    return 0;
+                }
+                return Size(set);
             }
-            return Size(set);
         }
 
         public double SizeByPrice(double price)
         {
-            int key = PriceHelper.GetLevelByPrice(price, Side);
-            return SizeByLevel(key);
+            lock (this)
+            {
+                int key = PriceHelper.GetLevelByPrice(price, Side);
+                return SizeByLevel(key);
+            }            
         }
 
         public int Cancel()
         {
-            int cnt = 0;
-            foreach (var set in Grid.Values)
+            lock (this)
             {
-                cnt += Cancel(set);
+                int cnt = 0;
+                foreach (var set in Grid.Values)
+                {
+                    cnt += Cancel(set);
+                }
+                return cnt;
             }
-            return cnt;
         }
 
         public int Cancel(HashSet<Order> set)
         {
-            int cnt = 0;
-            foreach (var o in set)
+            lock (this)
             {
-                if (!o.IsDone)
+                int cnt = 0;
+                foreach (var o in set)
                 {
-                    o.Cancel();
-                    cancelList.Add(o);
-                    ++cnt;
+                    if (!o.IsDone)
+                    {
+                        o.Cancel();
+                        cancelList.Add(o);
+                        ++cnt;
+                    }
                 }
+                return cnt;
             }
-            return cnt;
         }
 
         public int CancelByIndex(int index)
         {
-            if (index < 0 || index >= Grid.Count)
-                return 0;
+            lock (this)
+            {
+                if (index < 0 || index >= Grid.Count)
+                    return 0;
 
-            HashSet<Order> set = Grid.Values[index];
-            return Cancel(set);
+                HashSet<Order> set = Grid.Values[index];
+                return Cancel(set);
+            }
         }
 
         public int CancelNotEqualPrice(double price)
         {
-            int cnt = 0;
-            int key = PriceHelper.GetLevelByPrice(price, Side);
-            foreach(var kv in Grid)
+            lock (this)
             {
-                if(kv.Key != key)
+                int cnt = 0;
+                int key = PriceHelper.GetLevelByPrice(price, Side);
+                foreach (var kv in Grid)
                 {
-                    cnt += Cancel(kv.Value);
+                    if (kv.Key != key)
+                    {
+                        cnt += Cancel(kv.Value);
+                    }
                 }
+                return cnt;
             }
-            return cnt;
         }
 
         public double PriceByIndex(int index)
         {
-            if (index < 0 || index >= Grid.Count)
-                return 0;
+            lock (this)
+            {
+                if (index < 0 || index >= Grid.Count)
+                    return 0;
 
-            int key = Grid.Keys[index];
-            return PriceHelper.GetPriceByLevel(key);
+                int key = Grid.Keys[index];
+                return PriceHelper.GetPriceByLevel(key);
+            }
         }
 
         public override string ToString()

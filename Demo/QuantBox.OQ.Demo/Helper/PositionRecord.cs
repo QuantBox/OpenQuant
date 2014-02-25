@@ -7,10 +7,10 @@ namespace QuantBox.OQ.Demo.Helper
 {
     /// <summary>
     /// 持仓量信息如何保存？
-    /// 1.总持仓和今仓
+    /// 1.总持仓和今仓。使用此方式，这样在下单时对非上海的可以直接判断
     /// 2.昨持仓和今仓
     /// 
-    /// 1.上海与非上海都用一样的保存方法
+    /// 1.上海与非上海都用一样的保存方法。使用此方式，统一
     /// 2.只上海分昨和今
     /// </summary>
     public class PositionRecord
@@ -73,16 +73,6 @@ namespace QuantBox.OQ.Demo.Helper
                 else
                     return HoldingCost / Qty;
             }
-        }
-
-        public double CanCloseQty()
-        {
-            return Qty - FrozenClose;
-        }
-
-        public bool CanClose(double qty)
-        {
-            return CanCloseQty() >= qty;
         }
 
         public override string ToString()

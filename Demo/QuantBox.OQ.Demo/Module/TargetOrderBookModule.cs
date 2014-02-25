@@ -133,21 +133,21 @@ namespace QuantBox.OQ.Demo.Module
                 // 应当对容易平仓的位置进行平仓
                 // 这个地方要测试一个，我只有10持仓，先挂10手平，第二个价格再挂自动生成的单是平还是开？检查数据计算是否正确
                 // 补单是一次性的，还是分两笔，还是分两笔吧
-                double canqty = DualPosition.CanCloseQty(buy2.Side);
+                //double canqty = DualPosition.CanCloseQty(buy2.Side);
                 
-                // 检查平仓，如果补单限为一次，那就把此行注释
-                if (canqty > 0)
-                {
-                    double min = Math.Min(leave, canqty);
-                    leave -= min;
-                    SendLimitOrder(buy2.Side, min, price, 
-                        OpenCloseHelper.GetOpenCloseString(EnumOpenClose.CLOSE_TODAY));
-                }
+                //// 检查平仓，如果补单限为一次，那就把此行注释
+                //if (canqty > 0)
+                //{
+                //    double min = Math.Min(leave, canqty);
+                //    leave -= min;
+                //    SendLimitOrder(buy2.Side, min, price, 
+                //        OpenCloseHelper.GetOpenCloseString(EnumOpenClose.CLOSE_TODAY));
+                //}
 
                 if (leave > 0)
                 {
-                    SendLimitOrder(buy2.Side, leave, price,
-                        OpenCloseHelper.GetOpenCloseString(DualPosition.CanClose(buy2.Side, leave)));
+                    //SendLimitOrder(buy2.Side, leave, price,
+                    //    OpenCloseHelper.GetOpenCloseString(DualPosition.CanClose(buy2.Side, leave)));
                 }
             }
 
@@ -201,21 +201,21 @@ namespace QuantBox.OQ.Demo.Module
                 // 应当对容易平仓的位置进行平仓
                 // 这个地方要测试一个，我只有10持仓，先挂10手平，第二个价格再挂自动生成的单是平还是开？检查数据计算是否正确
                 // 补单是一次性的，还是分两笔，还是分两笔吧
-                double canqty = DualPosition.CanCloseQty(buy2.Side);
+                //double canqty = DualPosition.CanCloseQty(buy2.Side);
 
-                // 检查平仓，如果补单限为一次，那就把此行注释
-                if (canqty > 0)
-                {
-                    double min = Math.Min(leave, canqty);
-                    leave -= min;
-                    SendLimitOrder(buy2.Side, min, price, OpenCloseHelper.GetOpenCloseString(EnumOpenClose.CLOSE_TODAY));
-                }
+                //// 检查平仓，如果补单限为一次，那就把此行注释
+                //if (canqty > 0)
+                //{
+                //    double min = Math.Min(leave, canqty);
+                //    leave -= min;
+                //    SendLimitOrder(buy2.Side, min, price, OpenCloseHelper.GetOpenCloseString(EnumOpenClose.CLOSE_TODAY));
+                //}
 
-                if (leave > 0)
-                {
-                    SendLimitOrder(buy2.Side, leave, price,
-                        OpenCloseHelper.GetOpenCloseString(DualPosition.CanClose(buy2.Side, leave)));
-                }
+                //if (leave > 0)
+                //{
+                //    SendLimitOrder(buy2.Side, leave, price,
+                //        OpenCloseHelper.GetOpenCloseString(DualPosition.CanClose(buy2.Side, leave)));
+                //}
             }
 
             return cnt;
