@@ -61,6 +61,16 @@ namespace QuantBox.OQ.Demo.Module
             //return TargetPosition;
         }
 
+        public virtual double GetLongAvgPrice()
+        {
+            return DualPosition.Long.AvgPrice;
+        }
+
+        public virtual double GetShortAvgPrice()
+        {
+            return DualPosition.Short.AvgPrice;
+        }
+
         /// <summary>
         /// 计算入场后的最高价与最低价
         /// </summary>
@@ -300,7 +310,7 @@ namespace QuantBox.OQ.Demo.Module
         {
             DualPosition.OrderCancelled(order);
 
-            //ResendOrder(order);
+            ResendOrder(order);
         }
 
         public override void OnOrderCancelReject(Order order)
@@ -377,17 +387,17 @@ namespace QuantBox.OQ.Demo.Module
             {
                 if (StopMode.Percent == mode)
                 {
-                    stop = DualPosition.Long.AvgPrice * (1.0 - level);
+                    stop = GetLongAvgPrice() * (1.0 - level);
                 }
                 else
                 {
-                    stop = DualPosition.Long.AvgPrice - level;
+                    stop = GetLongAvgPrice() - level;
                 }
                 if (currentPrice < stop)
                 {
                     TargetPosition = 0;
                     TextParameter.Text = string.Format("固定止损 - 多头均价{0},止损{1}>当前{2}|{3}",
-                        DualPosition.Long.AvgPrice, stop, currentPrice,
+                        GetLongAvgPrice(), stop, currentPrice,
                         text);
                     return qty;
                 }
@@ -396,18 +406,64 @@ namespace QuantBox.OQ.Demo.Module
             {
                 if (StopMode.Percent == mode)
                 {
-                    stop = DualPosition.Short.AvgPrice * (1.0 + level);
+                    stop = GetShortAvgPrice() * (1.0 + level);
                 }
                 else
                 {
-                    stop = DualPosition.Short.AvgPrice + level;
+                    stop = GetShortAvgPrice() + level;
                 }
 
                 if (currentPrice > stop)
                 {
                     TargetPosition = 0;
                     TextParameter.Text = string.Format("固定止损 - 空头均价{0},止损{1}<当前{2}|{3}",
-                        DualPosition.Long.AvgPrice, stop, currentPrice,
+                        GetShortAvgPrice(), stop, currentPrice,
+                        text);
+                    return qty;
+                }
+            }
+            return 0;
+        }
+
+        public virtual double TakeProfit(double currentPrice, double level, StopMode mode, string text)
+        {
+            double qty = GetCurrentQty();
+            double stop;
+            if (qty > 0)
+            {
+                if (StopMode.Percent == mode)
+                {
+                    stop = GetLongAvgPrice() * (1.0 + level);
+                }
+                else
+                {
+                    stop = GetLongAvgPrice() + level;
+                }
+                if (currentPrice > stop)
+                {
+                    TargetPosition = 0;
+                    TextParameter.Text = string.Format("固定止赢 - 多头均价{0},止赢{1}<当前{2}|{3}",
+                        GetLongAvgPrice(), stop, currentPrice,
+                        text);
+                    return qty;
+                }
+            }
+            else
+            {
+                if (StopMode.Percent == mode)
+                {
+                    stop = GetShortAvgPrice() * (1.0 - level);
+                }
+                else
+                {
+                    stop = GetShortAvgPrice() - level;
+                }
+
+                if (currentPrice < stop)
+                {
+                    TargetPosition = 0;
+                    TextParameter.Text = string.Format("固定止赢 - 空头均价{0},止赢{1}>当前{2}|{3}",
+                        GetShortAvgPrice(), stop, currentPrice,
                         text);
                     return qty;
                 }

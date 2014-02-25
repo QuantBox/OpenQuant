@@ -66,6 +66,46 @@ namespace QuantBox.OQ.Demo.Strategys
             Draw(slowSMA, 0);
         }
 
+        public override double GetCurrentQty()
+        {
+            if (Instrument.Symbol == Symbol0)
+            {
+                // 各项处理时使用信号持仓
+                return TargetPosition;
+            }
+            else
+            {
+                // 各项处理时使用实盘持仓
+                return DualPosition.NetQty;
+            }
+        }
+
+        public override double GetLongAvgPrice()
+        {
+            if (Instrument.Symbol == Symbol0)
+            {
+                return S1.DualPosition.Long.AvgPrice - S2.DualPosition.Short.AvgPrice;
+            }
+            else
+            {
+                // 各项处理时使用实盘持仓
+                return base.GetLongAvgPrice();
+            }
+        }
+
+        public override double GetShortAvgPrice()
+        {
+            if (Instrument.Symbol == Symbol0)
+            {
+                return S1.DualPosition.Short.AvgPrice - S2.DualPosition.Long.AvgPrice;
+            }
+            else
+            {
+                // 各项处理时使用实盘持仓
+                return base.GetLongAvgPrice();
+            }
+        }
+
         private void OnBar_Symbol0(Bar bar)
         {
             do
@@ -85,6 +125,10 @@ namespace QuantBox.OQ.Demo.Strategys
                 {
                     // 保持上次的状态
                 }
+
+                // 合成合约没有持仓等基本信息，如何进行止损呢？
+                FixedStop(bar.Close, 300, StopMode.Absolute, "");
+                TakeProfit(bar.Close, 400, StopMode.Absolute, "");
 
             } while (false);
         }
