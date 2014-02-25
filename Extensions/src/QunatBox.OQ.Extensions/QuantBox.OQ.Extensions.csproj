@@ -63,7 +63,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="EnumExchangID.cs" />
+    <Compile Include="EnumExchangeID.cs" />
     <Compile Include="OrderItem\SPDOrderItem.cs" />
     <Compile Include="OrderItem\SPCOrderItem.cs" />
     <Compile Include="Combiner\GenericCombiner.cs" />

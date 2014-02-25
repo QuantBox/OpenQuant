@@ -8,14 +8,16 @@ namespace QuantBox.OQ.Demo.Helper
 {
     public class CloseTodayHelper
     {
-        private EnumExchangID _ExchangeID;
-
         public bool IsSHFE { get; private set; }
 
-        public CloseTodayHelper(EnumExchangID exchange)
+        public CloseTodayHelper(EnumExchangeID exchange)
         {
-            _ExchangeID = exchange;
-            IsSHFE = (_ExchangeID == EnumExchangID.SHFE);
+            this.IsSHFE = (exchange == EnumExchangeID.SHFE);
+        }
+
+        public CloseTodayHelper(bool IsSHFE)
+        {
+            this.IsSHFE = IsSHFE;
         }
 
         public EnumOpenClose Transform(EnumOpenClose OpenClose)

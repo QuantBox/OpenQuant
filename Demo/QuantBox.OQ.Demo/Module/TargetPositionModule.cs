@@ -95,7 +95,7 @@ namespace QuantBox.OQ.Demo.Module
             TimeHelper = new TimeHelper(Instrument.Symbol);
             PriceHelper = new PriceHelper(Instrument.TickSize);
             TextParameter = new TextCommon() { OpenClose = EnumOpenClose.OPEN };
-            CloseTodayHelper = new CloseTodayHelper(EnumExchangID.SHFE);
+            CloseTodayHelper = new CloseTodayHelper(EnumExchangeID.SHFE);
 
             DualPosition = new DualPosition();
             DualPosition.Sell.PriceHelper = PriceHelper;

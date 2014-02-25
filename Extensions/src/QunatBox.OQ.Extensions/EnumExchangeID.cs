@@ -5,7 +5,7 @@ using System.Text;
 
 namespace QuantBox.OQ.Extensions
 {
-    public enum EnumExchangID
+    public enum EnumExchangeID
     {
         SHFE,
         DCE,
