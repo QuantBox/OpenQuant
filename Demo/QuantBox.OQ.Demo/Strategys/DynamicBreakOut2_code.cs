@@ -51,7 +51,7 @@ namespace QuantBox.OQ.Demo.Strategys
             base.OnStrategyStart();
 
             // 测试用，自定义交易时间，仿真或实盘时可删除
-            base.TimeHelper = new TimeHelper(new int[] { 0, 2400 }, 1458);
+            base.TimeHelper = new TimeHelper(new int[] { 0, 2400 }, 2100, 1458);
 
             base.TargetPosition = 0;
             base.DualPosition.Long.Qty = 0;
@@ -88,7 +88,10 @@ namespace QuantBox.OQ.Demo.Strategys
         public override void OnBar(Bar bar)
         {
             if (bar.Size == 86400)
+            {
+                base.ChangeTradingDay();
                 return;
+            }
 
             if (lbd.Count < 1 || dbbu.Count < 1)
                 return;

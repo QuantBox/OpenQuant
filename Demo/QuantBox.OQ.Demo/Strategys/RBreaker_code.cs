@@ -129,7 +129,7 @@ namespace QuantBox.OQ.Demo.Strategys
             base.OnStrategyStart();
 
             // 测试用，自定义交易时间，仿真或实盘时可删除
-            base.TimeHelper = new TimeHelper(new int[] { 0, 2400 }, 1458);
+            base.TimeHelper = new TimeHelper(new int[] { 0, 2400 }, 2100, 1458);
 
             base.TargetPosition = 0;
             base.DualPosition.Long.Qty = 0;
@@ -172,6 +172,8 @@ namespace QuantBox.OQ.Demo.Strategys
                 i_reverse = reverse * (bar.Open / 100.0);
                 i_rangemin = rangemin * (bar.Open / 100.0);
                 div = Math.Max(xdiv, 1);
+
+                base.ChangeTradingDay();
             }
         }
 

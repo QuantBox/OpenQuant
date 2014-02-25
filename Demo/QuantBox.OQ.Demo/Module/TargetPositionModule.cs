@@ -430,6 +430,28 @@ namespace QuantBox.OQ.Demo.Module
             }
             return 0;
         }
+
+        public virtual void ChangeTradingDay()
+        {
+            
+            if (TimeHelper.BeginOfDay > TimeHelper.EndOfDay)
+            {
+                // 夜盘
+                if (TimeHelper.GetTime(Clock.Now) > TimeHelper.EndOfDay
+                && TimeHelper.GetTime(Clock.Now) < TimeHelper.BeginOfDay)
+                {
+                    DualPosition.ChangeTradingDay();
+                }
+            }
+            else
+            {
+                if (TimeHelper.GetTime(Clock.Now) > TimeHelper.EndOfDay
+                || TimeHelper.GetTime(Clock.Now) < TimeHelper.BeginOfDay)
+                {
+                    DualPosition.ChangeTradingDay();
+                }
+            }
+        }
     }
 
 }

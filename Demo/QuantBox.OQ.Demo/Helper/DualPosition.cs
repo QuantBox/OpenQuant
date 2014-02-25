@@ -4,6 +4,16 @@ using System.Collections.Generic;
 
 namespace QuantBox.OQ.Demo.Helper
 {
+    /// <summary>
+    /// 非上海的要将平今转成平仓
+    /// 上海
+    ///     开仓 Qty QtyToday
+    ///     平今仓 FrozenCloseToday
+    ///     平昨仓 FrozenClose
+    /// 非上海
+    ///     开仓 Qty
+    ///     平仓 FrozenClose
+    /// </summary>
     public class DualPosition
     {
         public CloseTodayHelper CloseTodayHelper;
@@ -15,11 +25,19 @@ namespace QuantBox.OQ.Demo.Helper
 
         public Dictionary<Order, EnumOpenClose> Order_OpenClose = new Dictionary<Order, EnumOpenClose>();
 
+        /// <summary>
+        /// 换日，用户自己要记得挂单要撤
+        /// </summary>
         public void ChangeTradingDay()
         {
             // 挂单要清空，用户得在策略中写上收盘撤单的代码
 
             // 持仓要移动
+            Buy.Clear();
+            Sell.Clear();
+
+            Long.ChangeTradingDay();
+            Short.ChangeTradingDay();
         }
 
         public double NetQty
@@ -32,6 +50,10 @@ namespace QuantBox.OQ.Demo.Helper
             get { return Buy.IsPending || Sell.IsPending; }
         }
 
+        /// <summary>
+        /// 产生了新订单
+        /// </summary>
+        /// <param name="order"></param>
         public void NewOrder(Order order)
         {
             lock (this)
@@ -67,10 +89,12 @@ namespace QuantBox.OQ.Demo.Helper
                         if (order.Side == OrderSide.Buy)
                         {
                             Short.FrozenCloseToday += order.Qty;
+                            Short.FrozenClose += order.Qty;
                         }
                         else
                         {
                             Long.FrozenCloseToday += order.Qty;
+                            Long.FrozenClose += order.Qty;
                         }
                         break;
                     default:
@@ -89,6 +113,10 @@ namespace QuantBox.OQ.Demo.Helper
             }
         }
 
+        /// <summary>
+        /// 有订单成交
+        /// </summary>
+        /// <param name="order"></param>
         public void Filled(Order order)
         {
             lock (this)
@@ -117,7 +145,6 @@ namespace QuantBox.OQ.Demo.Helper
                         }
                         break;
                     case EnumOpenClose.CLOSE:
-                        // 这有个问题，对于非上海，我并不知道这地方的QtyToday是否要改动
                         if (order.Side == OrderSide.Buy)
                         {
                             Short.Qty -= order.LastQty;
@@ -151,6 +178,7 @@ namespace QuantBox.OQ.Demo.Helper
                             Short.Qty -= order.LastQty;
                             Short.QtyToday -= order.LastQty;
                             Short.FrozenClose -= order.LastQty;
+                            Short.FrozenCloseToday -= order.LastQty;
                             if (Short.Qty == 0)
                             {
                                 Short.HoldingCost = 0;
@@ -165,6 +193,7 @@ namespace QuantBox.OQ.Demo.Helper
                             Long.Qty -= order.LastQty;
                             Long.QtyToday -= order.LastQty;
                             Long.FrozenClose -= order.LastQty;
+                            Long.FrozenCloseToday -= order.LastQty;
                             if (Long.Qty == 0)
                             {
                                 Long.HoldingCost = 0;
@@ -194,6 +223,11 @@ namespace QuantBox.OQ.Demo.Helper
             }
         }
 
+        /// <summary>
+        /// 单子被撤
+        /// </summary>
+        /// <param name="order"></param>
+        /// <returns></returns>
         public EnumOpenClose OrderCancelled(Order order)
         {
             lock (this)
@@ -256,10 +290,12 @@ namespace QuantBox.OQ.Demo.Helper
                         if (order.Side == OrderSide.Buy)
                         {
                             Short.FrozenCloseToday -= order.LeavesQty;
+                            Short.FrozenClose -= order.LeavesQty;
                         }
                         else
                         {
                             Long.FrozenCloseToday -= order.LeavesQty;
+                            Long.FrozenClose -= order.LeavesQty;
                         }
                         break;
                     default:

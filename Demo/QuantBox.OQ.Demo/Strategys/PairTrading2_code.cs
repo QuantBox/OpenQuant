@@ -39,7 +39,7 @@ namespace QuantBox.OQ.Demo.Strategys
             base.OnStrategyStart();
 
             //测试用，自定义交易时间,只使用日线做简单测试时极方便
-            base.TimeHelper = new TimeHelper(new int[] { 0, 2400 }, 1700);
+            base.TimeHelper = new TimeHelper(new int[] { 0, 2400 }, 2100,1700);
             // 此处要测试是否支持交易所组合合约
             base.TextParameter = new TextSP();
 
@@ -97,6 +97,8 @@ namespace QuantBox.OQ.Demo.Strategys
             {
                 OnBar_Symbol0(bar);
             }
+
+            base.ChangeTradingDay();
 
             base.OnBar(bar);
         }

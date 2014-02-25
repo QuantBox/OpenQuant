@@ -18,6 +18,7 @@ namespace QuantBox.OQ.Demo.Helper
     {
         public int[] WorkingTime;
         public int EndOfDay { get; private set; }
+        public int BeginOfDay { get; private set; }
 
         public int[] WorkingTime_Financial = { 915, 1130, 1300, 1515 }; //IF
         public int[] WorkingTime_Commodity = { 900, 1015, 1030, 1130, 1330, 1500 }; //商品
@@ -27,6 +28,11 @@ namespace QuantBox.OQ.Demo.Helper
         private int EndOfDay_Financial = 1515; //IF
         private int EndOfDay_Commodity = 1500; //商品
 
+        private int BeginOfDay_Financial = 915;
+        private int BeginOfDay_Commodity = 900;
+        private int BeginOfDay_Commodity_0230 = 2100;
+        private int BeginOfDay_Commodity_0100 = 2100;
+
         public TimeHelper(EnumTradingTime tt)
         {
             switch(tt)
@@ -34,18 +40,22 @@ namespace QuantBox.OQ.Demo.Helper
                 case EnumTradingTime.FINANCIAL:
                     WorkingTime = WorkingTime_Financial;
                     EndOfDay = EndOfDay_Financial;
+                    BeginOfDay = BeginOfDay_Financial;
                     break;
                 case EnumTradingTime.COMMODITY:
                     WorkingTime = WorkingTime_Commodity;
                     EndOfDay = EndOfDay_Commodity;
+                    BeginOfDay = BeginOfDay_Commodity;
                     break;
                 case EnumTradingTime.COMMODITY_0230:
                     WorkingTime = WorkingTime_Commodity_0230;
                     EndOfDay = EndOfDay_Commodity;
+                    BeginOfDay = BeginOfDay_Commodity_0230;
                     break;
                 case EnumTradingTime.COMMODITY_0100:
                     WorkingTime = WorkingTime_Commodity_0100;
                     EndOfDay = EndOfDay_Commodity;
+                    BeginOfDay = BeginOfDay_Commodity_0100;
                     break;
             }
         }
@@ -54,10 +64,11 @@ namespace QuantBox.OQ.Demo.Helper
         {
         }
 
-        public TimeHelper(int[] workingTime,int enfOfDay)
+        public TimeHelper(int[] workingTime,int beginOfDay,int ennOfDay)
         {
             WorkingTime = workingTime;
-            EndOfDay = enfOfDay;
+            BeginOfDay = beginOfDay;
+            EndOfDay = ennOfDay;
         }
 
         public static EnumTradingTime GetTradingTime(string instrument)

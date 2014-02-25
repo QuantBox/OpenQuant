@@ -52,13 +52,19 @@ namespace QuantBox.OQ.Demo.Helper
         public void Reset()
         {
             Qty = 0;
+            HoldingCost = 0;
+
+            ChangeTradingDay();
+        }
+
+        public void ChangeTradingDay()
+        {
             QtyToday = 0;
             FrozenOpen = 0;
             FrozenClose = 0;
             FrozenCloseToday = 0;
             CumOpenQty = 0;
             CumCancelCnt = 0;
-            HoldingCost = 0;
         }
 
         /// <summary>
