@@ -34,10 +34,10 @@ namespace QuantBox.OQ.Extensions
         {
             switch(Name)
             {
-                case "Simulator": // 3.9.2
+                case "Simulator": // 3.9.2 版的混淆过后的模拟插件
                     this.Init(provider, "Jfm54PNt0q", "et95r7Su4r", "Sfk5bbMxSg");
                     break;
-                default:
+                default: // 反混淆后的模拟插件，CTP插件
                     this.Init(provider, "NewBarOpen", "NewBar", "NewMarketBar");
                     break;
             }

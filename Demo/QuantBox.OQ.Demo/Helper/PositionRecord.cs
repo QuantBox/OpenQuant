@@ -5,6 +5,14 @@ using System.Text;
 
 namespace QuantBox.OQ.Demo.Helper
 {
+    /// <summary>
+    /// 持仓量信息如何保存？
+    /// 1.总持仓和今仓
+    /// 2.昨持仓和今仓
+    /// 
+    /// 1.上海与非上海都用一样的保存方法
+    /// 2.只上海分昨和今
+    /// </summary>
     public class PositionRecord
     {
         /// <summary>

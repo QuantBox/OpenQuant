@@ -64,6 +64,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Data\MyExtFilter2_Scenario.cs" />
+    <Compile Include="Data\MyExtFilter3_Scenario.cs" />
     <Compile Include="Data\DdeServer_code.cs" />
     <Compile Include="Data\DynamicBar_code.cs" />
     <Compile Include="Data\MyExtFilter_Scenario.cs" />

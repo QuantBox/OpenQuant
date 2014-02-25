@@ -14,6 +14,13 @@ namespace QuantBox.OQ.Demo.Helper
 
         public Dictionary<Order, EnumOpenClose> Order_OpenClose = new Dictionary<Order, EnumOpenClose>();
 
+        public void ChangeTradingDay()
+        {
+            // 挂单要清空，用户得在策略中写上收盘撤单的代码
+
+            // 持仓要移动
+        }
+
         public double NetQty
         {
             get { return Long.Qty - Short.Qty; }
