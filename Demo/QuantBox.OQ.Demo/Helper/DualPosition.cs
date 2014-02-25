@@ -6,6 +6,7 @@ namespace QuantBox.OQ.Demo.Helper
 {
     public class DualPosition
     {
+        public CloseTodayHelper CloseTodayHelper;
         public PositionRecord Long = new PositionRecord();
         public PositionRecord Short = new PositionRecord();
 
@@ -38,7 +39,8 @@ namespace QuantBox.OQ.Demo.Helper
                 if (!order.IsPendingNew)
                     return;
 
-                EnumOpenClose OpenClose = OpenCloseHelper.CheckOpenClose(order);
+                // 非上海的，平今要转成平仓
+                EnumOpenClose OpenClose = CloseTodayHelper.Transform(OpenCloseHelper.CheckOpenClose(order));
                 switch (OpenClose)
                 {
                     case EnumOpenClose.OPEN:
@@ -52,7 +54,6 @@ namespace QuantBox.OQ.Demo.Helper
                         }
                         break;
                     case EnumOpenClose.CLOSE:
-                    case EnumOpenClose.CLOSE_TODAY:
                         if (order.Side == OrderSide.Buy)
                         {
                             Short.FrozenClose += order.Qty;
@@ -60,6 +61,16 @@ namespace QuantBox.OQ.Demo.Helper
                         else
                         {
                             Long.FrozenClose += order.Qty;
+                        }
+                        break;
+                    case EnumOpenClose.CLOSE_TODAY:
+                        if (order.Side == OrderSide.Buy)
+                        {
+                            Short.FrozenCloseToday += order.Qty;
+                        }
+                        else
+                        {
+                            Long.FrozenCloseToday += order.Qty;
                         }
                         break;
                     default:
@@ -91,6 +102,7 @@ namespace QuantBox.OQ.Demo.Helper
                         if (order.Side == OrderSide.Buy)
                         {
                             Long.Qty += order.LastQty;
+                            Long.QtyToday += order.LastQty;
                             Long.FrozenOpen -= order.LastQty;
                             Long.CumOpenQty += order.LastQty;
                             Long.HoldingCost += order.LastPrice * order.LastQty;
@@ -98,13 +110,14 @@ namespace QuantBox.OQ.Demo.Helper
                         else
                         {
                             Short.Qty += order.LastQty;
+                            Short.QtyToday += order.LastQty;
                             Short.FrozenOpen -= order.LastQty;
                             Short.CumOpenQty += order.LastQty;
                             Short.HoldingCost += order.LastPrice * order.LastQty;
                         }
                         break;
                     case EnumOpenClose.CLOSE:
-                    case EnumOpenClose.CLOSE_TODAY:
+                        // 这有个问题，对于非上海，我并不知道这地方的QtyToday是否要改动
                         if (order.Side == OrderSide.Buy)
                         {
                             Short.Qty -= order.LastQty;
@@ -121,6 +134,36 @@ namespace QuantBox.OQ.Demo.Helper
                         else
                         {
                             Long.Qty -= order.LastQty;
+                            Long.FrozenClose -= order.LastQty;
+                            if (Long.Qty == 0)
+                            {
+                                Long.HoldingCost = 0;
+                            }
+                            else
+                            {
+                                Long.HoldingCost -= order.LastPrice * order.LastQty;
+                            }
+                        }
+                        break;
+                    case EnumOpenClose.CLOSE_TODAY:
+                        if (order.Side == OrderSide.Buy)
+                        {
+                            Short.Qty -= order.LastQty;
+                            Short.QtyToday -= order.LastQty;
+                            Short.FrozenClose -= order.LastQty;
+                            if (Short.Qty == 0)
+                            {
+                                Short.HoldingCost = 0;
+                            }
+                            else
+                            {
+                                Short.HoldingCost -= order.LastPrice * order.LastQty;
+                            }
+                        }
+                        else
+                        {
+                            Long.Qty -= order.LastQty;
+                            Long.QtyToday -= order.LastQty;
                             Long.FrozenClose -= order.LastQty;
                             if (Long.Qty == 0)
                             {
@@ -200,7 +243,6 @@ namespace QuantBox.OQ.Demo.Helper
                         }
                         break;
                     case EnumOpenClose.CLOSE:
-                    case EnumOpenClose.CLOSE_TODAY:
                         if (order.Side == OrderSide.Buy)
                         {
                             Short.FrozenClose -= order.LeavesQty;
@@ -208,6 +250,16 @@ namespace QuantBox.OQ.Demo.Helper
                         else
                         {
                             Long.FrozenClose -= order.LeavesQty;
+                        }
+                        break;
+                    case EnumOpenClose.CLOSE_TODAY:
+                        if (order.Side == OrderSide.Buy)
+                        {
+                            Short.FrozenCloseToday -= order.LeavesQty;
+                        }
+                        else
+                        {
+                            Long.FrozenCloseToday -= order.LeavesQty;
                         }
                         break;
                     default:
@@ -231,79 +283,32 @@ namespace QuantBox.OQ.Demo.Helper
             }
         }
 
-        public EnumOpenClose CanClose(OrderSide Side, double qty)
+        public double Cancel(OrderSide Side)
         {
-            if (CanCloseQty(Side) >= qty)
+            lock (this)
             {
-                return EnumOpenClose.CLOSE;
-            }
-            else
-            {
-                return EnumOpenClose.OPEN;
+                double qty;
+                if (Side == OrderSide.Buy)
+                {
+                    qty = Buy.Cancel();
+                }
+                else
+                {
+                    qty = Sell.Cancel();
+                }
+                return qty;
             }
         }
 
-        //public EnumOpenClose TryClose(OrderSide Side,double QtyIn,out double QtyOut)
-        //{
-        //    PositionRecord pr;
-        //    if (Side == OrderSide.Buy)
-        //    {
-        //        pr = Short;
-        //    }
-        //    else
-        //    {
-        //        pr = Long;
-        //    }
-            
-
-        //    //pr.
-
-        //    //if (CanCloseQty(Side) >= qty)
-        //    //{
-        //    //    return EnumOpenClose.CLOSE;
-        //    //}
-        //    //else
-        //    //{
-        //    //    return EnumOpenClose.OPEN;
-        //    //}
-        //}
-
-        //public EnumOpenClose TryClose(OrderSide Side,double QtyIn,)
-        //{
-        //    PositionRecord pr;
-        //    if (Side == OrderSide.Buy)
-        //    {
-        //        pr = Short;
-        //    }
-        //    else
-        //    {
-        //        pr = Long;
-        //    }
-
-        //    //pr.
-
-        //    //if (CanCloseQty(Side) >= qty)
-        //    //{
-        //    //    return EnumOpenClose.CLOSE;
-        //    //}
-        //    //else
-        //    //{
-        //    //    return EnumOpenClose.OPEN;
-        //    //}
-        //}
-
-        public double CanCloseQty(OrderSide Side)
+        public double Cancel()
         {
-            double qty;
-            if (Side == OrderSide.Buy)
+            lock (this)
             {
-                qty = Short.CanCloseQty();
+                double qty = 0;
+                qty += Buy.Cancel();
+                qty += Sell.Cancel();
+                return qty;
             }
-            else
-            {
-                qty = Long.CanCloseQty();
-            }
-            return qty;
         }
 
         public override string ToString()
