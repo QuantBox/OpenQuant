@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.Reflection;
 using System.Windows.Forms;
+using System.Collections.Generic;
 
 using OpenQuant.API;
 using OpenQuant.API.Indicators;
@@ -26,6 +27,8 @@ namespace QuantBox.OQ.Demo.Strategys
         static BarSeries BarSeries2;
 
         static TimeSeries spreadSeries;
+
+        static Dictionary<string, double> _bars;
 
         [Parameter("两合约价格序列回归方程的系数")]
         double Slope = 4.325347;
@@ -58,6 +61,7 @@ namespace QuantBox.OQ.Demo.Strategys
             }
 
             spreadSeries = new TimeSeries("spread");
+            _bars = new Dictionary<string, double>();
             sma = new SMA(spreadSeries, Length);
 
             Draw(spreadSeries, 2);
@@ -66,7 +70,18 @@ namespace QuantBox.OQ.Demo.Strategys
 
         double Calculate(Bar bar1, Bar bar2)
         {
-            return bar1.Close - bar2.Close * Slope - Const;
+            return Calculate(bar1.Close,bar2.Close);
+        }
+
+        double Calculate(double db1, double db2)
+        {
+            return db1 - db2 * Slope - Const;
+        }
+
+        public override void OnBar(Bar bar)
+        {
+            _bars[Instrument.Symbol] = bar.Close;
+
         }
 
         public override void OnBarSlice(long size)
@@ -74,15 +89,12 @@ namespace QuantBox.OQ.Demo.Strategys
             if (Instrument1 == Instrument)
                 return;
 
-            if (BarSeries1.Count < 1 || BarSeries2.Count < 1)
-                return;
-
-            DateTime dt = BarSeries1.Last.DateTime;
-            if (dt.CompareTo(BarSeries2.Last.DateTime) < 0)
+            double b1, b2;
+            if (_bars.TryGetValue("cu000", out b1)
+                && _bars.TryGetValue("zn000", out b2))
             {
-                dt = BarSeries2.Last.DateTime;
-            }
-            spreadSeries.Add(dt, Calculate(BarSeries1.Last, BarSeries2.Last));
+                spreadSeries.Add(Clock.Now, Calculate(b1, b2));
+            }           
 
             if (sma.Count < 1)
                 return;
