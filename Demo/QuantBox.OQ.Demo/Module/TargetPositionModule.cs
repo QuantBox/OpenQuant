@@ -102,10 +102,11 @@ namespace QuantBox.OQ.Demo.Module
             DualPosition.Buy.PriceHelper = PriceHelper;
             DualPosition.CloseTodayHelper = CloseTodayHelper;
 
-            // 测试代码
-            //TargetPosition = 3;
+            TargetPosition = 0;
             DualPosition.Long.Qty = 0;
+            DualPosition.Long.QtyToday = 0;
             DualPosition.Short.Qty = 0;
+            DualPosition.Short.QtyToday = 0;
         }
 
         public override void OnTrade(Trade trade)

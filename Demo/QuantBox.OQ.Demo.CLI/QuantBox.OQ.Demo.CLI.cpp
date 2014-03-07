@@ -8,7 +8,7 @@ using namespace QuantBoxOQDemoCLI;
 
 void ManagedClass::OnStrategyStart()
 {
-	Console::WriteLine(Instrument);
+	Console::WriteLine(Instrument->Symbol);
 }
 
 void ManagedClass::OnBarOpen(OpenQuant::API::Bar^ bar)

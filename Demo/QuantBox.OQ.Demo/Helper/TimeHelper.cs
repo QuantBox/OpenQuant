@@ -20,7 +20,7 @@ namespace QuantBox.OQ.Demo.Helper
         public int EndOfDay { get; private set; }
         public int BeginOfDay { get; private set; }
 
-        public int[] WorkingTime_Financial = { 915, 1130, 1300, 1515 }; //IF
+        public int[] WorkingTime_Financial = { 915, 1130, 1300, 1515 }; //IF,TF,IO
         public int[] WorkingTime_Commodity = { 900, 1015, 1030, 1130, 1330, 1500 }; //商品
         public int[] WorkingTime_Commodity_0230 = { 0, 230, 900, 1015, 1030, 1130, 1330, 1500, 2100, 2400 };//au,ag
         public int[] WorkingTime_Commodity_0100 = { 0, 100, 900, 1015, 1030, 1130, 1330, 1500, 2100, 2400 };//铜、铝、铅、锌
@@ -77,6 +77,7 @@ namespace QuantBox.OQ.Demo.Helper
             switch(prefix)
             {
                 case "IF":
+                case "TF":
                 case "IO":
                     return EnumTradingTime.FINANCIAL;
                 case "au":

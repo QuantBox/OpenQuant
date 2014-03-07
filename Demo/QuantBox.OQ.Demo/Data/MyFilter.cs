@@ -55,7 +55,13 @@ namespace QuantBox.OQ.Demo.Data
             if (bar.Size >= 86400)
                 return bar;
 
-            if (isRightTime(symbol, bar.DateTime))
+            // 注意！！！！！
+            // 商品是13点30中中午开始，而如果你设置的是1小时一个Bar
+            // 只使用DateTime进行判断会导致1点到2点的Bar被丢弃
+            // 所以要多判断些条件
+            if (isRightTime(symbol, bar.DateTime)
+                || isRightTime(symbol, bar.EndTime)
+                || isRightTime(symbol, bar.BeginTime))
                 return bar;
 
             return null;

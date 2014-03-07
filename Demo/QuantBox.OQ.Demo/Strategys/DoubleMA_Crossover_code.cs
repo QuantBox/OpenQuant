@@ -60,7 +60,9 @@ namespace QuantBox.OQ.Demo.Strategys
 
             base.TargetPosition = 0;
             base.DualPosition.Long.Qty = 0;
+            base.DualPosition.Long.QtyToday = 0;
             base.DualPosition.Short.Qty = 0;
+            base.DualPosition.Short.QtyToday = 0;
 
             LoadHistoricalBars(Clock.Now);
 
