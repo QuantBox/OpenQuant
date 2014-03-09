@@ -44,12 +44,17 @@ namespace QuantBox.OQ.Demo.Data
 
                 Trade t1, t2;
 
-                if (_trades.TryGetValue("IF1306", out t1)
-                    && _trades.TryGetValue("IF1307", out t2))
+                if ("IF1306-IF1307".Contains(symbol)
+                    || "IF1306-IF1307*2".Contains(symbol))
                 {
-                    EmitTrade("IF1306-IF1307", Clock.Now, t1.Price - t2.Price, 0);
-                    EmitTrade("IF1306-IF1307*2", Clock.Now, t1.Price - t2.Price * 2.0, 0);
+                    if (_trades.TryGetValue("IF1306", out t1)
+                    && _trades.TryGetValue("IF1307", out t2))
+                    {
+                        EmitTrade("IF1306-IF1307", Clock.Now, t1.Price - t2.Price, 0);
+                        EmitTrade("IF1306-IF1307*2", Clock.Now, t1.Price - t2.Price * 2.0, 0);
+                    }
                 }
+                
 
                 // 注意，这个地方一定要返回null
                 // 这实际上是让插件内部的Emit不调用
