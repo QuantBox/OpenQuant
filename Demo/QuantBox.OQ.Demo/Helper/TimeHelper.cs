@@ -79,6 +79,9 @@ namespace QuantBox.OQ.Demo.Helper
                 case "IF":
                 case "TF":
                 case "IO":
+                case "IH":
+                case "IC":
+                case "HO":
                     return EnumTradingTime.FINANCIAL;
                 case "au":
                 case "ag":
