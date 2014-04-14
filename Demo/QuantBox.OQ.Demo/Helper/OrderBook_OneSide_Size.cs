@@ -37,6 +37,19 @@ namespace QuantBox.OQ.Demo.Helper
             }
         }
 
+        public double SizeByLevel(int level)
+        {
+            lock (this)
+            {
+                double size;
+                if (!Grid.TryGetValue(level, out size))
+                {
+                    return 0;
+                }
+                return size;
+            }
+        }
+
         public void Clear()
         {
             Grid.Clear();

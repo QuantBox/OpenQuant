@@ -1,44 +1,48 @@
 ﻿using OpenQuant.API;
 using QuantBox.OQ.Demo.Helper;
 using QuantBox.OQ.Extensions;
+using QuantBox.OQ.Extensions.OrderText;
 using System;
 using System.Collections.Generic;
 
 namespace QuantBox.OQ.Demo.Module
 {
-    public class TargetOrderBookModule : Strategy
+    public class TargetOrderBookModule : TargetPositionModule
     {
-        public DualPosition DualPosition;
-        public TimeHelper TimeHelper;
-        public PriceHelper PriceHelper;
+        // 大于N层的单子总是开仓，这样不占用平仓机会
+        public double AlwaysOpenIfDepthGreatThan = 2;
+        // 目标挂单
+        public OrderBook_BothSide_Size TargetOrderBook;
 
-        OrderBook_BothSide_Size TargetOrderBook;
-
+        protected TextCommon TextParameterAsk;
+        protected TextCommon TextParameterBid;
 
         public override void OnStrategyStart()
         {
-            TimeHelper = new TimeHelper(EnumTradingTime.COMMODITY);
-            PriceHelper = new PriceHelper(Instrument.TickSize);
+            base.OnStrategyStart();
+
+            // 测试用，自定义交易时间，仿真或实盘时可删除
+            base.TimeHelper = new TimeHelper(new int[] { 0, 2400 }, 2100, 1458);
 
             TargetOrderBook = new OrderBook_BothSide_Size();
-
-            DualPosition = new DualPosition();
-            DualPosition.Sell.PriceHelper = PriceHelper;
-            DualPosition.Buy.PriceHelper = PriceHelper;
-
-            // 测试代码
-            //TargetPosition = 3;
-            DualPosition.Long.Qty = 0;
-            DualPosition.Short.Qty = 0;
+            TargetOrderBook.Sell.PriceHelper = base.PriceHelper;
+            TargetOrderBook.Buy.PriceHelper = base.PriceHelper;
+            TextParameterAsk = new TextCommon() { OpenClose = EnumOpenClose.OPEN };
+            TextParameterBid = new TextCommon() { OpenClose = EnumOpenClose.OPEN };
         }
 
         public override void OnBar(Bar bar)
         {
-            TargetOrderBook.Sell.Set(300, 10);
-            TargetOrderBook.Sell.Set(200, 5);
-            TargetOrderBook.Buy.Set(100, 10);
-            TargetOrderBook.Buy.Set(50, 10);
-            
+            // 如果深度只有一层，一定要记得先清理
+            TargetOrderBook.Sell.Clear();
+            TargetOrderBook.Buy.Clear();
+
+            TargetOrderBook.Sell.Set(bar.Close + 2, 7);
+            TargetOrderBook.Sell.Set(bar.Close + 1, 5);
+            TargetOrderBook.Buy.Set(bar.Close - 1, 2);
+            TargetOrderBook.Buy.Set(bar.Close - 2, 8);
+
+
             // 设置目标订单列表
 
             // 对比订单列表
@@ -53,15 +57,43 @@ namespace QuantBox.OQ.Demo.Module
             // 挂指定价格单
             // 调整后面的价格与数量
             // 由于后面的价格与数量没有啥影响，所以基本不调,先撤单
+
+            base.OnBar(bar);
         }
 
-        // 检查对手，保证最不会自成交
+        public override void Process()
+        {
+            // 非交易时段，不处理
+            if (!TimeHelper.IsTradingTime())
+            {
+                return;
+            }
+
+            int cnt_ask = 0, cnt_bid = 0;
+            cnt_ask += 单边防自成交撤单(base.DualPosition.Sell, TargetOrderBook.Buy);
+            cnt_ask += 智能撤单逻辑(base.DualPosition.Sell, TargetOrderBook.Sell);
+
+            cnt_bid += 单边防自成交撤单(base.DualPosition.Buy, TargetOrderBook.Sell);
+            cnt_bid += 智能撤单逻辑(base.DualPosition.Buy, TargetOrderBook.Buy);
+
+            if (cnt_ask == 0)
+            {
+                单边全面补单(base.DualPosition.Sell, TargetOrderBook.Sell);
+            }
+
+            if (cnt_bid == 0)
+            {
+                单边全面补单(base.DualPosition.Buy, TargetOrderBook.Buy);
+            }
+        }
+
+        // 检查对手，保证不会自成交
         // 这次有可能把平仓单全撤了，剩下的全是开仓单，有些风险
-        public int 单边防自成交(OrderBook_OneSide_Order sell,OrderBook_OneSide_Size buy)
+        public int 单边防自成交撤单(OrderBook_OneSide_Order sell, OrderBook_OneSide_Size buy)
         {
             int cnt = 0;
             // 同买卖是不可能自成交的
-            if(sell.Side == buy.Side)
+            if (sell.Side == buy.Side)
                 return cnt;
 
             // 还没有挂单，不会自成交
@@ -75,7 +107,7 @@ namespace QuantBox.OQ.Demo.Module
             // 取对手单的最高价
             int level = buy.Grid.Keys[0];
             // 将挂单列表中的单子撤单
-            foreach(var s in sell.Grid)
+            foreach (var s in sell.Grid)
             {
                 if (buy.Side == OrderSide.Buy)
                 {
@@ -99,7 +131,7 @@ namespace QuantBox.OQ.Demo.Module
         // 目前对前两层做智能开平，后面的全用开仓单
         // 因为后面的使用平仓单，还要处理复杂的大量开挂单的问题。
         // 实际上不能太深，因为深了占用资金
-        public int 补单(OrderBook_OneSide_Order buy1, OrderBook_OneSide_Size buy2)
+        public int 单边全面补单(OrderBook_OneSide_Order buy1, OrderBook_OneSide_Size buy2)
         {
             int cnt = 0;
             // 方向不对，不可能补单
@@ -107,8 +139,8 @@ namespace QuantBox.OQ.Demo.Module
                 return cnt;
 
             int l = 0;
-            // 由于在别的地方做了撤单，在这buy2中的数量是大于buy1的
-            foreach(var b2 in buy2.Grid)
+            // 由于在别的地方做了撤单，在这buy2中的数量是大于等于buy1的
+            foreach (var b2 in buy2.Grid)
             {
                 ++l;
                 int level = b2.Key;
@@ -122,47 +154,37 @@ namespace QuantBox.OQ.Demo.Module
                 double price = PriceHelper.GetPriceByLevel(level);
                 cnt += (int)leave;
 
+                TextCommon tp = buy1.Side == OrderSide.Buy ? TextParameterBid : TextParameterAsk;
+                PositionRecord LongShort = buy1.Side == OrderSide.Buy ? base.DualPosition.Short : base.DualPosition.Long;
+
                 // 超过两层的全用开仓
-                if (l > 2)
+                if (l > AlwaysOpenIfDepthGreatThan)
                 {
-                    SendLimitOrder(buy2.Side, leave, price,
-                        OpenCloseHelper.GetOpenCloseString(EnumOpenClose.OPEN));
-                    continue;
+                    tp.OpenClose = EnumOpenClose.OPEN;
+                    tp.Text = string.Format("{0}层，开仓补单", l);
+                }
+                else
+                {
+                    // 计算开平
+                    double q = CloseTodayHelper.GetCloseAndQty(LongShort, out tp.OpenClose);
+                    if (q < leave)
+                    {
+                        tp.OpenClose = EnumOpenClose.OPEN;
+                        tp.Text = string.Format("可平量{0}不够，全开仓{1}", q, leave);
+                    }
+                    else
+                    {
+                        tp.Text = string.Format("可平量{0}，全开仓{1}", q, leave);
+                    }
                 }
 
-                // 应当对容易平仓的位置进行平仓
-                // 这个地方要测试一个，我只有10持仓，先挂10手平，第二个价格再挂自动生成的单是平还是开？检查数据计算是否正确
-                // 补单是一次性的，还是分两笔，还是分两笔吧
-                //double canqty = DualPosition.CanCloseQty(buy2.Side);
-                
-                //// 检查平仓，如果补单限为一次，那就把此行注释
-                //if (canqty > 0)
-                //{
-                //    double min = Math.Min(leave, canqty);
-                //    leave -= min;
-                //    SendLimitOrder(buy2.Side, min, price, 
-                //        OpenCloseHelper.GetOpenCloseString(EnumOpenClose.CLOSE_TODAY));
-                //}
-
-                if (leave > 0)
-                {
-                    //SendLimitOrder(buy2.Side, leave, price,
-                    //    OpenCloseHelper.GetOpenCloseString(DualPosition.CanClose(buy2.Side, leave)));
-                }
+                // 入场下单
+                SendLimitOrder(buy2.Side, leave, price, tp.ToString());
             }
 
             return cnt;
         }
 
-        // 此部分是因为确信此位置上不会挂单，所以撤了
-        public int 强行撤单部分(OrderBook_OneSide_Order buy1, OrderBook_OneSide_Size buy2)
-        {
-            int cnt = 0;
-
-
-
-            return cnt;
-        }
 
         // 其它层好办，关键在第一层，第一层要保证排队和开平
         // 没有竞争者就保证平仓
@@ -184,82 +206,42 @@ namespace QuantBox.OQ.Demo.Module
             if (buy1.Side != buy2.Side)
                 return cnt;
 
-            // 由于在别的地方做了撤单，在这buy2中的数量是大于buy1的
-            foreach (var b2 in buy2.Grid)
+            // 撤单时按已有的挂单进行处理
+            foreach (var b1 in buy1.Grid)
             {
-                int level = b2.Key;
-                double size = b2.Value;
+                int level = b1.Key;
 
-                // 要补单的数量，这地方有问题，由于不对应，完全没有价格的会漏掉
-                double leave = size - buy1.SizeByLevel(level);
-                if (leave <= 0)
+                double size2 = buy2.SizeByLevel(level);
+                if (size2 <= 0)
+                {
+                    // 发现目标价上量为0，全撤
+                    cnt += buy1.Cancel(b1.Value);
                     continue;
+                }
 
-                double price = PriceHelper.GetPriceByLevel(level);
-                cnt += (int)leave;
+                double size1 = buy1.Size(b1.Value);
+                if (size1 <= size2)
+                {
+                    // 量少于目标量，不动，等着补单
+                    continue;
+                }
 
-                // 应当对容易平仓的位置进行平仓
-                // 这个地方要测试一个，我只有10持仓，先挂10手平，第二个价格再挂自动生成的单是平还是开？检查数据计算是否正确
-                // 补单是一次性的，还是分两笔，还是分两笔吧
-                //double canqty = DualPosition.CanCloseQty(buy2.Side);
+                // 要撤单的量，实际上还剩的挂单量不由人为控制，所以这个地方可以多撤
+                double leave = size1 - size2;
+                // 现在这个价位上挂了很多单，是撤开仓，还是撤新挂的？
+                double count = 0;
+                foreach (Order o in b1.Value.Reverse())
+                {
+                    count += o.LeavesQty;
+                    if (count >= leave)
+                        break;
 
-                //// 检查平仓，如果补单限为一次，那就把此行注释
-                //if (canqty > 0)
-                //{
-                //    double min = Math.Min(leave, canqty);
-                //    leave -= min;
-                //    SendLimitOrder(buy2.Side, min, price, OpenCloseHelper.GetOpenCloseString(EnumOpenClose.CLOSE_TODAY));
-                //}
-
-                //if (leave > 0)
-                //{
-                //    SendLimitOrder(buy2.Side, leave, price,
-                //        OpenCloseHelper.GetOpenCloseString(DualPosition.CanClose(buy2.Side, leave)));
-                //}
+                    o.Cancel();
+                    ++cnt;
+                }
             }
 
             return cnt;
         }
-
-        public override void OnOrderPartiallyFilled(Order order)
-        {
-            DualPosition.Filled(order);
-            // 单子部分成交，不做操作，等单子完全执行完
-        }
-
-
-        public override void OnOrderFilled(Order order)
-        {
-            DualPosition.Filled(order);
-            // 检查仓位是否正确,是否要发新单
-        }
-
-
-        public override void OnNewOrder(Order order)
-        {
-            DualPosition.NewOrder(order);
-        }
-
-
-        public override void OnOrderRejected(Order order)
-        {
-            DualPosition.OrderRejected(order);
-
-            // 当前状态禁止此项操作,时间不对，应当等下次操作
-        }
-
-
-        public override void OnOrderCancelled(Order order)
-        {
-            DualPosition.OrderCancelled(order);
-        }
-
-
-        public override void OnOrderCancelReject(Order order)
-        {
-            // 撤单被拒绝，暂不操作
-        }
-
-
     }
 }

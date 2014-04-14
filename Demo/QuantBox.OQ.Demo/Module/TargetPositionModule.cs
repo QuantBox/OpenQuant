@@ -266,7 +266,7 @@ namespace QuantBox.OQ.Demo.Module
             HiLoAfterEntry(order.LastPrice);
 
             // 检查仓位是否正确,是否要发新单
-            Process();
+            //Process();
         }
 
         public override void OnNewOrder(Order order)
@@ -311,7 +311,8 @@ namespace QuantBox.OQ.Demo.Module
         {
             DualPosition.OrderCancelled(order);
 
-            ResendOrder(order);
+            // 这个地方会影响做市商的挂单功能
+            //ResendOrder(order);
         }
 
         public override void OnOrderCancelReject(Order order)
