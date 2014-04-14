@@ -330,7 +330,7 @@ namespace QuantBox.OQ.Demo.Module
         {
             double qty = GetCurrentQty();
             double stop;
-            if (qty > 0)
+            if (qty > double.Epsilon)
             {
                 if (StopMode.Percent == mode)
                 {
@@ -349,7 +349,7 @@ namespace QuantBox.OQ.Demo.Module
                     return qty;
                 }
             }
-            else
+            else if (qty < -double.Epsilon)
             {
                 if (StopMode.Percent == mode)
                 {
@@ -384,7 +384,7 @@ namespace QuantBox.OQ.Demo.Module
         {
             double qty = GetCurrentQty();
             double stop;
-            if (qty > 0)
+            if (qty > double.Epsilon)
             {
                 if (StopMode.Percent == mode)
                 {
@@ -403,7 +403,7 @@ namespace QuantBox.OQ.Demo.Module
                     return qty;
                 }
             }
-            else
+            else if (qty < -double.Epsilon)
             {
                 if (StopMode.Percent == mode)
                 {
@@ -430,7 +430,7 @@ namespace QuantBox.OQ.Demo.Module
         {
             double qty = GetCurrentQty();
             double stop;
-            if (qty > 0)
+            if (qty > double.Epsilon)
             {
                 if (StopMode.Percent == mode)
                 {
@@ -449,7 +449,7 @@ namespace QuantBox.OQ.Demo.Module
                     return qty;
                 }
             }
-            else
+            else if (qty < -double.Epsilon)
             {
                 if (StopMode.Percent == mode)
                 {
@@ -490,7 +490,6 @@ namespace QuantBox.OQ.Demo.Module
 
         public virtual void ChangeTradingDay()
         {
-            
             if (TimeHelper.BeginOfDay > TimeHelper.EndOfDay)
             {
                 // 夜盘
