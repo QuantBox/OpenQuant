@@ -194,6 +194,23 @@ namespace QuantBox.OQ.Demo.Helper
             }
         }
 
+        //public int CancelFarFromPrice(double price)
+        //{
+        //    lock (this)
+        //    {
+        //        //int cnt = 0;
+        //        //int key = PriceHelper.GetLevelByPrice(price, Side);
+        //        //foreach (var kv in Grid)
+        //        //{
+        //        //    if (kv.Key != key)
+        //        //    {
+        //        //        cnt += Cancel(kv.Value);
+        //        //    }
+        //        //}
+        //        return cnt;
+        //    }
+        //}
+
         public double PriceByIndex(int index)
         {
             lock (this)

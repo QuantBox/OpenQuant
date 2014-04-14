@@ -15,7 +15,7 @@ namespace QuantBox.OQ.Demo.Optimization
     /// 要参加Interop.MLApp引用
     /// </summary>
     public class Matlab_Scenario : Scenario
-    {
+    {/*
         public override void Run()
         {
             MLApp.MLAppClass matlab = new MLApp.MLAppClass();
@@ -69,7 +69,7 @@ namespace QuantBox.OQ.Demo.Optimization
             //matlab.Quit();
             //matlab = null;
         }
-    }
+    */}
 }
 
 /*

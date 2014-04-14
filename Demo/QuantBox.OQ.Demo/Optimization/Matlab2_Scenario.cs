@@ -17,7 +17,7 @@ namespace QuantBox.OQ.Demo.Optimization
     /// 要参加Interop.MLApp引用
     /// </summary>
     public class Matlab2_Scenario : Scenario
-    {
+    {/*
         FileSystemWatcher watcher;
 
         private AutoResetEvent _autoResetEvent = new AutoResetEvent(false);
@@ -100,7 +100,7 @@ namespace QuantBox.OQ.Demo.Optimization
 
             WatcherStop();
         }
-    }
+    */}
 }
 
 /*

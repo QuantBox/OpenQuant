@@ -29,10 +29,13 @@ namespace QuantBox.OQ.Demo.Data
 
                 Trade t1, t2;
 
-                if (_bar_trade.TryGetValue("AAPL", out t1)
-                    && _bar_trade.TryGetValue("MSFT", out t2))
+                if ("AAPL-MSFT".Contains(symbol))
                 {
-                    EmitTrade("AAPL-MSFT", Clock.Now, t1.Price - t2.Price, 0);
+                    if (_bar_trade.TryGetValue("AAPL", out t1)
+                    && _bar_trade.TryGetValue("MSFT", out t2))
+                    {
+                        EmitTrade("AAPL-MSFT", Clock.Now, t1.Price - t2.Price, 0);
+                    }
                 }
 
                 // 注意，这个地方要返回
@@ -46,10 +49,13 @@ namespace QuantBox.OQ.Demo.Data
 
                 Trade t1, t2;
 
-                if (_bar_trade.TryGetValue("AAPL", out t1)
-                    && _bar_trade.TryGetValue("MSFT", out t2))
+                if ("AAPL-MSFT".Contains(symbol))
                 {
-                    EmitTrade("AAPL-MSFT", Clock.Now, t1.Price - t2.Price, 0);
+                    if (_bar_trade.TryGetValue("AAPL", out t1)
+                    && _bar_trade.TryGetValue("MSFT", out t2))
+                    {
+                        EmitTrade("AAPL-MSFT", Clock.Now, t1.Price - t2.Price, 0);
+                    }
                 }
 
                 // 注意，这个地方要返回
