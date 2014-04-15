@@ -35,12 +35,11 @@ namespace QuantBox.OQ.Demo.Module
         {
             // 如果深度只有一层，一定要记得先清理
             TargetOrderBook.Sell.Clear();
-            TargetOrderBook.Buy.Clear();
 
             TargetOrderBook.Sell.Set(bar.Close + 2, 7);
             TargetOrderBook.Sell.Set(bar.Close + 1, 5);
-            TargetOrderBook.Buy.Set(bar.Close - 1, 2);
-            TargetOrderBook.Buy.Set(bar.Close - 2, 8);
+
+            TargetOrderBook.Buy.SetOnly(bar.Close - 2, 8);
 
 
             // 设置目标订单列表
@@ -59,6 +58,49 @@ namespace QuantBox.OQ.Demo.Module
             // 由于后面的价格与数量没有啥影响，所以基本不调,先撤单
 
             base.OnBar(bar);
+        }
+
+        private void SubOrder(Order order)
+        {
+            // 市价不会挂单，所以不会记录到目标挂单助手中
+            if (order.Type != OrderType.Limit)
+                return;
+
+            double price = order.Price;
+            double size = order.LastQty;
+
+            if(order.Side == OrderSide.Buy)
+            {
+                TargetOrderBook.Buy.Sub(price,size);
+            }
+            else
+            {
+                TargetOrderBook.Sell.Sub(price, size);
+            }
+        }
+
+        public override void OnOrderCancelled(Order order)
+        {
+            base.OnOrderCancelled(order);
+            SubOrder(order);
+        }
+
+        public override void OnOrderRejected(Order order)
+        {
+            base.OnOrderRejected(order);
+            SubOrder(order);
+        }
+
+        public override void OnOrderPartiallyFilled(Order order)
+        {
+            base.OnOrderPartiallyFilled(order);
+            SubOrder(order);
+        }
+
+        public override void OnOrderFilled(Order order)
+        {
+            base.OnOrderFilled(order);
+            SubOrder(order);
         }
 
         public override void Process()

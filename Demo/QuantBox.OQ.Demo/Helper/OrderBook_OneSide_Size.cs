@@ -24,6 +24,22 @@ namespace QuantBox.OQ.Demo.Helper
             return x.CompareTo(y) * (Side == OrderSide.Buy ? -1 : 1);
         }
 
+        public void Sub(double price, double size)
+        {
+            int key = PriceHelper.GetLevelByPrice(price, Side);
+            if (size <= 0)
+            {
+            }
+            else
+            {
+                Grid[key] -= size;
+            }
+            if(Grid[key] <= 0)
+            {
+                Grid.Remove(key);
+            }
+        }
+
         public void Set(double price, double size)
         {
             int key = PriceHelper.GetLevelByPrice(price, Side);
@@ -35,6 +51,12 @@ namespace QuantBox.OQ.Demo.Helper
             {
                 Grid[key] = size;
             }
+        }
+
+        public void SetOnly(double price, double size)
+        {
+            Clear();
+            Set(price, size);
         }
 
         public double SizeByLevel(int level)
