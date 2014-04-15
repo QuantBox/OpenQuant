@@ -79,11 +79,14 @@ namespace QuantBox.OQ.Demo.Module
             }
         }
 
-        public override void OnOrderCancelled(Order order)
-        {
-            base.OnOrderCancelled(order);
-            SubOrder(order);
-        }
+        // 这下面有问题，不能这么直接减，因为撤单可能只是中间状态，后面还要补上来的
+        // 而其它状态可以认为单子改变，可以修改了
+
+        //public override void OnOrderCancelled(Order order)
+        //{
+        //    base.OnOrderCancelled(order);
+        //    SubOrder(order);
+        //}
 
         public override void OnOrderRejected(Order order)
         {

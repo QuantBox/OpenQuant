@@ -206,7 +206,7 @@ namespace QuantBox.OQ.Demo.Module
         /// </summary>
         /// <param name="side"></param>
         /// <param name="qty"></param>
-        private void SendOrder(OrderSide side, double qty)
+        public void SendOrder(OrderSide side, double qty)
         {
             if (!TimeHelper.IsTradingTime())
             {
@@ -245,7 +245,7 @@ namespace QuantBox.OQ.Demo.Module
         /// 重新发单
         /// </summary>
         /// <param name="order"></param>
-        private void ResendOrder(Order order)
+        public void ResendOrder(Order order)
         {
             SendOrder(order.Side, order.LeavesQty);
         }
