@@ -31,34 +31,34 @@ namespace QuantBox.OQ.Demo.Module
             TextParameterBid = new TextCommon() { OpenClose = EnumOpenClose.OPEN };
         }
 
-        public override void OnBar(Bar bar)
-        {
-            // 如果深度只有一层，一定要记得先清理
-            TargetOrderBook.Sell.Clear();
+        //public override void OnBar(Bar bar)
+        //{
+        //    // 如果深度只有一层，一定要记得先清理
+        //    TargetOrderBook.Sell.Clear();
 
-            TargetOrderBook.Sell.Set(bar.Close + 2, 7);
-            TargetOrderBook.Sell.Set(bar.Close + 1, 5);
+        //    TargetOrderBook.Sell.Set(bar.Close + 2, 7);
+        //    TargetOrderBook.Sell.Set(bar.Close + 1, 5);
 
-            TargetOrderBook.Buy.SetOnly(bar.Close - 2, 8);
-
-
-            // 设置目标订单列表
-
-            // 对比订单列表
-
-            // 撤单，防止自成交
-            // 同一价位，如果全是自己挂的，可以先撤开仓单
-            // 不是自己挂的，先撤后挂的
-            // 按数量开仓
+        //    TargetOrderBook.Buy.SetOnly(bar.Close - 2, 8);
 
 
-            // 先撤交集，
-            // 挂指定价格单
-            // 调整后面的价格与数量
-            // 由于后面的价格与数量没有啥影响，所以基本不调,先撤单
+        //    // 设置目标订单列表
 
-            base.OnBar(bar);
-        }
+        //    // 对比订单列表
+
+        //    // 撤单，防止自成交
+        //    // 同一价位，如果全是自己挂的，可以先撤开仓单
+        //    // 不是自己挂的，先撤后挂的
+        //    // 按数量开仓
+
+
+        //    // 先撤交集，
+        //    // 挂指定价格单
+        //    // 调整后面的价格与数量
+        //    // 由于后面的价格与数量没有啥影响，所以基本不调,先撤单
+
+        //    base.OnBar(bar);
+        //}
 
         private void SubOrder(Order order)
         {
@@ -81,7 +81,6 @@ namespace QuantBox.OQ.Demo.Module
 
         // 这下面有问题，不能这么直接减，因为撤单可能只是中间状态，后面还要补上来的
         // 而其它状态可以认为单子改变，可以修改了
-
         //public override void OnOrderCancelled(Order order)
         //{
         //    base.OnOrderCancelled(order);
