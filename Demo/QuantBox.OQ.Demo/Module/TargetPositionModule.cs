@@ -111,13 +111,19 @@ namespace QuantBox.OQ.Demo.Module
 
         public override void OnTrade(Trade trade)
         {
-            Process();
-            HiLoAfterEntry(trade.Price);
+            lock(this)
+            {
+                Process();
+                HiLoAfterEntry(trade.Price);
+            }
         }
 
         public override void OnQuote(Quote quote)
         {
-            Process();
+            lock(this)
+            {
+                Process();
+            }
 
             // 如果只有Quote数据，如何更新？
             // 那就会不用这个目标仓位助手了
@@ -128,14 +134,20 @@ namespace QuantBox.OQ.Demo.Module
 
         public override void OnBarOpen(Bar bar)
         {
-            Process();
-            HiLoAfterEntry(bar.Open);
+            lock(this)
+            {
+                Process();
+                HiLoAfterEntry(bar.Open);
+            }
         }
 
         public override void OnBar(Bar bar)
         {
-            Process();
-            HiLoAfterEntry(bar.Close);
+            lock(this)
+            {
+                Process();
+                HiLoAfterEntry(bar.Close);
+            }
         }
 
         /// <summary>
@@ -143,61 +155,64 @@ namespace QuantBox.OQ.Demo.Module
         /// </summary>
         public virtual void Process()
         {
-            // 非交易时段，不处理
-            if (!TimeHelper.IsTradingTime())
+            lock(this)
             {
-                return;
-            }
-
-            // 计算仓差
-            double dif = TargetPosition - DualPosition.NetQty;
-            double qty = 0;
-            OrderSide Side = OrderSide.Buy;
-            TextParameter.OpenClose = EnumOpenClose.OPEN;
-
-            if (dif == 0)// 持仓量相等
-            {
-                // 把所有的挂单全撤了
-                DualPosition.Cancel();
-                return;
-            }
-            else if (dif > 0 && !DualPosition.IsPending)// 表示要增加净持仓
-            {
-                // 是否有在途增仓订单,超数了
-                // 是否有在途减仓订单,全取消息
-                qty = dif;
-                Side = OrderSide.Buy;
-
-                EnumOpenClose oc = EnumOpenClose.CLOSE;
-                double q = CloseTodayHelper.GetCloseAndQty(DualPosition.Short,out oc);
-                if(q>0)
+                // 非交易时段，不处理
+                if (!TimeHelper.IsTradingTime())
                 {
-                    // 按最小数量进行平仓
-                    qty = Math.Min(qty, q);
-                    TextParameter.OpenClose = oc;
+                    return;
                 }
-            }
-            else if (!DualPosition.IsPending) // 减少净持仓
-            {
-                qty = -dif;
-                Side = OrderSide.Sell;
 
-                EnumOpenClose oc = EnumOpenClose.CLOSE;
-                double q = CloseTodayHelper.GetCloseAndQty(DualPosition.Long, out oc);
-                if (q > 0)
+                // 计算仓差
+                double dif = TargetPosition - DualPosition.NetQty;
+                double qty = 0;
+                OrderSide Side = OrderSide.Buy;
+                TextParameter.OpenClose = EnumOpenClose.OPEN;
+
+                if (dif == 0)// 持仓量相等
                 {
-                    // 按最小数量进行平仓
-                    qty = Math.Min(qty, q);
-                    TextParameter.OpenClose = oc;
+                    // 把所有的挂单全撤了
+                    DualPosition.Cancel();
+                    return;
                 }
-            }
+                else if (dif > 0 && !DualPosition.IsPending)// 表示要增加净持仓
+                {
+                    // 是否有在途增仓订单,超数了
+                    // 是否有在途减仓订单,全取消息
+                    qty = dif;
+                    Side = OrderSide.Buy;
 
-            if (qty > 0)
-            {
-                qty = Math.Min(qty, MaxQtyPerLot);
+                    EnumOpenClose oc = EnumOpenClose.CLOSE;
+                    double q = CloseTodayHelper.GetCloseAndQty(DualPosition.Short, out oc);
+                    if (q > 0)
+                    {
+                        // 按最小数量进行平仓
+                        qty = Math.Min(qty, q);
+                        TextParameter.OpenClose = oc;
+                    }
+                }
+                else if (!DualPosition.IsPending) // 减少净持仓
+                {
+                    qty = -dif;
+                    Side = OrderSide.Sell;
 
-                // 下单
-                SendOrder(Side, qty);
+                    EnumOpenClose oc = EnumOpenClose.CLOSE;
+                    double q = CloseTodayHelper.GetCloseAndQty(DualPosition.Long, out oc);
+                    if (q > 0)
+                    {
+                        // 按最小数量进行平仓
+                        qty = Math.Min(qty, q);
+                        TextParameter.OpenClose = oc;
+                    }
+                }
+
+                if (qty > 0)
+                {
+                    qty = Math.Min(qty, MaxQtyPerLot);
+
+                    // 下单
+                    SendOrder(Side, qty);
+                }
             }
         }
 
@@ -208,36 +223,39 @@ namespace QuantBox.OQ.Demo.Module
         /// <param name="qty"></param>
         public void SendOrder(OrderSide side, double qty)
         {
-            if (!TimeHelper.IsTradingTime())
+            lock(this)
             {
-                return;
-            }
+                if (!TimeHelper.IsTradingTime())
+                {
+                    return;
+                }
 
-            if (qty <= 0)
-            {
-                return;
-            }
+                if (qty <= 0)
+                {
+                    return;
+                }
 
-            // 为减少滑点，对数量少的单子直接市价单
-            bool bMarketOrder = false;
-            if (EnumOpenClose.OPEN == TextParameter.OpenClose)
-            {
-                if (qty <= MarketOpenQtyThreshold)
-                    bMarketOrder = true;
-            }
-            else
-            {
-                if (qty <= MarketCloseQtyThreshold)
-                    bMarketOrder = true;
-            }
+                // 为减少滑点，对数量少的单子直接市价单
+                bool bMarketOrder = false;
+                if (EnumOpenClose.OPEN == TextParameter.OpenClose)
+                {
+                    if (qty <= MarketOpenQtyThreshold)
+                        bMarketOrder = true;
+                }
+                else
+                {
+                    if (qty <= MarketCloseQtyThreshold)
+                        bMarketOrder = true;
+                }
 
-            if (bMarketOrder)
-            {
-                SendMarketOrder(side, qty, TextParameter.ToString());
-            }
-            else
-            {
-                SendLimitOrder(side, qty, PriceHelper.GetMatchPrice(this, side, Jump), TextParameter.ToString());
+                if (bMarketOrder)
+                {
+                    SendMarketOrder(side, qty, TextParameter.ToString());
+                }
+                else
+                {
+                    SendLimitOrder(side, qty, PriceHelper.GetMatchPrice(this, side, Jump), TextParameter.ToString());
+                }
             }
         }
 
@@ -252,67 +270,83 @@ namespace QuantBox.OQ.Demo.Module
 
         public override void OnOrderPartiallyFilled(Order order)
         {
-            DualPosition.Filled(order);
-            HiLoAfterEntry(order.LastPrice);
+            lock(this)
+            {
+                DualPosition.Filled(order);
+                HiLoAfterEntry(order.LastPrice);
 
-            // 单子部分成交，不做操作，等单子完全执行完
-            // 等交易完，会有问题，一直挂在上面不操作，新单子也过不来
-            //Process();
+                // 单子部分成交，不做操作，等单子完全执行完
+                // 等交易完，会有问题，一直挂在上面不操作，新单子也过不来
+                //Process();
+            }
         }
 
         public override void OnOrderFilled(Order order)
         {
-            DualPosition.Filled(order);
-            HiLoAfterEntry(order.LastPrice);
+            lock(this)
+            {
+                DualPosition.Filled(order);
+                HiLoAfterEntry(order.LastPrice);
 
-            // 检查仓位是否正确,是否要发新单
-            //Process();
+                // 检查仓位是否正确,是否要发新单
+                //Process();
+            }
         }
 
         public override void OnNewOrder(Order order)
         {
-            DualPosition.NewOrder(order);
+            lock(this)
+            {
 
-            // 得加定时器，一定的时间内没有成交完全应当撤单重发，目前没有加这一功能
+                DualPosition.NewOrder(order);
+
+                // 得加定时器，一定的时间内没有成交完全应当撤单重发，目前没有加这一功能
+            }
         }
 
         public override void OnOrderRejected(Order order)
         {
-            EnumOpenClose OpenClose = DualPosition.OrderRejected(order);
-
-            double flag = order.Side == OrderSide.Buy ? 1 : -1;
-
-            if (EnumOpenClose.OPEN == OpenClose)
+            lock(this)
             {
-                // 开仓被拒绝，不再新开仓
-                // 有可能是钱不够
-                // 有可能是超出持仓限制
-                // 有可能是非交易时间
-                TargetPosition -= flag * order.LeavesQty;
-                return;
+                EnumOpenClose OpenClose = DualPosition.OrderRejected(order);
+
+                double flag = order.Side == OrderSide.Buy ? 1 : -1;
+
+                if (EnumOpenClose.OPEN == OpenClose)
+                {
+                    // 开仓被拒绝，不再新开仓
+                    // 有可能是钱不够
+                    // 有可能是超出持仓限制
+                    // 有可能是非交易时间
+                    TargetPosition -= flag * order.LeavesQty;
+                    return;
+                }
+
+                EnumError error = TextResponse.FromText(order.Text);
+
+                // 无法平仓，不重发单
+                // 能出现这个问题是持仓计算错误，这已经是策略持仓计算错误了
+                if (error == EnumError.OVER_CLOSETODAY_POSITION
+                    || error == EnumError.OVER_CLOSEYESTERDAY_POSITION
+                    || error == EnumError.OVER_CLOSE_POSITION)
+                {
+                    TargetPosition -= flag * order.LeavesQty;
+                    return;
+                }
+
+                // 当前状态禁止此项操作,时间不对，应当等下次操作
             }
-
-            EnumError error = TextResponse.FromText(order.Text);
-
-            // 无法平仓，不重发单
-            // 能出现这个问题是持仓计算错误，这已经是策略持仓计算错误了
-            if (error == EnumError.OVER_CLOSETODAY_POSITION
-                || error == EnumError.OVER_CLOSEYESTERDAY_POSITION
-                || error == EnumError.OVER_CLOSE_POSITION)
-            {
-                TargetPosition -= flag * order.LeavesQty;
-                return;
-            }
-
-            // 当前状态禁止此项操作,时间不对，应当等下次操作
         }
 
         public override void OnOrderCancelled(Order order)
         {
-            DualPosition.OrderCancelled(order);
+            lock(this)
+            {
+                DualPosition.OrderCancelled(order);
 
-            // 这个地方会影响做市商的挂单功能
-            //ResendOrder(order);
+                // 这个地方会影响做市商的挂单功能
+                //ResendOrder(order);
+            }
         }
 
         public override void OnOrderCancelReject(Order order)
@@ -477,10 +511,10 @@ namespace QuantBox.OQ.Demo.Module
         /// 尾盘清仓
         /// </summary>
         /// <returns>返回上次持仓量</returns>
-        public virtual double ExitOnClose(int time,string text)
+        public virtual double ExitOnClose(double seconds,string text)
         {
             double qty = GetCurrentQty();
-            if (TimeHelper.GetTime(Clock.Now.AddMinutes(time)) >= TimeHelper.EndOfDay)
+            if (TimeHelper.GetTime(Clock.Now.AddSeconds(seconds)) >= TimeHelper.EndOfDay)
             {
                 TargetPosition = 0;
                 TextParameter.Text = string.Format("尾盘，清仓|{0}",text);

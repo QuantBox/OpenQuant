@@ -103,7 +103,7 @@ namespace QuantBox.OQ.Demo.Strategys
             do
             {
                 // 尾盘平仓
-                if (0 != ExitOnClose(3,""))
+                if (0 != ExitOnClose(90,""))
                     break;
 
                 // 跟踪止损

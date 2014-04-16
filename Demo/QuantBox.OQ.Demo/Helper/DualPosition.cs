@@ -32,6 +32,48 @@ namespace QuantBox.OQ.Demo.Helper
         }
 
         public string Symbol { get; private set; }
+
+        public double LongQty
+        {
+            get { return Long.Qty; }
+        }
+
+        public double ShortQty
+        {
+            get { return Short.Qty; }
+        }
+
+        public double BidQty
+        {
+            get { return Buy.Size(); }
+        }
+
+        public double AskQty
+        {
+            get { return Sell.Size(); }
+        }
+
+        public string BidString
+        {
+            get
+            {
+                return string.Concat(
+                    Buy.SizeByIndex(0),
+                    "@",
+                    Buy.PriceByIndex(0));
+            }
+        }
+
+        public string AskString
+        {
+            get
+            {
+                return string.Concat(
+                    Sell.SizeByIndex(0),
+                    "@",
+                    Sell.PriceByIndex(0));
+            }
+        }
         /// <summary>
         /// 换日，用户自己要记得挂单要撤
         /// </summary>

@@ -26,37 +26,46 @@ namespace QuantBox.OQ.Demo.Helper
 
         public void Sub(double price, double size)
         {
-            int key = PriceHelper.GetLevelByPrice(price, Side);
-            if (size <= 0)
+            lock(this)
             {
-            }
-            else
-            {
-                Grid[key] -= size;
-            }
-            if(Grid[key] <= 0)
-            {
-                Grid.Remove(key);
+                int key = PriceHelper.GetLevelByPrice(price, Side);
+                if (size <= 0)
+                {
+                }
+                else
+                {
+                    Grid[key] -= size;
+                }
+                if (Grid[key] <= 0)
+                {
+                    Grid.Remove(key);
+                }
             }
         }
 
         public void Set(double price, double size)
         {
-            int key = PriceHelper.GetLevelByPrice(price, Side);
-            if (size <= 0)
+            lock(this)
             {
-                Grid.Remove(key);
-            }
-            else
-            {
-                Grid[key] = size;
+                int key = PriceHelper.GetLevelByPrice(price, Side);
+                if (size <= 0)
+                {
+                    Grid.Remove(key);
+                }
+                else
+                {
+                    Grid[key] = size;
+                }
             }
         }
 
         public void SetOnly(double price, double size)
         {
-            Clear();
-            Set(price, size);
+            lock(this)
+            {
+                Clear();
+                Set(price, size);
+            }
         }
 
         public double SizeByLevel(int level)
@@ -74,7 +83,10 @@ namespace QuantBox.OQ.Demo.Helper
 
         public void Clear()
         {
-            Grid.Clear();
+            lock (this)
+            {
+                Grid.Clear();
+            }
         }
 
         public int Count
@@ -82,9 +94,9 @@ namespace QuantBox.OQ.Demo.Helper
             get { return Grid.Count; }
         }
 
-        public IEnumerable<KeyValuePair<int, double>> Intersect(OrderBook_OneSide_Size obs)
-        {
-            return this.Grid.Intersect(obs.Grid);
-        }
+        //public IEnumerable<KeyValuePair<int, double>> Intersect(OrderBook_OneSide_Size obs)
+        //{
+        //    return this.Grid.Intersect(obs.Grid);
+        //}
     }
 }

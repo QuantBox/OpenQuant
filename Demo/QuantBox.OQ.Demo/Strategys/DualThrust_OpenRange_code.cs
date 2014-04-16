@@ -134,7 +134,7 @@ namespace QuantBox.OQ.Demo.Strategys
             do
             {
                 // 尾盘平仓
-                if (0 != ExitOnClose(3,""))
+                if (0 != ExitOnClose(60,""))
                     break;
 
                 // 日线数据上不处理
@@ -181,7 +181,7 @@ namespace QuantBox.OQ.Demo.Strategys
             do
             {
                 // 尾盘平仓
-                if (0 != ExitOnClose(3,""))
+                if (0 != ExitOnClose(300,""))
                     break;
 
                 // 跟踪止损
