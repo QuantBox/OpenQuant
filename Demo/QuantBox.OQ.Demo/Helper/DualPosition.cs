@@ -16,6 +16,7 @@ namespace QuantBox.OQ.Demo.Helper
     /// </summary>
     public class DualPosition
     {
+        
         public CloseTodayHelper CloseTodayHelper;
         public PositionRecord Long = new PositionRecord();
         public PositionRecord Short = new PositionRecord();
@@ -25,6 +26,12 @@ namespace QuantBox.OQ.Demo.Helper
 
         public Dictionary<Order, EnumOpenClose> Order_OpenClose = new Dictionary<Order, EnumOpenClose>();
 
+        public DualPosition(string symbol)
+        {
+            Symbol = symbol;
+        }
+
+        public string Symbol { get; private set; }
         /// <summary>
         /// 换日，用户自己要记得挂单要撤
         /// </summary>
