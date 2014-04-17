@@ -270,9 +270,9 @@ namespace QuantBox.OQ.Demo.Module
 
         public override void OnOrderPartiallyFilled(Order order)
         {
-            lock(this)
+            //lock(this)
             {
-                DualPosition.Filled(order);
+                DualPosition.Filled(order, order.LastQty, order.LastPrice, false);
                 HiLoAfterEntry(order.LastPrice);
 
                 // 单子部分成交，不做操作，等单子完全执行完
@@ -283,9 +283,9 @@ namespace QuantBox.OQ.Demo.Module
 
         public override void OnOrderFilled(Order order)
         {
-            lock(this)
+            //lock(this)
             {
-                DualPosition.Filled(order);
+                DualPosition.Filled(order, order.LastQty, order.LastPrice, true);
                 HiLoAfterEntry(order.LastPrice);
 
                 // 检查仓位是否正确,是否要发新单
@@ -295,7 +295,7 @@ namespace QuantBox.OQ.Demo.Module
 
         public override void OnNewOrder(Order order)
         {
-            lock(this)
+            //lock(this)
             {
 
                 DualPosition.NewOrder(order);
@@ -306,9 +306,10 @@ namespace QuantBox.OQ.Demo.Module
 
         public override void OnOrderRejected(Order order)
         {
-            lock(this)
+            //lock(this)
             {
-                EnumOpenClose OpenClose = DualPosition.OrderRejected(order);
+                double LeavesQty = order.LeavesQty;
+                EnumOpenClose OpenClose = DualPosition.OrderRejected(order,order.LeavesQty);
 
                 double flag = order.Side == OrderSide.Buy ? 1 : -1;
 
@@ -318,7 +319,7 @@ namespace QuantBox.OQ.Demo.Module
                     // 有可能是钱不够
                     // 有可能是超出持仓限制
                     // 有可能是非交易时间
-                    TargetPosition -= flag * order.LeavesQty;
+                    TargetPosition -= flag * LeavesQty;
                     return;
                 }
 
@@ -330,7 +331,7 @@ namespace QuantBox.OQ.Demo.Module
                     || error == EnumError.OVER_CLOSEYESTERDAY_POSITION
                     || error == EnumError.OVER_CLOSE_POSITION)
                 {
-                    TargetPosition -= flag * order.LeavesQty;
+                    TargetPosition -= flag * LeavesQty;
                     return;
                 }
 
@@ -340,9 +341,9 @@ namespace QuantBox.OQ.Demo.Module
 
         public override void OnOrderCancelled(Order order)
         {
-            lock(this)
+            //lock(this)
             {
-                DualPosition.OrderCancelled(order);
+                DualPosition.OrderCancelled(order,order.LeavesQty);
 
                 // 这个地方会影响做市商的挂单功能
                 //ResendOrder(order);

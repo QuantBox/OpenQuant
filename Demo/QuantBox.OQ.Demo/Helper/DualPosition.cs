@@ -1,5 +1,6 @@
 ﻿using OpenQuant.API;
 using QuantBox.OQ.Extensions;
+using System;
 using System.Collections.Generic;
 
 namespace QuantBox.OQ.Demo.Helper
@@ -82,11 +83,14 @@ namespace QuantBox.OQ.Demo.Helper
             // 挂单要清空，用户得在策略中写上收盘撤单的代码
 
             // 持仓要移动
-            Buy.Clear();
-            Sell.Clear();
+            lock(this)
+            {
+                Buy.Clear();
+                Sell.Clear();
 
-            Long.ChangeTradingDay();
-            Short.ChangeTradingDay();
+                Long.ChangeTradingDay();
+                Short.ChangeTradingDay();
+            }
         }
 
         public double NetQty
@@ -105,10 +109,12 @@ namespace QuantBox.OQ.Demo.Helper
         /// <param name="order"></param>
         public void NewOrder(Order order)
         {
-            lock (this)
+            //lock (this)
             {
                 if (!order.IsPendingNew)
                     return;
+
+                double Qty = order.Qty;
 
                 // 非上海的，平今要转成平仓
                 EnumOpenClose OpenClose = CloseTodayHelper.Transform(OpenCloseHelper.CheckOpenClose(order));
@@ -117,33 +123,33 @@ namespace QuantBox.OQ.Demo.Helper
                     case EnumOpenClose.OPEN:
                         if (order.Side == OrderSide.Buy)
                         {
-                            Long.FrozenOpen += order.Qty;
+                            Long.FrozenOpen += Qty;
                         }
                         else
                         {
-                            Short.FrozenOpen += order.Qty;
+                            Short.FrozenOpen += Qty;
                         }
                         break;
                     case EnumOpenClose.CLOSE:
                         if (order.Side == OrderSide.Buy)
                         {
-                            Short.FrozenClose += order.Qty;
+                            Short.FrozenClose += Qty;
                         }
                         else
                         {
-                            Long.FrozenClose += order.Qty;
+                            Long.FrozenClose += Qty;
                         }
                         break;
                     case EnumOpenClose.CLOSE_TODAY:
                         if (order.Side == OrderSide.Buy)
                         {
-                            Short.FrozenCloseToday += order.Qty;
-                            Short.FrozenClose += order.Qty;
+                            Short.FrozenCloseToday += Qty;
+                            Short.FrozenClose += Qty;
                         }
                         else
                         {
-                            Long.FrozenCloseToday += order.Qty;
-                            Long.FrozenClose += order.Qty;
+                            Long.FrozenCloseToday += Qty;
+                            Long.FrozenClose += Qty;
                         }
                         break;
                     default:
@@ -166,10 +172,13 @@ namespace QuantBox.OQ.Demo.Helper
         /// 有订单成交
         /// </summary>
         /// <param name="order"></param>
-        public void Filled(Order order)
+        public void Filled(Order order,double LastQty,double LastPrice,bool IsDone)
         {
-            lock (this)
+            //lock (this)
             {
+                Console.WriteLine("--------------{0},{1}", order.Qty, order.LastQty);
+
+
                 EnumOpenClose OpenClose = EnumOpenClose.OPEN;
                 Order_OpenClose.TryGetValue(order, out OpenClose);
 
@@ -178,78 +187,78 @@ namespace QuantBox.OQ.Demo.Helper
                     case EnumOpenClose.OPEN:
                         if (order.Side == OrderSide.Buy)
                         {
-                            Long.Qty += order.LastQty;
-                            Long.QtyToday += order.LastQty;
-                            Long.FrozenOpen -= order.LastQty;
-                            Long.CumOpenQty += order.LastQty;
-                            Long.HoldingCost += order.LastPrice * order.LastQty;
+                            Long.Qty += LastQty;
+                            Long.QtyToday += LastQty;
+                            Long.FrozenOpen -= LastQty;
+                            Long.CumOpenQty += LastQty;
+                            Long.HoldingCost += LastPrice * LastQty;
                         }
                         else
                         {
-                            Short.Qty += order.LastQty;
-                            Short.QtyToday += order.LastQty;
-                            Short.FrozenOpen -= order.LastQty;
-                            Short.CumOpenQty += order.LastQty;
-                            Short.HoldingCost += order.LastPrice * order.LastQty;
+                            Short.Qty += LastQty;
+                            Short.QtyToday += LastQty;
+                            Short.FrozenOpen -= LastQty;
+                            Short.CumOpenQty += LastQty;
+                            Short.HoldingCost += LastPrice * LastQty;
                         }
                         break;
                     case EnumOpenClose.CLOSE:
                         if (order.Side == OrderSide.Buy)
                         {
-                            Short.Qty -= order.LastQty;
-                            Short.FrozenClose -= order.LastQty;
+                            Short.Qty -= LastQty;
+                            Short.FrozenClose -= LastQty;
                             if (Short.Qty == 0)
                             {
                                 Short.HoldingCost = 0;
                             }
                             else
                             {
-                                Short.HoldingCost -= order.LastPrice * order.LastQty;
+                                Short.HoldingCost -= LastPrice * LastQty;
                             }
                         }
                         else
                         {
-                            Long.Qty -= order.LastQty;
-                            Long.FrozenClose -= order.LastQty;
+                            Long.Qty -= LastQty;
+                            Long.FrozenClose -= LastQty;
                             if (Long.Qty == 0)
                             {
                                 Long.HoldingCost = 0;
                             }
                             else
                             {
-                                Long.HoldingCost -= order.LastPrice * order.LastQty;
+                                Long.HoldingCost -= LastPrice * LastQty;
                             }
                         }
                         break;
                     case EnumOpenClose.CLOSE_TODAY:
                         if (order.Side == OrderSide.Buy)
                         {
-                            Short.Qty -= order.LastQty;
-                            Short.QtyToday -= order.LastQty;
-                            Short.FrozenClose -= order.LastQty;
-                            Short.FrozenCloseToday -= order.LastQty;
+                            Short.Qty -= LastQty;
+                            Short.QtyToday -= LastQty;
+                            Short.FrozenClose -= LastQty;
+                            Short.FrozenCloseToday -= LastQty;
                             if (Short.Qty == 0)
                             {
                                 Short.HoldingCost = 0;
                             }
                             else
                             {
-                                Short.HoldingCost -= order.LastPrice * order.LastQty;
+                                Short.HoldingCost -= LastPrice * LastQty;
                             }
                         }
                         else
                         {
-                            Long.Qty -= order.LastQty;
-                            Long.QtyToday -= order.LastQty;
-                            Long.FrozenClose -= order.LastQty;
-                            Long.FrozenCloseToday -= order.LastQty;
+                            Long.Qty -= LastQty;
+                            Long.QtyToday -= LastQty;
+                            Long.FrozenClose -= LastQty;
+                            Long.FrozenCloseToday -= LastQty;
                             if (Long.Qty == 0)
                             {
                                 Long.HoldingCost = 0;
                             }
                             else
                             {
-                                Long.HoldingCost -= order.LastPrice * order.LastQty;
+                                Long.HoldingCost -= LastPrice * LastQty;
                             }
                         }
                         break;
@@ -257,7 +266,7 @@ namespace QuantBox.OQ.Demo.Helper
                         break;
                 }
 
-                if (order.IsDone)
+                if (IsDone)
                 {
                     if (order.Side == OrderSide.Buy)
                     {
@@ -277,9 +286,9 @@ namespace QuantBox.OQ.Demo.Helper
         /// </summary>
         /// <param name="order"></param>
         /// <returns></returns>
-        public EnumOpenClose OrderCancelled(Order order)
+        public EnumOpenClose OrderCancelled(Order order, double LeavesQty)
         {
-            lock (this)
+            //lock (this)
             {
                 EnumOpenClose OpenClose = EnumOpenClose.OPEN;
                 Order_OpenClose.TryGetValue(order, out OpenClose);
@@ -293,7 +302,7 @@ namespace QuantBox.OQ.Demo.Helper
                     ++Short.CumCancelCnt;
                 }
 
-                OrderRejected(order);
+                OrderRejected(order, LeavesQty);
 
                 return OpenClose;
             }
@@ -306,10 +315,13 @@ namespace QuantBox.OQ.Demo.Helper
             return OpenClose;
         }
 
-        public EnumOpenClose OrderRejected(Order order)
+        public EnumOpenClose OrderRejected(Order order, double LeavesQty)
         {
-            lock (this)
+            //lock (this)
             {
+                //double LeavesQty = order.LeavesQty;
+                //bool IsDone = order.IsDone;
+
                 EnumOpenClose OpenClose = EnumOpenClose.OPEN;
                 Order_OpenClose.TryGetValue(order, out OpenClose);
 
@@ -318,40 +330,40 @@ namespace QuantBox.OQ.Demo.Helper
                     case EnumOpenClose.OPEN:
                         if (order.Side == OrderSide.Buy)
                         {
-                            Long.FrozenOpen -= order.LeavesQty;
+                            Long.FrozenOpen -= LeavesQty;
                         }
                         else
                         {
-                            Short.FrozenOpen -= order.LeavesQty;
+                            Short.FrozenOpen -= LeavesQty;
                         }
                         break;
                     case EnumOpenClose.CLOSE:
                         if (order.Side == OrderSide.Buy)
                         {
-                            Short.FrozenClose -= order.LeavesQty;
+                            Short.FrozenClose -= LeavesQty;
                         }
                         else
                         {
-                            Long.FrozenClose -= order.LeavesQty;
+                            Long.FrozenClose -= LeavesQty;
                         }
                         break;
                     case EnumOpenClose.CLOSE_TODAY:
                         if (order.Side == OrderSide.Buy)
                         {
-                            Short.FrozenCloseToday -= order.LeavesQty;
-                            Short.FrozenClose -= order.LeavesQty;
+                            Short.FrozenCloseToday -= LeavesQty;
+                            Short.FrozenClose -= LeavesQty;
                         }
                         else
                         {
-                            Long.FrozenCloseToday -= order.LeavesQty;
-                            Long.FrozenClose -= order.LeavesQty;
+                            Long.FrozenCloseToday -= LeavesQty;
+                            Long.FrozenClose -= LeavesQty;
                         }
                         break;
                     default:
                         break;
                 }
 
-                if (order.IsDone)
+                //if (IsDone)
                 {
                     if (order.Side == OrderSide.Buy)
                     {
@@ -370,7 +382,7 @@ namespace QuantBox.OQ.Demo.Helper
 
         public double Cancel(OrderSide Side)
         {
-            lock (this)
+            //lock (this)
             {
                 double qty;
                 if (Side == OrderSide.Buy)
@@ -387,7 +399,7 @@ namespace QuantBox.OQ.Demo.Helper
 
         public double Cancel()
         {
-            lock (this)
+            //lock (this)
             {
                 double qty = 0;
                 qty += Buy.Cancel();

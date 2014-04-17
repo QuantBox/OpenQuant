@@ -4,6 +4,7 @@ using QuantBox.OQ.Extensions;
 using QuantBox.OQ.Extensions.OrderText;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace QuantBox.OQ.Demo.Module
 {
@@ -74,7 +75,7 @@ namespace QuantBox.OQ.Demo.Module
 
         public override void OnOrderRejected(Order order)
         {
-            lock(this)
+            //(this)
             {
                 SubOrder(order);
                 base.OnOrderRejected(order);
@@ -83,7 +84,7 @@ namespace QuantBox.OQ.Demo.Module
 
         public override void OnOrderPartiallyFilled(Order order)
         {
-            lock (this)
+            //lock (this)
             {
                 SubOrder(order);
                 base.OnOrderPartiallyFilled(order);
@@ -92,7 +93,7 @@ namespace QuantBox.OQ.Demo.Module
 
         public override void OnOrderFilled(Order order)
         {
-            lock (this)
+            //lock (this)
             {
                 SubOrder(order);
                 base.OnOrderFilled(order);
@@ -177,7 +178,7 @@ namespace QuantBox.OQ.Demo.Module
         // 实际上不能太深，因为深了占用资金
         public int 单边全面补单(OrderBook_OneSide_Order buy1, OrderBook_OneSide_Size buy2)
         {
-            lock(this)
+            //lock(this)
             {
                 int cnt = 0;
                 // 方向不对，不可能补单
@@ -248,7 +249,7 @@ namespace QuantBox.OQ.Demo.Module
         // 后两层，只要是平仓单就撤，我没法区分平仓单啊
         public int 智能撤单逻辑(OrderBook_OneSide_Order buy1, OrderBook_OneSide_Size buy2)
         {
-            lock(this)
+            //lock(this)
             {
                 int cnt = 0;
                 // 方向不对，不可能补单
@@ -282,9 +283,7 @@ namespace QuantBox.OQ.Demo.Module
                     double count = 0;
 
                     // 这个地方会出错，只好重新复制一下
-                    Order[] orderarr = new Order[b1.Value.Count];
-                    b1.Value.CopyTo(orderarr);
-                    foreach (Order o in orderarr)
+                    foreach (Order o in b1.Value.ToList())
                     {
                         count += o.LeavesQty;
                         if (count >= leave)

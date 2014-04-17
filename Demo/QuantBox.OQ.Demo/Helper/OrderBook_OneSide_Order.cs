@@ -101,7 +101,7 @@ namespace QuantBox.OQ.Demo.Helper
 
         public double Size(SortedSet<Order> set)
         {
-            lock (this)
+            //lock (this)
             {
                 double sum = 0;
                 foreach (var o in set)
@@ -114,7 +114,7 @@ namespace QuantBox.OQ.Demo.Helper
 
         public double Size()
         {
-            lock (this)
+            //lock (this)
             {
                 double sum = 0;
                 foreach (SortedSet<Order> set in _Grid.Values)
@@ -127,7 +127,7 @@ namespace QuantBox.OQ.Demo.Helper
 
         public double SizeByIndex(int index)
         {
-            lock (this)
+            //lock (this)
             {
                 if (index < 0 || index >= _Grid.Count)
                     return 0;
@@ -139,7 +139,7 @@ namespace QuantBox.OQ.Demo.Helper
 
         public double SizeByLevel(int level)
         {
-            lock (this)
+            //lock (this)
             {
                 SortedSet<Order> set;
                 if (!_Grid.TryGetValue(level, out set))
@@ -152,7 +152,7 @@ namespace QuantBox.OQ.Demo.Helper
 
         public double SizeByPrice(double price)
         {
-            lock (this)
+            //lock (this)
             {
                 int key = PriceHelper.GetLevelByPrice(price, Side);
                 return SizeByLevel(key);
@@ -234,7 +234,7 @@ namespace QuantBox.OQ.Demo.Helper
             {
                 int cnt = 0;
                 int key = PriceHelper.GetLevelByPrice(price, Side);
-                foreach (var kv in _Grid)
+                foreach (var kv in _Grid.ToList())
                 {
                     if (kv.Key != key)
                     {
