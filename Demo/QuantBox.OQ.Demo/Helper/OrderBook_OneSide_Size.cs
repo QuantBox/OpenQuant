@@ -9,14 +9,24 @@ namespace QuantBox.OQ.Demo.Helper
     public class OrderBook_OneSide_Size : IComparer<int>
     {
         public OrderSide Side;
-        public SortedList<int, double> Grid;
+        private SortedList<int, double> _Grid;
         public PriceHelper PriceHelper;
 
+        public IEnumerable<KeyValuePair<int, double>> GridList
+        {
+            get
+            {
+                lock (this)
+                {
+                    return _Grid.ToList();
+                }
+            }
+        }
 
         public OrderBook_OneSide_Size(OrderSide Side)
         {
             this.Side = Side;
-            Grid = new SortedList<int, double>(this);
+            _Grid = new SortedList<int, double>(this);
         }
 
         public int Compare(int x, int y)
@@ -24,21 +34,23 @@ namespace QuantBox.OQ.Demo.Helper
             return x.CompareTo(y) * (Side == OrderSide.Buy ? -1 : 1);
         }
 
-        public void Sub(double price, double size)
+        public void Change(double price, double size)
         {
             lock(this)
             {
                 int key = PriceHelper.GetLevelByPrice(price, Side);
-                if (size <= 0)
+                double value;
+                if(_Grid.TryGetValue(key,out value))
                 {
-                }
-                else
-                {
-                    Grid[key] -= size;
-                }
-                if (Grid[key] <= 0)
-                {
-                    Grid.Remove(key);
+                    if (value + size < 0)
+                    {
+                        _Grid.Remove(key);
+                    }
+                    else
+                    {
+                        _Grid[key] = value + size;
+                    }
+                    
                 }
             }
         }
@@ -50,11 +62,11 @@ namespace QuantBox.OQ.Demo.Helper
                 int key = PriceHelper.GetLevelByPrice(price, Side);
                 if (size <= 0)
                 {
-                    Grid.Remove(key);
+                    _Grid.Remove(key);
                 }
                 else
                 {
-                    Grid[key] = size;
+                    _Grid[key] = size;
                 }
             }
         }
@@ -73,7 +85,7 @@ namespace QuantBox.OQ.Demo.Helper
             lock (this)
             {
                 double size;
-                if (!Grid.TryGetValue(level, out size))
+                if (!_Grid.TryGetValue(level, out size))
                 {
                     return 0;
                 }
@@ -81,22 +93,28 @@ namespace QuantBox.OQ.Demo.Helper
             }
         }
 
+        public int LevelByIndex(int index)
+        {
+            lock (this)
+            {
+                if (index < 0 || index >= _Grid.Count)
+                    return 0;
+
+                return _Grid.Keys[index];
+            }
+        }
+
         public void Clear()
         {
             lock (this)
             {
-                Grid.Clear();
+                _Grid.Clear();
             }
         }
 
         public int Count
         {
-            get { return Grid.Count; }
+            get { return _Grid.Count; }
         }
-
-        //public IEnumerable<KeyValuePair<int, double>> Intersect(OrderBook_OneSide_Size obs)
-        //{
-        //    return this.Grid.Intersect(obs.Grid);
-        //}
     }
 }

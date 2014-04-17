@@ -9,14 +9,25 @@ namespace QuantBox.OQ.Demo.Helper
     public class OrderBook_OneSide_Order : IComparer<int>, IComparer<Order>
     {
         public OrderSide Side;
-        public SortedList<int, SortedSet<Order>> Grid;
+        private SortedList<int, SortedSet<Order>> _Grid;
         public PriceHelper PriceHelper;
-        public HashSet<Order> cancelList = new HashSet<Order>();
+        private HashSet<Order> cancelList = new HashSet<Order>();
+
+        public IEnumerable<KeyValuePair<int, SortedSet<Order>>> GridList
+        {
+            get
+            {
+                lock (this)
+                {
+                    return _Grid.ToList();
+                }
+            }
+        }
 
         public OrderBook_OneSide_Order(OrderSide Side)
         {
             this.Side = Side;
-            Grid = new SortedList<int, SortedSet<Order>>(this);
+            _Grid = new SortedList<int, SortedSet<Order>>(this);
         }
 
         public int Compare(int x, int y)
@@ -31,17 +42,25 @@ namespace QuantBox.OQ.Demo.Helper
 
         public bool IsPending
         {
-            get { return Grid.Count > 0; }
+            get { return _Grid.Count > 0; }
+        }
+
+        public bool IsCancelling
+        {
+            get { return cancelList.Count > 0; }
         }
 
         public void Clear()
         {
-            Grid.Clear();
+            lock(this)
+            {
+                _Grid.Clear();
+            }
         }
 
         public int Count
         {
-            get { return Grid.Count; }
+            get { return _Grid.Count; }
         }
 
 
@@ -51,10 +70,10 @@ namespace QuantBox.OQ.Demo.Helper
             {
                 SortedSet<Order> set;
                 int key = PriceHelper.GetLevelByPrice(order.Price, Side);
-                if (!Grid.TryGetValue(key, out set))
+                if (!_Grid.TryGetValue(key, out set))
                 {
                     set = new SortedSet<Order>(this);
-                    Grid.Add(key, set);
+                    _Grid.Add(key, set);
                 }
                 set.Add(order);
             }
@@ -64,17 +83,18 @@ namespace QuantBox.OQ.Demo.Helper
         {
             lock (this)
             {
+                cancelList.Remove(order);
+
                 SortedSet<Order> set;
                 int key = PriceHelper.GetLevelByPrice(order.Price, Side);
-                if (!Grid.TryGetValue(key, out set))
+                if (!_Grid.TryGetValue(key, out set))
                 {
                     return;
                 }
                 set.Remove(order);
-                cancelList.Remove(order);
                 if (set.Count == 0)
                 {
-                    Grid.Remove(key);
+                    _Grid.Remove(key);
                 }
             }
         }
@@ -97,7 +117,7 @@ namespace QuantBox.OQ.Demo.Helper
             lock (this)
             {
                 double sum = 0;
-                foreach (SortedSet<Order> set in Grid.Values)
+                foreach (SortedSet<Order> set in _Grid.Values)
                 {
                     sum += Size(set);
                 }
@@ -109,10 +129,10 @@ namespace QuantBox.OQ.Demo.Helper
         {
             lock (this)
             {
-                if (index < 0 || index >= Grid.Count)
+                if (index < 0 || index >= _Grid.Count)
                     return 0;
 
-                SortedSet<Order> set = Grid.Values[index];
+                SortedSet<Order> set = _Grid.Values[index];
                 return Size(set);
             }
         }
@@ -122,7 +142,7 @@ namespace QuantBox.OQ.Demo.Helper
             lock (this)
             {
                 SortedSet<Order> set;
-                if (!Grid.TryGetValue(level, out set))
+                if (!_Grid.TryGetValue(level, out set))
                 {
                     return 0;
                 }
@@ -144,7 +164,7 @@ namespace QuantBox.OQ.Demo.Helper
             lock (this)
             {
                 int cnt = 0;
-                foreach (var set in Grid.Values)
+                foreach (var set in _Grid.Values.ToList())
                 {
                     cnt += Cancel(set);
                 }
@@ -157,12 +177,12 @@ namespace QuantBox.OQ.Demo.Helper
             lock (this)
             {
                 int cnt = 0;
-                foreach (var o in set)
+                foreach (var o in set.ToList())
                 {
                     if (!o.IsDone)
                     {
-                        o.Cancel();
                         cancelList.Add(o);
+                        o.Cancel();
                         ++cnt;
                     }
                 }
@@ -174,13 +194,39 @@ namespace QuantBox.OQ.Demo.Helper
         {
             lock (this)
             {
-                if (index < 0 || index >= Grid.Count)
+                if (index < 0 || index >= _Grid.Count)
                     return 0;
 
-                SortedSet<Order> set = Grid.Values[index];
+                SortedSet<Order> set = _Grid.Values[index];
                 return Cancel(set);
             }
         }
+
+        //public int CancelEqualTopThanLevel(int level)
+        //{
+        //    lock (this)
+        //    {
+        //        int cnt = 0;
+        //        foreach (var kv in _Grid.ToList())
+        //        {
+        //            if (Side == OrderSide.Buy)
+        //            {
+        //                if (kv.Key <= level)
+        //                {
+        //                    cnt += Cancel(kv.Value);
+        //                }
+        //            }
+        //            else
+        //            {
+        //                if (kv.Key >= level)
+        //                {
+        //                    cnt += Cancel(kv.Value);
+        //                }
+        //            }
+        //        }
+        //        return cnt;
+        //    }
+        //}
 
         public int CancelNotEqualPrice(double price)
         {
@@ -188,7 +234,7 @@ namespace QuantBox.OQ.Demo.Helper
             {
                 int cnt = 0;
                 int key = PriceHelper.GetLevelByPrice(price, Side);
-                foreach (var kv in Grid)
+                foreach (var kv in _Grid)
                 {
                     if (kv.Key != key)
                     {
@@ -220,10 +266,10 @@ namespace QuantBox.OQ.Demo.Helper
         {
             lock (this)
             {
-                if (index < 0 || index >= Grid.Count)
+                if (index < 0 || index >= _Grid.Count)
                     return 0;
 
-                int key = Grid.Keys[index];
+                int key = _Grid.Keys[index];
                 return PriceHelper.GetPriceByLevel(key);
             }
         }
@@ -231,7 +277,7 @@ namespace QuantBox.OQ.Demo.Helper
         public override string ToString()
         {
             string str = "";
-            foreach (var i in Grid)
+            foreach (var i in _Grid)
             {
                 double price = PriceHelper.GetPriceByLevel(i.Key);
                 double sum = 0;

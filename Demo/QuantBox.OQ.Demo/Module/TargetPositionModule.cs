@@ -111,7 +111,7 @@ namespace QuantBox.OQ.Demo.Module
 
         public override void OnTrade(Trade trade)
         {
-            lock(this)
+            //lock(this)
             {
                 Process();
                 HiLoAfterEntry(trade.Price);
@@ -120,7 +120,7 @@ namespace QuantBox.OQ.Demo.Module
 
         public override void OnQuote(Quote quote)
         {
-            lock(this)
+            //lock(this)
             {
                 Process();
             }
@@ -134,7 +134,7 @@ namespace QuantBox.OQ.Demo.Module
 
         public override void OnBarOpen(Bar bar)
         {
-            lock(this)
+            //lock(this)
             {
                 Process();
                 HiLoAfterEntry(bar.Open);
@@ -143,7 +143,7 @@ namespace QuantBox.OQ.Demo.Module
 
         public override void OnBar(Bar bar)
         {
-            lock(this)
+            //lock(this)
             {
                 Process();
                 HiLoAfterEntry(bar.Close);

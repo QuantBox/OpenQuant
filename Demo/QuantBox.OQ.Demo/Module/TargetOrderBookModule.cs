@@ -42,11 +42,11 @@ namespace QuantBox.OQ.Demo.Module
 
             if(order.Side == OrderSide.Buy)
             {
-                TargetOrderBook.Buy.Sub(price,size);
+                TargetOrderBook.Buy.Change(price,-size);
             }
             else
             {
-                TargetOrderBook.Sell.Sub(price, size);
+                TargetOrderBook.Sell.Change(price, -size);
             }
         }
 
@@ -101,30 +101,27 @@ namespace QuantBox.OQ.Demo.Module
 
         public override void Process()
         {
-            lock(this)
+            // 非交易时段，不处理
+            if (!TimeHelper.IsTradingTime())
             {
-                // 非交易时段，不处理
-                if (!TimeHelper.IsTradingTime())
-                {
-                    return;
-                }
+                return;
+            }
 
-                int cnt_ask = 0, cnt_bid = 0;
-                cnt_ask += 单边防自成交撤单(base.DualPosition.Sell, TargetOrderBook.Buy);
-                cnt_ask += 智能撤单逻辑(base.DualPosition.Sell, TargetOrderBook.Sell);
+            int cnt_ask = 0, cnt_bid = 0;
+            cnt_ask += 单边防自成交撤单(base.DualPosition.Sell, TargetOrderBook.Buy);
+            cnt_ask += 智能撤单逻辑(base.DualPosition.Sell, TargetOrderBook.Sell);
 
-                cnt_bid += 单边防自成交撤单(base.DualPosition.Buy, TargetOrderBook.Sell);
-                cnt_bid += 智能撤单逻辑(base.DualPosition.Buy, TargetOrderBook.Buy);
+            cnt_bid += 单边防自成交撤单(base.DualPosition.Buy, TargetOrderBook.Sell);
+            cnt_bid += 智能撤单逻辑(base.DualPosition.Buy, TargetOrderBook.Buy);
 
-                if (cnt_ask == 0)
-                {
-                    单边全面补单(base.DualPosition.Sell, TargetOrderBook.Sell);
-                }
+            if (cnt_ask == 0 && !base.DualPosition.Sell.IsCancelling)
+            {
+                单边全面补单(base.DualPosition.Sell, TargetOrderBook.Sell);
+            }
 
-                if (cnt_bid == 0)
-                {
-                    单边全面补单(base.DualPosition.Buy, TargetOrderBook.Buy);
-                }
+            if (cnt_bid == 0 && !base.DualPosition.Buy.IsCancelling)
+            {
+                单边全面补单(base.DualPosition.Buy, TargetOrderBook.Buy);
             }
         }
 
@@ -148,9 +145,10 @@ namespace QuantBox.OQ.Demo.Module
                     return cnt;
 
                 // 取对手单的最高价
-                int level = buy.Grid.Keys[0];
+                int level = buy.LevelByIndex(0);
                 // 将挂单列表中的单子撤单
-                foreach (var s in sell.Grid)
+                // 将挂单列表中的单子撤单
+                foreach (var s in sell.GridList)
                 {
                     if (buy.Side == OrderSide.Buy)
                     {
@@ -188,7 +186,7 @@ namespace QuantBox.OQ.Demo.Module
 
                 int l = 0;
                 // 由于在别的地方做了撤单，在这buy2中的数量是大于等于buy1的
-                foreach (var b2 in buy2.Grid)
+                foreach (var b2 in buy2.GridList)
                 {
                     ++l;
                     int level = b2.Key;
@@ -218,11 +216,11 @@ namespace QuantBox.OQ.Demo.Module
                         if (q < leave)
                         {
                             tp.OpenClose = EnumOpenClose.OPEN;
-                            tp.Text = string.Format("可平量{0}不够，全开仓{1}", q, leave);
+                            tp.Text = string.Format("开仓:可平量{0}<{1}", q, leave);
                         }
                         else
                         {
-                            tp.Text = string.Format("可平量{0}，全开仓{1}", q, leave);
+                            tp.Text = string.Format("平仓:可平量{0}>={1}", q, leave);
                         }
                     }
 
@@ -258,7 +256,7 @@ namespace QuantBox.OQ.Demo.Module
                     return cnt;
 
                 // 撤单时按已有的挂单进行处理
-                foreach (var b1 in buy1.Grid)
+                foreach (var b1 in buy1.GridList)
                 {
                     int level = b1.Key;
 
@@ -282,7 +280,11 @@ namespace QuantBox.OQ.Demo.Module
                     double leave = size1 - size2;
                     // 现在这个价位上挂了很多单，是撤开仓，还是撤新挂的？
                     double count = 0;
-                    foreach (Order o in b1.Value.Reverse())
+
+                    // 这个地方会出错，只好重新复制一下
+                    Order[] orderarr = new Order[b1.Value.Count];
+                    b1.Value.CopyTo(orderarr);
+                    foreach (Order o in orderarr)
                     {
                         count += o.LeavesQty;
                         if (count >= leave)
