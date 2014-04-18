@@ -152,7 +152,7 @@ namespace QuantBox.OQ.Demo.Helper
 
         public double SizeByPrice(double price)
         {
-            //lock (this)
+            lock (this)
             {
                 int key = PriceHelper.GetLevelByPrice(price, Side);
                 return SizeByLevel(key);
@@ -264,7 +264,7 @@ namespace QuantBox.OQ.Demo.Helper
 
         public double PriceByIndex(int index)
         {
-            lock (this)
+            //lock (this)
             {
                 if (index < 0 || index >= _Grid.Count)
                     return 0;

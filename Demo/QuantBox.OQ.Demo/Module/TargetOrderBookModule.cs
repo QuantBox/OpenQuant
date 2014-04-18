@@ -10,6 +10,14 @@ namespace QuantBox.OQ.Demo.Module
 {
     public class TargetOrderBookModule : TargetPositionModule
     {
+        class CopyOrder
+        {
+            public OrderSide Side;
+            public double Qty;
+            public double Price;
+            public string Text;
+        }
+
         // 大于N层的单子总是开仓，这样不占用平仓机会
         public double AlwaysOpenIfDepthGreatThan = 2;
         // 目标挂单
@@ -41,13 +49,16 @@ namespace QuantBox.OQ.Demo.Module
             double price = order.Price;
             double size = order.LastQty;
 
-            if(order.Side == OrderSide.Buy)
+            //lock(this)
             {
-                TargetOrderBook.Buy.Change(price,-size);
-            }
-            else
-            {
-                TargetOrderBook.Sell.Change(price, -size);
+                if (order.Side == OrderSide.Buy)
+                {
+                    TargetOrderBook.Buy.Change(price, -size);
+                }
+                else
+                {
+                    TargetOrderBook.Sell.Change(price, -size);
+                }
             }
         }
 
@@ -57,7 +68,7 @@ namespace QuantBox.OQ.Demo.Module
         // 但如果这么一减，想挂单的数就少了，系统的撤单重挂功能就无效了
         public override void OnOrderCancelled(Order order)
         {
-            lock(this)
+            //lock(this)
             {
                 // 如果不是通过双向持仓工具，而是手工下单，就不会记录下来
                 // 这样还是有问题，如果是使用的双向持仓工具，手工下单就会出错
@@ -75,7 +86,7 @@ namespace QuantBox.OQ.Demo.Module
 
         public override void OnOrderRejected(Order order)
         {
-            //(this)
+            //lock(this)
             {
                 SubOrder(order);
                 base.OnOrderRejected(order);
@@ -102,49 +113,55 @@ namespace QuantBox.OQ.Demo.Module
 
         public override void Process()
         {
-            // 非交易时段，不处理
-            if (!TimeHelper.IsTradingTime())
+            //lock(this)
             {
-                return;
+                // 非交易时段，不处理
+                if (!TimeHelper.IsTradingTime())
+                {
+                    return;
+                }
+
+                int cnt_ask = 0, cnt_bid = 0;
+                cnt_ask += 单边防自成交撤单(base.DualPosition.Sell, TargetOrderBook.Buy);
+                cnt_ask += 智能撤单逻辑(base.DualPosition.Sell, TargetOrderBook.Sell);
+
+                cnt_bid += 单边防自成交撤单(base.DualPosition.Buy, TargetOrderBook.Sell);
+                cnt_bid += 智能撤单逻辑(base.DualPosition.Buy, TargetOrderBook.Buy);
+
+                if (cnt_ask == 0 && !base.DualPosition.Sell.IsCancelling)
+                {
+                    单边全面补单(base.DualPosition.Sell, TargetOrderBook.Sell);
+                }
+
+                if (cnt_bid == 0 && !base.DualPosition.Buy.IsCancelling)
+                {
+                    单边全面补单(base.DualPosition.Buy, TargetOrderBook.Buy);
+                }
             }
-
-            int cnt_ask = 0, cnt_bid = 0;
-            cnt_ask += 单边防自成交撤单(base.DualPosition.Sell, TargetOrderBook.Buy);
-            cnt_ask += 智能撤单逻辑(base.DualPosition.Sell, TargetOrderBook.Sell);
-
-            cnt_bid += 单边防自成交撤单(base.DualPosition.Buy, TargetOrderBook.Sell);
-            cnt_bid += 智能撤单逻辑(base.DualPosition.Buy, TargetOrderBook.Buy);
-
-            if (cnt_ask == 0 && !base.DualPosition.Sell.IsCancelling)
-            {
-                单边全面补单(base.DualPosition.Sell, TargetOrderBook.Sell);
-            }
-
-            if (cnt_bid == 0 && !base.DualPosition.Buy.IsCancelling)
-            {
-                单边全面补单(base.DualPosition.Buy, TargetOrderBook.Buy);
-            }
+            
         }
 
         // 检查对手，保证不会自成交
         // 这次有可能把平仓单全撤了，剩下的全是开仓单，有些风险
         public int 单边防自成交撤单(OrderBook_OneSide_Order sell, OrderBook_OneSide_Size buy)
         {
+            int cnt = 0;
+            List<Order> forCancel = new List<Order>();
+
+            // 同买卖是不可能自成交的
+            if (sell.Side == buy.Side)
+                return cnt;
+
+            // 还没有挂单，不会自成交
+            if (sell.Count <= 0)
+                return cnt;
+
+            // 对手单也是空的，不会自成交
+            if (buy.Count <= 0)
+                return cnt;
+
             lock(this)
             {
-                int cnt = 0;
-                // 同买卖是不可能自成交的
-                if (sell.Side == buy.Side)
-                    return cnt;
-
-                // 还没有挂单，不会自成交
-                if (sell.Count <= 0)
-                    return cnt;
-
-                // 对手单也是空的，不会自成交
-                if (buy.Count <= 0)
-                    return cnt;
-
                 // 取对手单的最高价
                 int level = buy.LevelByIndex(0);
                 // 将挂单列表中的单子撤单
@@ -155,21 +172,32 @@ namespace QuantBox.OQ.Demo.Module
                     {
                         if (s.Key <= level)
                         {
-                            cancelList.UnionWith(s.Value);
-                            cnt += sell.Cancel(s.Value);
+                            forCancel.AddRange(s.Value);
+                            //cancelList.UnionWith(s.Value);
+                            //cnt += sell.Cancel(s.Value);
                         }
                     }
                     else
                     {
                         if (s.Key >= level)
                         {
-                            cancelList.UnionWith(s.Value);
-                            cnt += sell.Cancel(s.Value);
+                            forCancel.AddRange(s.Value);
+                            //cancelList.UnionWith(s.Value);
+                            //cnt += sell.Cancel(s.Value);
                         }
                     }
                 }
-                return cnt;
             }
+
+            foreach (var o in forCancel)
+            {
+                if (!o.IsDone)
+                    o.Cancel();
+                cancelList.Add(o);
+                ++cnt;
+            }
+
+            return cnt;
         }
 
         // 这里假设已经挂的单子已经是按最优数量进行处理过，目标是直接挂单
@@ -178,13 +206,18 @@ namespace QuantBox.OQ.Demo.Module
         // 实际上不能太深，因为深了占用资金
         public int 单边全面补单(OrderBook_OneSide_Order buy1, OrderBook_OneSide_Size buy2)
         {
-            //lock(this)
-            {
-                int cnt = 0;
-                // 方向不对，不可能补单
-                if (buy1.Side != buy2.Side)
-                    return cnt;
+            int cnt = 0;
+            List<CopyOrder> list = new List<CopyOrder>();
 
+            // 方向不对，不可能补单
+            if (buy1.Side != buy2.Side)
+                return cnt;
+
+            TextCommon tp = buy1.Side == OrderSide.Buy ? TextParameterBid : TextParameterAsk;
+            PositionRecord LongShort = buy1.Side == OrderSide.Buy ? base.DualPosition.Short : base.DualPosition.Long;
+
+            lock(this)
+            {
                 int l = 0;
                 // 由于在别的地方做了撤单，在这buy2中的数量是大于等于buy1的
                 foreach (var b2 in buy2.GridList)
@@ -200,9 +233,6 @@ namespace QuantBox.OQ.Demo.Module
 
                     double price = PriceHelper.GetPriceByLevel(level);
                     cnt += (int)leave;
-
-                    TextCommon tp = buy1.Side == OrderSide.Buy ? TextParameterBid : TextParameterAsk;
-                    PositionRecord LongShort = buy1.Side == OrderSide.Buy ? base.DualPosition.Short : base.DualPosition.Long;
 
                     // 超过两层的全用开仓
                     if (l > AlwaysOpenIfDepthGreatThan)
@@ -225,12 +255,26 @@ namespace QuantBox.OQ.Demo.Module
                         }
                     }
 
-                    // 入场下单
-                    SendLimitOrder(buy2.Side, leave, price, tp.ToString());
-                }
 
-                return cnt;
+                    // 入场下单
+                    // 在模拟下，这个地方有可能导致成交回报lock
+                    //SendLimitOrder(buy2.Side, leave, price, tp.ToString());
+
+                    list.Add(new CopyOrder() {
+                        Side = buy2.Side,
+                        Qty = leave,
+                        Price = price,
+                        Text = tp.ToString(),
+                    });
+                }
             }
+
+            foreach(var o in list)
+            {
+                SendLimitOrder(o.Side, o.Qty, o.Price, o.Text);
+            }
+
+            return cnt;
         }
 
 
@@ -249,13 +293,15 @@ namespace QuantBox.OQ.Demo.Module
         // 后两层，只要是平仓单就撤，我没法区分平仓单啊
         public int 智能撤单逻辑(OrderBook_OneSide_Order buy1, OrderBook_OneSide_Size buy2)
         {
-            //lock(this)
-            {
-                int cnt = 0;
-                // 方向不对，不可能补单
-                if (buy1.Side != buy2.Side)
-                    return cnt;
+            List<Order> forCancel = new List<Order>();
+            int cnt = 0;
 
+            // 方向不对，不可能补单
+            if (buy1.Side != buy2.Side)
+                return cnt;
+
+            lock(this)
+            {
                 // 撤单时按已有的挂单进行处理
                 foreach (var b1 in buy1.GridList)
                 {
@@ -265,8 +311,9 @@ namespace QuantBox.OQ.Demo.Module
                     if (size2 <= 0)
                     {
                         // 发现目标价上量为0，全撤
-                        cancelList.UnionWith(b1.Value);
-                        cnt += buy1.Cancel(b1.Value);
+                        forCancel.AddRange(b1.Value);
+                        //cancelList.UnionWith(b1.Value);
+                        //cnt += buy1.Cancel(b1.Value);
                         continue;
                     }
 
@@ -289,14 +336,23 @@ namespace QuantBox.OQ.Demo.Module
                         if (count >= leave)
                             break;
 
-                        cancelList.Add(o);
-                        o.Cancel();
-                        ++cnt;
+                        forCancel.Add(o);
+                        //cancelList.Add(o);
+                        //o.Cancel();
+                        //++cnt;
                     }
                 }
-
-                return cnt;
             }
+
+            foreach(var o in forCancel)
+            {
+                if (!o.IsDone)
+                    o.Cancel();
+                cancelList.Add(o);
+                ++cnt;
+            }
+
+            return cnt;
         }
     }
 }

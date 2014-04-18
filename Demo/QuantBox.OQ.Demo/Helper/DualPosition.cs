@@ -2,6 +2,7 @@
 using QuantBox.OQ.Extensions;
 using System;
 using System.Collections.Generic;
+using System.Windows.Forms;
 
 namespace QuantBox.OQ.Demo.Helper
 {
@@ -109,7 +110,7 @@ namespace QuantBox.OQ.Demo.Helper
         /// <param name="order"></param>
         public void NewOrder(Order order)
         {
-            //lock (this)
+            lock (this)
             {
                 if (!order.IsPendingNew)
                     return;
@@ -118,6 +119,8 @@ namespace QuantBox.OQ.Demo.Helper
 
                 // 非上海的，平今要转成平仓
                 EnumOpenClose OpenClose = CloseTodayHelper.Transform(OpenCloseHelper.CheckOpenClose(order));
+                Order_OpenClose[order] = OpenClose;
+
                 switch (OpenClose)
                 {
                     case EnumOpenClose.OPEN:
@@ -153,6 +156,7 @@ namespace QuantBox.OQ.Demo.Helper
                         }
                         break;
                     default:
+                        MessageBox.Show("NewOrder");
                         break;
                 }
 
@@ -164,7 +168,6 @@ namespace QuantBox.OQ.Demo.Helper
                 {
                     Sell.Add(order);
                 }
-                Order_OpenClose[order] = OpenClose;
             }
         }
 
@@ -172,15 +175,15 @@ namespace QuantBox.OQ.Demo.Helper
         /// 有订单成交
         /// </summary>
         /// <param name="order"></param>
-        public void Filled(Order order,double LastQty,double LastPrice,bool IsDone)
+        public void Filled(Order order)
         {
-            //lock (this)
+            lock (this)
             {
-                Console.WriteLine("--------------{0},{1}", order.Qty, order.LastQty);
+                double LastQty = order.LastQty;
+                double LastPrice = order.LastPrice;
+                bool IsDone = order.IsDone;
 
-
-                EnumOpenClose OpenClose = EnumOpenClose.OPEN;
-                Order_OpenClose.TryGetValue(order, out OpenClose);
+                EnumOpenClose OpenClose = GetOpenClose(order);
 
                 switch (OpenClose)
                 {
@@ -263,6 +266,7 @@ namespace QuantBox.OQ.Demo.Helper
                         }
                         break;
                     default:
+                        MessageBox.Show("Filled");
                         break;
                 }
 
@@ -276,8 +280,8 @@ namespace QuantBox.OQ.Demo.Helper
                     {
                         Sell.Remove(order);
                     }
+                    Order_OpenClose.Remove(order);
                 }
-                Order_OpenClose.Remove(order);
             }
         }
 
@@ -286,12 +290,11 @@ namespace QuantBox.OQ.Demo.Helper
         /// </summary>
         /// <param name="order"></param>
         /// <returns></returns>
-        public EnumOpenClose OrderCancelled(Order order, double LeavesQty)
+        public EnumOpenClose OrderCancelled(Order order)
         {
-            //lock (this)
+            lock (this)
             {
-                EnumOpenClose OpenClose = EnumOpenClose.OPEN;
-                Order_OpenClose.TryGetValue(order, out OpenClose);
+                EnumOpenClose OpenClose = GetOpenClose(order);
 
                 if (PositionSide.Long == OpenCloseHelper.CheckLongShort(order,OpenClose))
                 {
@@ -302,7 +305,7 @@ namespace QuantBox.OQ.Demo.Helper
                     ++Short.CumCancelCnt;
                 }
 
-                OrderRejected(order, LeavesQty);
+                OrderRejected(order);
 
                 return OpenClose;
             }
@@ -311,19 +314,18 @@ namespace QuantBox.OQ.Demo.Helper
         public EnumOpenClose GetOpenClose(Order order)
         {
             EnumOpenClose OpenClose = EnumOpenClose.OPEN;
-            Order_OpenClose.TryGetValue(order, out OpenClose);
-            return OpenClose;
+            if(Order_OpenClose.TryGetValue(order, out OpenClose))
+                return OpenClose;
+            return EnumOpenClose.OPEN;
         }
 
-        public EnumOpenClose OrderRejected(Order order, double LeavesQty)
+        public EnumOpenClose OrderRejected(Order order)
         {
-            //lock (this)
+            lock (this)
             {
-                //double LeavesQty = order.LeavesQty;
-                //bool IsDone = order.IsDone;
+                double LeavesQty = order.LeavesQty;
 
-                EnumOpenClose OpenClose = EnumOpenClose.OPEN;
-                Order_OpenClose.TryGetValue(order, out OpenClose);
+                EnumOpenClose OpenClose = GetOpenClose(order);
 
                 switch (OpenClose)
                 {
@@ -360,6 +362,7 @@ namespace QuantBox.OQ.Demo.Helper
                         }
                         break;
                     default:
+                        MessageBox.Show("OrderRejected");
                         break;
                 }
 
@@ -373,8 +376,9 @@ namespace QuantBox.OQ.Demo.Helper
                     {
                         Sell.Remove(order);
                     }
+                    Order_OpenClose.Remove(order);
                 }
-                Order_OpenClose.Remove(order);
+                
 
                 return OpenClose;
             }
@@ -382,7 +386,7 @@ namespace QuantBox.OQ.Demo.Helper
 
         public double Cancel(OrderSide Side)
         {
-            //lock (this)
+            lock (this)
             {
                 double qty;
                 if (Side == OrderSide.Buy)
@@ -399,7 +403,7 @@ namespace QuantBox.OQ.Demo.Helper
 
         public double Cancel()
         {
-            //lock (this)
+            lock (this)
             {
                 double qty = 0;
                 qty += Buy.Cancel();

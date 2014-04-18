@@ -114,8 +114,8 @@ namespace QuantBox.OQ.Demo.Module
             //lock(this)
             {
                 Process();
-                HiLoAfterEntry(trade.Price);
             }
+            HiLoAfterEntry(trade.Price);
         }
 
         public override void OnQuote(Quote quote)
@@ -137,8 +137,8 @@ namespace QuantBox.OQ.Demo.Module
             //lock(this)
             {
                 Process();
-                HiLoAfterEntry(bar.Open);
             }
+            HiLoAfterEntry(bar.Open);
         }
 
         public override void OnBar(Bar bar)
@@ -146,8 +146,8 @@ namespace QuantBox.OQ.Demo.Module
             //lock(this)
             {
                 Process();
-                HiLoAfterEntry(bar.Close);
             }
+            HiLoAfterEntry(bar.Close);
         }
 
         /// <summary>
@@ -155,19 +155,20 @@ namespace QuantBox.OQ.Demo.Module
         /// </summary>
         public virtual void Process()
         {
+            // 非交易时段，不处理
+            if (!TimeHelper.IsTradingTime())
+            {
+                return;
+            }
+
+            double qty = 0;
+            OrderSide Side = OrderSide.Buy;
+            TextParameter.OpenClose = EnumOpenClose.OPEN;
+
             lock(this)
             {
-                // 非交易时段，不处理
-                if (!TimeHelper.IsTradingTime())
-                {
-                    return;
-                }
-
                 // 计算仓差
                 double dif = TargetPosition - DualPosition.NetQty;
-                double qty = 0;
-                OrderSide Side = OrderSide.Buy;
-                TextParameter.OpenClose = EnumOpenClose.OPEN;
 
                 if (dif == 0)// 持仓量相等
                 {
@@ -223,31 +224,31 @@ namespace QuantBox.OQ.Demo.Module
         /// <param name="qty"></param>
         public void SendOrder(OrderSide side, double qty)
         {
-            lock(this)
+            if (!TimeHelper.IsTradingTime())
             {
-                if (!TimeHelper.IsTradingTime())
-                {
-                    return;
-                }
+                return;
+            }
 
-                if (qty <= 0)
-                {
-                    return;
-                }
+            if (qty <= 0)
+            {
+                return;
+            }
 
-                // 为减少滑点，对数量少的单子直接市价单
-                bool bMarketOrder = false;
-                if (EnumOpenClose.OPEN == TextParameter.OpenClose)
-                {
-                    if (qty <= MarketOpenQtyThreshold)
-                        bMarketOrder = true;
-                }
-                else
-                {
-                    if (qty <= MarketCloseQtyThreshold)
-                        bMarketOrder = true;
-                }
+            // 为减少滑点，对数量少的单子直接市价单
+            bool bMarketOrder = false;
+            if (EnumOpenClose.OPEN == TextParameter.OpenClose)
+            {
+                if (qty <= MarketOpenQtyThreshold)
+                    bMarketOrder = true;
+            }
+            else
+            {
+                if (qty <= MarketCloseQtyThreshold)
+                    bMarketOrder = true;
+            }
 
+            //lock(this)
+            {
                 if (bMarketOrder)
                 {
                     SendMarketOrder(side, qty, TextParameter.ToString());
@@ -270,34 +271,35 @@ namespace QuantBox.OQ.Demo.Module
 
         public override void OnOrderPartiallyFilled(Order order)
         {
+            double LastPrice = order.LastPrice;
             //lock(this)
             {
-                DualPosition.Filled(order, order.LastQty, order.LastPrice, false);
-                HiLoAfterEntry(order.LastPrice);
-
+                DualPosition.Filled(order);
+               
                 // 单子部分成交，不做操作，等单子完全执行完
                 // 等交易完，会有问题，一直挂在上面不操作，新单子也过不来
                 //Process();
             }
+            HiLoAfterEntry(LastPrice);
         }
 
         public override void OnOrderFilled(Order order)
         {
+            double LastPrice = order.LastPrice;
             //lock(this)
             {
-                DualPosition.Filled(order, order.LastQty, order.LastPrice, true);
-                HiLoAfterEntry(order.LastPrice);
+                DualPosition.Filled(order);
 
                 // 检查仓位是否正确,是否要发新单
                 //Process();
             }
+            HiLoAfterEntry(LastPrice);
         }
 
         public override void OnNewOrder(Order order)
         {
             //lock(this)
             {
-
                 DualPosition.NewOrder(order);
 
                 // 得加定时器，一定的时间内没有成交完全应当撤单重发，目前没有加这一功能
@@ -306,13 +308,12 @@ namespace QuantBox.OQ.Demo.Module
 
         public override void OnOrderRejected(Order order)
         {
-            //lock(this)
+            double LeavesQty = order.LeavesQty;
+            double flag = order.Side == OrderSide.Buy ? 1 : -1;
+            EnumOpenClose OpenClose = DualPosition.OrderRejected(order);
+
+            lock(this)
             {
-                double LeavesQty = order.LeavesQty;
-                EnumOpenClose OpenClose = DualPosition.OrderRejected(order,order.LeavesQty);
-
-                double flag = order.Side == OrderSide.Buy ? 1 : -1;
-
                 if (EnumOpenClose.OPEN == OpenClose)
                 {
                     // 开仓被拒绝，不再新开仓
@@ -343,7 +344,7 @@ namespace QuantBox.OQ.Demo.Module
         {
             //lock(this)
             {
-                DualPosition.OrderCancelled(order,order.LeavesQty);
+                DualPosition.OrderCancelled(order);
 
                 // 这个地方会影响做市商的挂单功能
                 //ResendOrder(order);
@@ -364,49 +365,52 @@ namespace QuantBox.OQ.Demo.Module
         /// <returns>止损了返止损前持仓，可用于后面的反手</returns>
         public virtual double TrailingStop(double currentPrice, double level, StopMode mode,string text)
         {
-            double qty = GetCurrentQty();
-            double stop;
-            if (qty > double.Epsilon)
+            //lock(this)
             {
-                if (StopMode.Percent == mode)
+                double qty = GetCurrentQty();
+                double stop;
+                if (qty > double.Epsilon)
                 {
-                    stop = HighestAfterEntry * (1.0 - level);
+                    if (StopMode.Percent == mode)
+                    {
+                        stop = HighestAfterEntry * (1.0 - level);
+                    }
+                    else
+                    {
+                        stop = HighestAfterEntry - level;
+                    }
+                    if (currentPrice < stop)
+                    {
+                        TargetPosition = 0;
+                        TextParameter.Text = string.Format("跟踪止损 - 最高{0},止损{1}>当前{2}|{3}",
+                            HighestAfterEntry, stop, currentPrice,
+                            text);
+                        return qty;
+                    }
                 }
-                else
+                else if (qty < -double.Epsilon)
                 {
-                    stop = HighestAfterEntry - level;
-                }
-                if (currentPrice < stop)
-                {
-                    TargetPosition = 0;
-                    TextParameter.Text = string.Format("跟踪止损 - 最高{0},止损{1}>当前{2}|{3}",
-                        HighestAfterEntry,stop,currentPrice,
-                        text);
-                    return qty;
-                }
-            }
-            else if (qty < -double.Epsilon)
-            {
-                if (StopMode.Percent == mode)
-                {
-                    stop = LowestAfterEntry * (1.0 + level);
-                }
-                else
-                {
-                    stop = LowestAfterEntry + level;
+                    if (StopMode.Percent == mode)
+                    {
+                        stop = LowestAfterEntry * (1.0 + level);
+                    }
+                    else
+                    {
+                        stop = LowestAfterEntry + level;
+                    }
+
+                    if (currentPrice > stop)
+                    {
+                        TargetPosition = 0;
+                        TextParameter.Text = string.Format("跟踪止损 - 最低{0},止损{1}<当前{2}|{3}",
+                            HighestAfterEntry, stop, currentPrice,
+                            text);
+                        return qty;
+                    }
                 }
 
-                if (currentPrice > stop)
-                {
-                    TargetPosition = 0;
-                    TextParameter.Text = string.Format("跟踪止损 - 最低{0},止损{1}<当前{2}|{3}",
-                        HighestAfterEntry, stop, currentPrice,
-                        text);
-                    return qty;
-                }
+                return 0;
             }
-
-            return 0;
         }
 
         /// <summary>
@@ -418,94 +422,100 @@ namespace QuantBox.OQ.Demo.Module
         /// <returns>止损了返止损前持仓，可用于后面的反手</returns>
         public virtual double FixedStop(double currentPrice, double level, StopMode mode, string text)
         {
-            double qty = GetCurrentQty();
-            double stop;
-            if (qty > double.Epsilon)
+            //lock(this)
             {
-                if (StopMode.Percent == mode)
+                double qty = GetCurrentQty();
+                double stop;
+                if (qty > double.Epsilon)
                 {
-                    stop = GetLongAvgPrice() * (1.0 - level);
+                    if (StopMode.Percent == mode)
+                    {
+                        stop = GetLongAvgPrice() * (1.0 - level);
+                    }
+                    else
+                    {
+                        stop = GetLongAvgPrice() - level;
+                    }
+                    if (currentPrice < stop)
+                    {
+                        TargetPosition = 0;
+                        TextParameter.Text = string.Format("固定止损 - 多头均价{0},止损{1}>当前{2}|{3}",
+                            GetLongAvgPrice(), stop, currentPrice,
+                            text);
+                        return qty;
+                    }
                 }
-                else
+                else if (qty < -double.Epsilon)
                 {
-                    stop = GetLongAvgPrice() - level;
-                }
-                if (currentPrice < stop)
-                {
-                    TargetPosition = 0;
-                    TextParameter.Text = string.Format("固定止损 - 多头均价{0},止损{1}>当前{2}|{3}",
-                        GetLongAvgPrice(), stop, currentPrice,
-                        text);
-                    return qty;
-                }
-            }
-            else if (qty < -double.Epsilon)
-            {
-                if (StopMode.Percent == mode)
-                {
-                    stop = GetShortAvgPrice() * (1.0 + level);
-                }
-                else
-                {
-                    stop = GetShortAvgPrice() + level;
-                }
+                    if (StopMode.Percent == mode)
+                    {
+                        stop = GetShortAvgPrice() * (1.0 + level);
+                    }
+                    else
+                    {
+                        stop = GetShortAvgPrice() + level;
+                    }
 
-                if (currentPrice > stop)
-                {
-                    TargetPosition = 0;
-                    TextParameter.Text = string.Format("固定止损 - 空头均价{0},止损{1}<当前{2}|{3}",
-                        GetShortAvgPrice(), stop, currentPrice,
-                        text);
-                    return qty;
+                    if (currentPrice > stop)
+                    {
+                        TargetPosition = 0;
+                        TextParameter.Text = string.Format("固定止损 - 空头均价{0},止损{1}<当前{2}|{3}",
+                            GetShortAvgPrice(), stop, currentPrice,
+                            text);
+                        return qty;
+                    }
                 }
+                return 0;
             }
-            return 0;
         }
 
         public virtual double TakeProfit(double currentPrice, double level, StopMode mode, string text)
         {
-            double qty = GetCurrentQty();
-            double stop;
-            if (qty > double.Epsilon)
+            //lock(this)
             {
-                if (StopMode.Percent == mode)
+                double qty = GetCurrentQty();
+                double stop;
+                if (qty > double.Epsilon)
                 {
-                    stop = GetLongAvgPrice() * (1.0 + level);
+                    if (StopMode.Percent == mode)
+                    {
+                        stop = GetLongAvgPrice() * (1.0 + level);
+                    }
+                    else
+                    {
+                        stop = GetLongAvgPrice() + level;
+                    }
+                    if (currentPrice > stop)
+                    {
+                        TargetPosition = 0;
+                        TextParameter.Text = string.Format("固定止赢 - 多头均价{0},止赢{1}<当前{2}|{3}",
+                            GetLongAvgPrice(), stop, currentPrice,
+                            text);
+                        return qty;
+                    }
                 }
-                else
+                else if (qty < -double.Epsilon)
                 {
-                    stop = GetLongAvgPrice() + level;
-                }
-                if (currentPrice > stop)
-                {
-                    TargetPosition = 0;
-                    TextParameter.Text = string.Format("固定止赢 - 多头均价{0},止赢{1}<当前{2}|{3}",
-                        GetLongAvgPrice(), stop, currentPrice,
-                        text);
-                    return qty;
-                }
-            }
-            else if (qty < -double.Epsilon)
-            {
-                if (StopMode.Percent == mode)
-                {
-                    stop = GetShortAvgPrice() * (1.0 - level);
-                }
-                else
-                {
-                    stop = GetShortAvgPrice() - level;
-                }
+                    if (StopMode.Percent == mode)
+                    {
+                        stop = GetShortAvgPrice() * (1.0 - level);
+                    }
+                    else
+                    {
+                        stop = GetShortAvgPrice() - level;
+                    }
 
-                if (currentPrice < stop)
-                {
-                    TargetPosition = 0;
-                    TextParameter.Text = string.Format("固定止赢 - 空头均价{0},止赢{1}>当前{2}|{3}",
-                        GetShortAvgPrice(), stop, currentPrice,
-                        text);
-                    return qty;
+                    if (currentPrice < stop)
+                    {
+                        TargetPosition = 0;
+                        TextParameter.Text = string.Format("固定止赢 - 空头均价{0},止赢{1}>当前{2}|{3}",
+                            GetShortAvgPrice(), stop, currentPrice,
+                            text);
+                        return qty;
+                    }
                 }
+                return 0;
             }
-            return 0;
         }
 
         /// <summary>
@@ -514,14 +524,17 @@ namespace QuantBox.OQ.Demo.Module
         /// <returns>返回上次持仓量</returns>
         public virtual double ExitOnClose(double seconds,string text)
         {
-            double qty = GetCurrentQty();
-            if (TimeHelper.GetTime(Clock.Now.AddSeconds(seconds)) >= TimeHelper.EndOfDay)
+            //lock(this)
             {
-                TargetPosition = 0;
-                TextParameter.Text = string.Format("尾盘，清仓|{0}",text);
-                return qty;
+                double qty = GetCurrentQty();
+                if (TimeHelper.GetTime(Clock.Now.AddSeconds(seconds)) >= TimeHelper.EndOfDay)
+                {
+                    TargetPosition = 0;
+                    TextParameter.Text = string.Format("尾盘，清仓|{0}", text);
+                    return qty;
+                }
+                return 0;
             }
-            return 0;
         }
 
         public virtual void ChangeTradingDay()
