@@ -18,35 +18,35 @@ namespace QuantBox.OQ.Demo.Helper
         /// <summary>
         /// 实际持仓
         /// </summary>
-        public double Qty;
+        public double Qty { get; set; }
         /// <summary>
         /// 实际持今仓量
         /// </summary>
-        public double QtyToday;
+        public double QtyToday { get; set; }
         /// <summary>
         /// 挂开仓量
         /// </summary>
-        public double FrozenOpen;
+        public double FrozenOpen { get; private set; }
         /// <summary>
         /// 挂平仓量
         /// </summary>
-        public double FrozenClose;
+        public double FrozenClose { get; private set; }
         /// <summary>
         /// 挂平今量
         /// </summary>
-        public double FrozenCloseToday;
+        public double FrozenCloseToday { get; private set; }
         /// <summary>
         /// 开仓手数累计
         /// </summary>
-        public double CumOpenQty;
+        public double CumOpenQty { get; private set; }
         /// <summary>
         /// 撤单次数累计，注意，不区分主动撤单与被动撤单
         /// </summary>
-        public double CumCancelCnt;
+        public double CumCancelCnt { get; set; }
         /// <summary>
         /// 持仓成本
         /// </summary>
-        public double HoldingCost;
+        public double HoldingCost { get; private set; }
 
 
         public void Reset()
@@ -85,6 +85,77 @@ namespace QuantBox.OQ.Demo.Helper
         {
             return string.Format("持仓量:{0},挂开仓量:{1},挂平仓量:{2},开仓手数累计:{3}",
                 Qty, FrozenOpen, FrozenClose, CumOpenQty);
+        }
+
+        public void NewOrderOpen(double Qty)
+        {
+            FrozenClose += Qty;
+        }
+
+        public void NewOrderClose(double Qty)
+        {
+            FrozenClose += Qty;
+        }
+
+        public void NewOrderCloseToday(double Qty)
+        {
+            FrozenCloseToday += Qty;
+            FrozenClose += Qty;
+        }
+
+        public void FilledOpen(double LastQty, double LastPrice)
+        {
+            Qty += LastQty;
+            QtyToday += LastQty;
+            FrozenOpen -= LastQty;
+            CumOpenQty += LastQty;
+            HoldingCost += LastPrice * LastQty;
+        }
+
+        public void FilledClose(double LastQty, double LastPrice)
+        {
+            Qty -= LastQty;
+            FrozenClose -= LastQty;
+            if (Qty == 0)
+            {
+                HoldingCost = 0;
+            }
+            else
+            {
+                HoldingCost -= LastPrice * LastQty;
+            }
+        }
+
+        public void FilledCloseToday(double LastQty, double LastPrice)
+        {
+            Qty -= LastQty;
+            QtyToday -= LastQty;
+            FrozenClose -= LastQty;
+            FrozenCloseToday -= LastQty;
+            if (Qty == 0)
+            {
+                HoldingCost = 0;
+            }
+            else
+            {
+                HoldingCost -= LastPrice * LastQty;
+            }
+        }
+
+        public void OrderRejectedOpen(double LeavesQty)
+        {
+            FrozenOpen -= LeavesQty;
+        }
+
+        public void OrderRejectedClose(double LeavesQty)
+        {
+            FrozenClose -= LeavesQty;
+        }
+
+        public void OrderRejectedCloseToday(double LeavesQty)
+        {
+            FrozenCloseToday -= LeavesQty;
+            FrozenClose -= LeavesQty;
         }
     }
 }
