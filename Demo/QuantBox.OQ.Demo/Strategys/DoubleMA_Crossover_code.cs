@@ -36,6 +36,8 @@ namespace QuantBox.OQ.Demo.Strategys
         SMA fastSMA;
         SMA slowSMA;
 
+        static BrokerInfo BrokerInfo;
+
         void LoadHistoricalBars(DateTime datetime)
         {
             DateTime dtEnd = datetime;
@@ -59,10 +61,21 @@ namespace QuantBox.OQ.Demo.Strategys
             base.TimeHelper = new TimeHelper(new int[] { 0, 2400 },2100, 1458);
 
             base.TargetPosition = 0;
-            base.DualPosition.Long.Qty = 0;
-            base.DualPosition.Long.QtyToday = 0;
-            base.DualPosition.Short.Qty = 0;
-            base.DualPosition.Short.QtyToday = 0;
+            //base.DualPosition.Long.Qty = 0;
+            //base.DualPosition.Long.QtyToday = 0;
+            //base.DualPosition.Short.Qty = 0;
+            //base.DualPosition.Short.QtyToday = 0;
+            if(BrokerInfo == null)
+            {
+                // 使用静态的主要原因是每个实例都来取一次没有必要
+                BrokerInfo = DataManager.GetBrokerInfo();   
+            }
+            if (BrokerInfo.Accounts.Count > 0)
+            {
+                BrokerAccount brokerAccount = BrokerInfo.Accounts[0];
+                GetBrokerInfoHelper.Transform(brokerAccount, base.DualPosition);
+            }
+            
 
             LoadHistoricalBars(Clock.Now);
 
