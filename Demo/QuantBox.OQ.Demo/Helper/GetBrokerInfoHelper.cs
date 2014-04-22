@@ -8,25 +8,47 @@ namespace QuantBox.OQ.Demo.Helper
 {
     public class GetBrokerInfoHelper
     {
-        public const string PosiDirection = "PosiDirection";
-        public const string Long = "Long";
-        public const string PositionDate = "PositionDate";
-        public const string Today = "Today";
-        public const string Position = "Position";
+        private const string PosiDirection = "PosiDirection";
+        private const string Long = "Long";
+        private const string PositionDate = "PositionDate";
+        private const string Today = "Today";
+        private const string Position = "Position";
 
         public static void Transform(BrokerAccount brokerAccount,DualPosition dualPosition)
         {
             if (brokerAccount == null||dualPosition == null)
                 return;
 
-            int LongQtyYd = 0;
             int LongQtyToday = 0;
-            int ShortQtyYd = 0;
+            int LongQtyYd = 0;
             int ShortQtyToday = 0;
+            int ShortQtyYd = 0;
+
+            Tarnsform(brokerAccount, dualPosition.Symbol,
+                out LongQtyToday, out LongQtyYd,
+                out ShortQtyToday,out ShortQtyYd);
+
+            dualPosition.Long.QtyToday = LongQtyToday;
+            dualPosition.Long.Qty = LongQtyToday + LongQtyYd;
+            dualPosition.Short.QtyToday = ShortQtyToday;
+            dualPosition.Short.Qty = ShortQtyToday + ShortQtyYd;
+        }
+
+        public static void Tarnsform(BrokerAccount brokerAccount,string Symbol,
+            out int LongQtyToday,
+            out int LongQtyYd,
+            out int ShortQtyToday,
+            out int ShortQtyYd
+            )
+        {
+            LongQtyToday = 0;
+            LongQtyYd = 0;
+            ShortQtyToday = 0;
+            ShortQtyYd = 0;
 
             foreach (BrokerPosition bp in brokerAccount.Positions)
             {
-                if (bp.Symbol != dualPosition.Symbol)
+                if (bp.Symbol != Symbol)
                     continue;
 
                 // 会收到很多，得按类别进行设置
@@ -55,11 +77,6 @@ namespace QuantBox.OQ.Demo.Helper
                     }
                 }
             }
-
-            dualPosition.Long.QtyToday = LongQtyToday;
-            dualPosition.Long.Qty = LongQtyToday + LongQtyYd;
-            dualPosition.Short.QtyToday = ShortQtyToday;
-            dualPosition.Short.Qty = ShortQtyToday + ShortQtyYd;
         }
     }
 }
