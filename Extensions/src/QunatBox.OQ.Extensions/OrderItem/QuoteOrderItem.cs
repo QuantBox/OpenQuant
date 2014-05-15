@@ -55,8 +55,8 @@ namespace QuantBox.OQ.Extensions.OrderItem
 
         public override bool IsCreated()
         {
-            if (string.IsNullOrEmpty(QuoteID))
-                return false;
+            //if (string.IsNullOrEmpty(QuoteID))
+            //    return false;
 
             if (Sell == null || Buy == null)
                 return false;

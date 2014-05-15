@@ -33,6 +33,7 @@
     <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\..\Program Files (x86)\SmartQuant Ltd\OpenQuant\Bin\Newtonsoft.Json.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="OpenQuant.API">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\SmartQuant Ltd\OpenQuant\Bin\OpenQuant.API.dll</HintPath>
@@ -40,19 +41,24 @@
     <Reference Include="SmartQuant.Data, Version=1.0.0.0, Culture=neutral, PublicKeyToken=844f265c18b031f9, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\Program Files (x86)\SmartQuant Ltd\OpenQuant\Framework\bin\SmartQuant.Data.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="SmartQuant.Execution, Version=1.0.4997.21109, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\..\Program Files (x86)\SmartQuant Ltd\OpenQuant\Framework\bin\SmartQuant.Execution.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="SmartQuant.FIX">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\SmartQuant Ltd\OpenQuant\Framework\bin\SmartQuant.FIX.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="SmartQuant.Instruments">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\SmartQuant Ltd\OpenQuant\Framework\bin\SmartQuant.Instruments.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="SmartQuant.Providers">
       <HintPath>..\..\..\..\..\..\Program Files (x86)\SmartQuant Ltd\OpenQuant\Framework\bin\SmartQuant.Providers.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

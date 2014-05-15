@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -21,5 +22,12 @@ namespace QuantBox.OQ.Extensions.OrderText
         {
             base.Type = EnumGroupType.QUOTE;
         }
+
+        [JsonIgnore]
+        public static readonly string Open = new TextQuote() { OpenClose = EnumOpenClose.OPEN }.ToString();
+        [JsonIgnore]
+        public static readonly string Close = new TextQuote() { OpenClose = EnumOpenClose.CLOSE }.ToString();
+        [JsonIgnore]
+        public static readonly string CloseToday = new TextQuote() { OpenClose = EnumOpenClose.CLOSE_TODAY }.ToString();
     }
 }
