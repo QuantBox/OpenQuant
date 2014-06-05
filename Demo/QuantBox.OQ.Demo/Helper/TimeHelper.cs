@@ -16,6 +16,9 @@ namespace QuantBox.OQ.Demo.Helper
 
     public class TimeHelper
     {
+        /// <summary>
+        /// 交易时间
+        /// </summary>
         public int[] WorkingTime;
         public int EndOfDay { get; private set; }
         public int BeginOfDay { get; private set; }
@@ -32,7 +35,10 @@ namespace QuantBox.OQ.Demo.Helper
         private int BeginOfDay_Commodity = 900;
         private int BeginOfDay_Commodity_0230 = 2100;
         private int BeginOfDay_Commodity_0100 = 2100;
-
+        /// <summary>
+        /// 确定开收盘时间
+        /// 构造函数，根据合约属性确定开盘、收盘和交易时间
+        /// </summary>
         public TimeHelper(EnumTradingTime tt)
         {
             switch(tt)
@@ -59,18 +65,28 @@ namespace QuantBox.OQ.Demo.Helper
                     break;
             }
         }
-
+        /// <summary>
+        /// 构造函数：根据合约ID确定开盘、收盘、交易时间
+        /// </summary>
+        /// <param name="instrument"></param>
         public TimeHelper(string instrument):this(GetTradingTime(instrument))
         {
         }
-
+        /// <summary>
+        /// 构造函数：设置开盘、收盘、交易时间
+        /// </summary>
+        /// <param name="instrument"></param>
         public TimeHelper(int[] workingTime,int beginOfDay,int ennOfDay)
         {
             WorkingTime = workingTime;
             BeginOfDay = beginOfDay;
             EndOfDay = ennOfDay;
         }
-
+        /// <summary>
+        /// 获取指定合约的Trading时间
+        /// </summary>
+        /// <param name="instrument">合约</param>
+        /// <returns>返回合约属性</returns>
         public static EnumTradingTime GetTradingTime(string instrument)
         {
             string prefix = instrument.Substring(0, 2);
@@ -95,7 +111,11 @@ namespace QuantBox.OQ.Demo.Helper
                     return EnumTradingTime.COMMODITY;
             }
         }
-
+        /// <summary>
+        /// 确定是否Trading时间
+        /// </summary>
+        /// <param name="time"></param>
+        /// <returns></returns>
         public bool IsTradingTime(int time)
         {
             int index = -1;
@@ -113,24 +133,35 @@ namespace QuantBox.OQ.Demo.Helper
 
             if (index % 2 == 0)
             {
-                // 交易时段
+                // Trading时段
                 return true;
             }
 
-            // 非交易时段
+            // 非Trading时段
             return false;
         }
-
+        /// <summary>
+        /// 把时间换成为数字表示。如915表示9:15分
+        /// </summary>
+        /// <param name="dt"></param>
+        /// <returns></returns>
         public int GetTime(DateTime dt)
         {
             return dt.Hour * 100 + dt.Minute;
         }
-
+        /// <summary>
+        /// 确定是否Trading时间
+        /// </summary>
+        /// <param name="dt"></param>
+        /// <returns></returns>
         public bool IsTradingTime(DateTime dt)
         {
             return IsTradingTime(GetTime(dt));
         }
-
+        /// <summary>
+        /// 确定是否Trading时间
+        /// </summary>
+        /// <returns></returns>
         public bool IsTradingTime()
         {
             return IsTradingTime(Clock.Now);

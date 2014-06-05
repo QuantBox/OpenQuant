@@ -8,6 +8,9 @@ namespace QuantBox.OQ.Demo.Helper
 {
     public class CloseTodayHelper
     {
+        /// <summary>
+        /// 是否为上期所
+        /// </summary>
         public bool IsSHFE { get; private set; }
 
         public CloseTodayHelper(EnumExchangeID exchange)
@@ -29,7 +32,12 @@ namespace QuantBox.OQ.Demo.Helper
             }
             return OpenClose;
         }
-
+        /// <summary>
+        /// 获取
+        /// </summary>
+        /// <param name="pos"></param>
+        /// <param name="OpenClose"></param>
+        /// <returns></returns>
         public double GetCloseAndQty(PositionRecord pos,out EnumOpenClose OpenClose)
         {
             double qty = 0;
