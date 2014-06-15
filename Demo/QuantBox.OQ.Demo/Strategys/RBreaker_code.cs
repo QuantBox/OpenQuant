@@ -28,6 +28,9 @@ namespace QuantBox.OQ.Demo.Strategys
     {
         //第一次运行时，前一天的开高底收
         [Parameter("前一天最高价", "PreDay")]
+        /// <summary>
+        /// 前一天最高价
+        /// </summary>
         double preDayHigh = 0;
         [Parameter("前一天最低价", "PreDay")]
         double preDayLow = 0;
@@ -83,7 +86,9 @@ namespace QuantBox.OQ.Demo.Strategys
 
             Update6Line();
         }
-
+        /// <summary>
+        /// 
+        /// </summary>
         void Update6Line()
         {
             //先计算，时候到了再放到序列中
@@ -161,8 +166,8 @@ namespace QuantBox.OQ.Demo.Strategys
             Draw(senter, 0);
             Draw(benter, 0);
 
-            Draw(S1, 0);
-            Draw(B1, 0);
+            Draw(S1, 2);
+            Draw(B1, 2);
         }
 
         public override void OnBarOpen(Bar bar)

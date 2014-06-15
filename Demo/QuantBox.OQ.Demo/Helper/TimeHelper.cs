@@ -13,7 +13,9 @@ namespace QuantBox.OQ.Demo.Helper
         COMMODITY_0230, // 黄金、白银
         COMMODITY_0100,
     }
-
+    /// <summary>
+    /// 时间助手
+    /// </summary>
     public class TimeHelper
     {
         public int[] WorkingTime;

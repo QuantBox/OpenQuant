@@ -19,8 +19,8 @@ namespace QuantBox.OQ.Demo.Helper
     public class DualPosition
     {
         
-        public CloseTodayHelper CloseTodayHelper;
-        public PositionRecord Long = new PositionRecord();
+        public CloseTodayHelper CloseTodayHelper;//平今仓助手
+        public PositionRecord Long = new PositionRecord();//仓位记录
         public PositionRecord Short = new PositionRecord();
 
         public OrderBook_OneSide_Order Buy = new OrderBook_OneSide_Order(OrderSide.Buy);

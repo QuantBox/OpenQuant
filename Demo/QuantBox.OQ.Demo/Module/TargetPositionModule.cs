@@ -34,11 +34,11 @@ namespace QuantBox.OQ.Demo.Module
         [Parameter("对手价上加N跳下单", "TargetPositionModule")]
         public int Jump = 2;
 
-        protected TimeHelper TimeHelper;
-        protected PriceHelper PriceHelper;
-        protected CloseTodayHelper CloseTodayHelper;
+        protected TimeHelper TimeHelper;//时间助手
+        protected PriceHelper PriceHelper;//价格助手
+        protected CloseTodayHelper CloseTodayHelper;//平今仓助手
 
-        protected TextCommon TextParameter;
+        protected TextCommon TextParameter;//文本参数，显示交易命令参数
 
         /// <summary>
         /// 入场后的最高价，用于跟踪止损
@@ -60,7 +60,10 @@ namespace QuantBox.OQ.Demo.Module
             // 各项处理时使用信号持仓
             //return TargetPosition;
         }
-
+        /// <summary>
+        /// 取得持仓平均成本
+        /// </summary>
+        /// <returns></returns>
         public virtual double GetLongAvgPrice()
         {
             return DualPosition.Long.AvgPrice;

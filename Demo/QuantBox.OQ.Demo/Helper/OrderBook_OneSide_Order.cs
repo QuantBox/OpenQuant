@@ -6,11 +6,26 @@ using System.Text;
 
 namespace QuantBox.OQ.Demo.Helper
 {
+    /// <summary>
+    /// 订单序列
+    /// </summary>
     public class OrderBook_OneSide_Order : IComparer<int>, IComparer<Order>
     {
+        /// <summary>
+        /// //订单方向（buy or sell）
+        /// </summary>
         public OrderSide Side;
+        /// <summary>
+        /// 排序列表集合的订单
+        /// </summary>
         private SortedList<int, SortedSet<Order>> _Grid;
+        /// <summary>
+        /// //价格助手
+        /// </summary>
         public PriceHelper PriceHelper;
+        /// <summary>
+        /// //订单散列集合
+        /// </summary>
         private HashSet<Order> cancelList = new HashSet<Order>();
 
         public IEnumerable<KeyValuePair<int, SortedSet<Order>>> GridList

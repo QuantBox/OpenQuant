@@ -31,7 +31,7 @@ namespace QuantBox.OQ.Demo.Strategys
         double Qty = 1;
 
         [Parameter("时间周期，请按自己的设置修改")]
-        int BarSize = 180;
+        int BarSize = 60;
 
         SMA fastSMA;
         SMA slowSMA;
@@ -43,7 +43,7 @@ namespace QuantBox.OQ.Demo.Strategys
             DateTime dtEnd = datetime;
             DateTime dtBegin = dtEnd.AddDays(-5);//这个时间按自己的需求修改
 
-            TradeSeries ts = DataManager.GetHistoricalTrades(Instrument, dtBegin, dtEnd);
+            TradeSeries ts = DataManager.GetHistoricalTrades(Instrument, dtBegin, dtEnd);//获取历史交易数据
             //个人认为这个地方应当过滤下Trade数据，去除无效的再转换成Bars
             BarSeries bs = DataManager.CompressBars(ts, BarType.Time, BarSize);
             BarSeries barsMin = GetBars(BarType.Time, BarSize);
@@ -55,7 +55,7 @@ namespace QuantBox.OQ.Demo.Strategys
 
         public override void OnStrategyStart()
         {
-            base.OnStrategyStart();
+            base.OnStrategyStart();//开始基类策略
 
             // 测试用，自定义交易时间，仿真或实盘时可删除
             base.TimeHelper = new TimeHelper(new int[] { 0, 2400 },2100, 1458);
@@ -87,7 +87,10 @@ namespace QuantBox.OQ.Demo.Strategys
             Draw(fastSMA, 0);
             Draw(slowSMA, 0);
         }
-
+        /// <summary>
+        /// OnBar事件
+        /// </summary>
+        /// <param name="bar"></param>
         public override void OnBar(Bar bar)
         {
             Cross cross = fastSMA.Crosses(slowSMA, bar);

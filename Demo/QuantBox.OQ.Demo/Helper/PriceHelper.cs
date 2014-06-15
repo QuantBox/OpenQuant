@@ -6,6 +6,9 @@ using System.Text;
 
 namespace QuantBox.OQ.Demo.Helper
 {
+    /// <summary>
+    /// 价格助手
+    /// </summary>
     public class PriceHelper
     {
         public double UpperLimitPrice { get; private set; }
