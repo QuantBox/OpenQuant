@@ -172,7 +172,7 @@ namespace QuantBox.OQ.Demo.Strategys
 
         public override void OnBarOpen(Bar bar)
         {
-            if (86400 == bar.Size)
+            if (86400 == bar.Size)//当天最后一根K线
             {
                 i_reverse = reverse * (bar.Open / 100.0);
                 i_rangemin = rangemin * (bar.Open / 100.0);

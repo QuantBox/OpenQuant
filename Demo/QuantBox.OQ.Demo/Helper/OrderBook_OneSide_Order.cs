@@ -16,7 +16,7 @@ namespace QuantBox.OQ.Demo.Helper
         /// </summary>
         public OrderSide Side;
         /// <summary>
-        /// 排序列表集合的订单
+        /// 排序列表的订单集合
         /// </summary>
         private SortedList<int, SortedSet<Order>> _Grid;
         /// <summary>
@@ -49,12 +49,19 @@ namespace QuantBox.OQ.Demo.Helper
         {
             return x.CompareTo(y) * (Side == OrderSide.Buy ? -1 : 1);
         }
-
+        /// <summary>
+        /// 比较两个订单的时间先后顺序
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <returns></returns>
         public int Compare(Order x, Order y)
         {
             return x.DateTime.CompareTo(y.DateTime);
         }
-
+        /// <summary>
+        /// 订单数>0时，需要等待
+        /// </summary>
         public bool IsPending
         {
             get { return _Grid.Count > 0; }

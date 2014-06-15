@@ -11,8 +11,17 @@ namespace QuantBox.OQ.Demo.Helper
     /// </summary>
     public class PriceHelper
     {
+        /// <summary>
+        /// 价格上限
+        /// </summary>
         public double UpperLimitPrice { get; private set; }
+        /// <summary>
+        /// 价格下限
+        /// </summary>
         public double LowerLimitPrice { get; private set; }
+        /// <summary>
+        /// Tick最小变量数量
+        /// </summary>
         public double TickSize { get; private set; }
 
         public PriceHelper(double TickSize)
@@ -30,7 +39,12 @@ namespace QuantBox.OQ.Demo.Helper
             this.LowerLimitPrice = LowerLimitPrice;
             this.TickSize = TickSize;
         }
-
+        /// <summary>
+        /// 获取价格水平，取TickSize的整数倍
+        /// </summary>
+        /// <param name="price">价格</param>
+        /// <param name="Side">买卖方向</param>
+        /// <returns>价格</returns>
         public int GetLevelByPrice(double price, OrderSide Side)
         {
             price = Math.Min(price, UpperLimitPrice);
@@ -44,12 +58,22 @@ namespace QuantBox.OQ.Demo.Helper
         {
             return level * TickSize;
         }
-
+        /// <summary>
+        /// 修正价格水平
+        /// </summary>
+        /// <param name="price"></param>
+        /// <param name="Side"></param>
+        /// <returns></returns>
         public double FixPrice(double price, OrderSide Side)
         {
             return GetPriceByLevel(GetLevelByPrice(price, Side));
         }
-
+        /// <summary>
+        /// 获得匹配的价格
+        /// </summary>
+        /// <param name="strategy"></param>
+        /// <param name="side"></param>
+        /// <returns></returns>
         public double GetMatchPrice(Strategy strategy, OrderSide side)
         {
             Quote quote = strategy.Quote;
