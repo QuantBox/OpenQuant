@@ -180,10 +180,10 @@ namespace QuantBox.OQ.Demo.Module
 
             lock(this)
             {
-                // 计算仓差
+                // 计算仓差 = 目标持仓 - 实际持仓（多头挂仓量-空头持仓量）
                 double dif = TargetPosition - DualPosition.NetQty;
 
-                if (dif == 0)// 持仓量相等
+                if (dif == 0)// 多仓=空仓，持仓量相等
                 {
                     // 把所有的挂单全撤了
                     DualPosition.Cancel();

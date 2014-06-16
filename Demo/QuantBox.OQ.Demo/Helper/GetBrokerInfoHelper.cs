@@ -6,14 +6,21 @@ using System.Text;
 
 namespace QuantBox.OQ.Demo.Helper
 {
+    /// <summary>
+    /// 获取代理商信息助手
+    /// </summary>
     public class GetBrokerInfoHelper
     {
-        private const string PosiDirection = "PosiDirection";
-        private const string Long = "Long";
-        private const string PositionDate = "PositionDate";
-        private const string Today = "Today";
-        private const string Position = "Position";
-
+        private const string PosiDirection = "PosiDirection";//仓位方向
+        private const string Long = "Long";//
+        private const string PositionDate = "PositionDate";//仓位日期
+        private const string Today = "Today";//今仓
+        private const string Position = "Position";//仓位
+        /// <summary>
+        /// 转换
+        /// </summary>
+        /// <param name="brokerAccount"></param>
+        /// <param name="dualPosition"></param>
         public static void Transform(BrokerAccount brokerAccount,DualPosition dualPosition)
         {
             if (brokerAccount == null||dualPosition == null)

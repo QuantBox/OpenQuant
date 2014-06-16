@@ -72,7 +72,7 @@ namespace QuantBox.OQ.Demo.Strategys
             }
             if (BrokerInfo.Accounts.Count > 0)
             {
-                BrokerAccount brokerAccount = BrokerInfo.Accounts[0];
+                BrokerAccount brokerAccount = BrokerInfo.Accounts[0];//表示一组代理账户的属性,如名称、BuyingPower和位置列表。
                 GetBrokerInfoHelper.Transform(brokerAccount, base.DualPosition);
             }
             

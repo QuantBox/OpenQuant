@@ -116,11 +116,11 @@ namespace QuantBox.OQ.Demo.Helper
             }
         }
         /// <summary>
-        /// 实盘持仓
+        /// 实际持仓
         /// </summary>
         public double NetQty
         {
-            get { return Long.Qty - Short.Qty; }
+            get { return Long.Qty - Short.Qty; }//多头仓 - 空头仓
         }
         /// <summary>
         /// 是否等待

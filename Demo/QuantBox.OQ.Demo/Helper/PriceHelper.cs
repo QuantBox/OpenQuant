@@ -53,10 +53,14 @@ namespace QuantBox.OQ.Demo.Helper
             int index = (int)((Side == OrderSide.Buy) ? Math.Ceiling(price / TickSize) : Math.Floor(price / TickSize));
             return index;
         }
-
+        /// <summary>
+        /// 获得价格
+        /// </summary>
+        /// <param name="level">价格</param>
+        /// <returns></returns>
         public double GetPriceByLevel(int level)
         {
-            return level * TickSize;
+            return level * TickSize;//TickSize为每一跳的价格
         }
         /// <summary>
         /// 修正价格水平
