@@ -6,6 +6,9 @@ using System;
 
 namespace QuantBox.OQ.Demo.Module
 {
+    /// <summary>
+    /// 目标仓位助手
+    /// </summary>
     public class TargetPositionModule : Strategy
     {
         public DualPosition DualPosition;
@@ -34,11 +37,11 @@ namespace QuantBox.OQ.Demo.Module
         [Parameter("对手价上加N跳下单", "TargetPositionModule")]
         public int Jump = 2;
 
-        protected TimeHelper TimeHelper;
-        protected PriceHelper PriceHelper;
-        protected CloseTodayHelper CloseTodayHelper;
+        protected TimeHelper TimeHelper;//时间助手
+        protected PriceHelper PriceHelper;//价格助手
+        protected CloseTodayHelper CloseTodayHelper;//平今仓助手
 
-        protected TextCommon TextParameter;
+        protected TextCommon TextParameter;//文本参数，显示交易命令参数
 
         /// <summary>
         /// 入场后的最高价，用于跟踪止损
@@ -50,6 +53,7 @@ namespace QuantBox.OQ.Demo.Module
         public double LowestAfterEntry = double.MaxValue;
 
         /// <summary>
+        /// 获取当前持仓
         /// 在进行各项计算时到底是使用信号持仓还是实盘持仓呢？
         /// </summary>
         /// <returns></returns>
@@ -60,12 +64,18 @@ namespace QuantBox.OQ.Demo.Module
             // 各项处理时使用信号持仓
             //return TargetPosition;
         }
-
+        /// <summary>
+        /// 取得多头持仓平均成本
+        /// </summary>
+        /// <returns></returns>
         public virtual double GetLongAvgPrice()
         {
             return DualPosition.Long.AvgPrice;
         }
-
+        /// <summary>
+        /// 取得空头持仓平均成本
+        /// </summary>
+        /// <returns></returns>
         public virtual double GetShortAvgPrice()
         {
             return DualPosition.Short.AvgPrice;
@@ -102,7 +112,7 @@ namespace QuantBox.OQ.Demo.Module
             DualPosition.Buy.PriceHelper = PriceHelper;
             DualPosition.CloseTodayHelper = CloseTodayHelper;
 
-            TargetPosition = 0;
+            TargetPosition = 0;//仓位初始化
             DualPosition.Long.Qty = 0;
             DualPosition.Long.QtyToday = 0;
             DualPosition.Short.Qty = 0;
@@ -131,7 +141,10 @@ namespace QuantBox.OQ.Demo.Module
             //{ 
             //}
         }
-
+        /// <summary>
+        /// OpenBar事件
+        /// </summary>
+        /// <param name="bar"></param>
         public override void OnBarOpen(Bar bar)
         {
             //lock(this)
@@ -295,7 +308,10 @@ namespace QuantBox.OQ.Demo.Module
             }
             HiLoAfterEntry(LastPrice);
         }
-
+        /// <summary>
+        /// 新增订单事件
+        /// </summary>
+        /// <param name="order"></param>
         public override void OnNewOrder(Order order)
         {
             //lock(this)
@@ -305,7 +321,10 @@ namespace QuantBox.OQ.Demo.Module
                 // 得加定时器，一定的时间内没有成交完全应当撤单重发，目前没有加这一功能
             }
         }
-
+        /// <summary>
+        /// 订单被拒绝事件
+        /// </summary>
+        /// <param name="order"></param>
         public override void OnOrderRejected(Order order)
         {
             double LeavesQty = order.LeavesQty;
@@ -339,7 +358,10 @@ namespace QuantBox.OQ.Demo.Module
                 // 当前状态禁止此项操作,时间不对，应当等下次操作
             }
         }
-
+        /// <summary>
+        /// 订单被取消事件
+        /// </summary>
+        /// <param name="order"></param>
         public override void OnOrderCancelled(Order order)
         {
             //lock(this)
@@ -350,7 +372,10 @@ namespace QuantBox.OQ.Demo.Module
                 //ResendOrder(order);
             }
         }
-
+        /// <summary>
+        /// 撤单被拒绝事件
+        /// </summary>
+        /// <param name="order"></param>
         public override void OnOrderCancelReject(Order order)
         {
             // 撤单被拒绝，暂不操作
@@ -359,42 +384,49 @@ namespace QuantBox.OQ.Demo.Module
         /// <summary>
         /// 根据入场后的最高与最低价，跟踪止损
         /// </summary>
-        /// <param name="currentPrice"></param>
-        /// <param name="level"></param>
-        /// <param name="mode"></param>
-        /// <returns>止损了返止损前持仓，可用于后面的反手</returns>
+        /// <param name="currentPrice">当前价格</param>
+        /// <param name="level">止损水平：为绝对值或百分比</param>
+        /// <param name="mode">止损类型：绝对值，Percent百分比</param>
+        /// <returns>止损了返回止损前持仓，可用于后面的反手</returns>
         public virtual double TrailingStop(double currentPrice, double level, StopMode mode,string text)
         {
             //lock(this)
             {
-                double qty = GetCurrentQty();
-                double stop;
+                double qty = GetCurrentQty();//获取当前持仓
+                double stop;//止损价
+                //当前持仓 > 0 时
                 if (qty > double.Epsilon)
                 {
+                    //止损类型为百分比时
                     if (StopMode.Percent == mode)
                     {
+                        //止损价=入场后最高价*(1.0-止损百分比)
                         stop = HighestAfterEntry * (1.0 - level);
                     }
-                    else
+                    else//止损类型为绝对值
                     {
+                        //止损价=入场后最高价 - 止损绝对值
                         stop = HighestAfterEntry - level;
                     }
+                    //当前价格 < 止损价 时清仓
                     if (currentPrice < stop)
                     {
-                        TargetPosition = 0;
+                        TargetPosition = 0;//目标仓位=0，表示清仓
                         TextParameter.Text = string.Format("跟踪止损 - 最高{0},止损{1}>当前{2}|{3}",
                             HighestAfterEntry, stop, currentPrice,
                             text);
-                        return qty;
+                        return qty;//返回止损仓位，可用于后面的反手
                     }
                 }
+                    //当前持仓 < 0 时
                 else if (qty < -double.Epsilon)
                 {
+                    //止损类型为百分比时
                     if (StopMode.Percent == mode)
                     {
                         stop = LowestAfterEntry * (1.0 + level);
                     }
-                    else
+                    else//止损类型为绝对值
                     {
                         stop = LowestAfterEntry + level;
                     }
@@ -416,35 +448,38 @@ namespace QuantBox.OQ.Demo.Module
         /// <summary>
         /// 从入场均价开始算起，固定点位止损
         /// </summary>
-        /// <param name="currentPrice"></param>
-        /// <param name="level"></param>
-        /// <param name="mode"></param>
+        /// <param name="currentPrice">当前价</param>
+        /// <param name="level">止损水平</param>
+        /// <param name="mode">止损类型</param>
         /// <returns>止损了返止损前持仓，可用于后面的反手</returns>
         public virtual double FixedStop(double currentPrice, double level, StopMode mode, string text)
         {
             //lock(this)
             {
-                double qty = GetCurrentQty();
-                double stop;
+                double qty = GetCurrentQty();//获取当前仓位
+                double stop;//止损价
+                //仓位>0时
                 if (qty > double.Epsilon)
                 {
+                    //止损类型为百分比时
                     if (StopMode.Percent == mode)
                     {
                         stop = GetLongAvgPrice() * (1.0 - level);
                     }
-                    else
+                    else//止损类型为绝对值时
                     {
                         stop = GetLongAvgPrice() - level;
                     }
                     if (currentPrice < stop)
                     {
-                        TargetPosition = 0;
+                        TargetPosition = 0;//清仓
                         TextParameter.Text = string.Format("固定止损 - 多头均价{0},止损{1}>当前{2}|{3}",
                             GetLongAvgPrice(), stop, currentPrice,
                             text);
                         return qty;
                     }
                 }
+                    //仓位<0时
                 else if (qty < -double.Epsilon)
                 {
                     if (StopMode.Percent == mode)
@@ -468,7 +503,14 @@ namespace QuantBox.OQ.Demo.Module
                 return 0;
             }
         }
-
+        /// <summary>
+        /// 固定止赢
+        /// </summary>
+        /// <param name="currentPrice">当前价格</param>
+        /// <param name="level"></param>
+        /// <param name="mode">获利停止类型：Absolute绝对，Percent百分比</param>
+        /// <param name="text"></param>
+        /// <returns></returns>
         public virtual double TakeProfit(double currentPrice, double level, StopMode mode, string text)
         {
             //lock(this)
@@ -536,7 +578,9 @@ namespace QuantBox.OQ.Demo.Module
                 return 0;
             }
         }
-
+        /// <summary>
+        /// 换日，用户自己要记得挂单要撤
+        /// </summary>
         public virtual void ChangeTradingDay()
         {
             if (TimeHelper.BeginOfDay > TimeHelper.EndOfDay)

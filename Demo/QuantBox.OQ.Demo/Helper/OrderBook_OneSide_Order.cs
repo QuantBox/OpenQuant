@@ -6,11 +6,26 @@ using System.Text;
 
 namespace QuantBox.OQ.Demo.Helper
 {
+    /// <summary>
+    /// 订单序列
+    /// </summary>
     public class OrderBook_OneSide_Order : IComparer<int>, IComparer<Order>
     {
+        /// <summary>
+        /// //订单方向（buy or sell）
+        /// </summary>
         public OrderSide Side;
+        /// <summary>
+        /// 排序列表的订单集合
+        /// </summary>
         private SortedList<int, SortedSet<Order>> _Grid;
+        /// <summary>
+        /// //价格助手
+        /// </summary>
         public PriceHelper PriceHelper;
+        /// <summary>
+        /// //订单散列集合
+        /// </summary>
         private HashSet<Order> cancelList = new HashSet<Order>();
 
         public IEnumerable<KeyValuePair<int, SortedSet<Order>>> GridList
@@ -34,12 +49,19 @@ namespace QuantBox.OQ.Demo.Helper
         {
             return x.CompareTo(y) * (Side == OrderSide.Buy ? -1 : 1);
         }
-
+        /// <summary>
+        /// 比较两个订单的时间先后顺序
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <returns></returns>
         public int Compare(Order x, Order y)
         {
             return x.DateTime.CompareTo(y.DateTime);
         }
-
+        /// <summary>
+        /// 订单数>0时，需要等待
+        /// </summary>
         public bool IsPending
         {
             get { return _Grid.Count > 0; }

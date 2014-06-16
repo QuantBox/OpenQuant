@@ -13,14 +13,22 @@ namespace QuantBox.OQ.Demo.Helper
         COMMODITY_0230, // 黄金、白银
         COMMODITY_0100,
     }
-
+    /// <summary>
+    /// 时间助手
+    /// </summary>
     public class TimeHelper
     {
         /// <summary>
         /// 交易时间
         /// </summary>
         public int[] WorkingTime;
+        /// <summary>
+        /// 结束时间
+        /// </summary>
         public int EndOfDay { get; private set; }
+        /// <summary>
+        /// 开始时间
+        /// </summary>
         public int BeginOfDay { get; private set; }
 
         public int[] WorkingTime_Financial = { 915, 1130, 1300, 1515 }; //IF,TF,IO
@@ -28,11 +36,11 @@ namespace QuantBox.OQ.Demo.Helper
         public int[] WorkingTime_Commodity_0230 = { 0, 230, 900, 1015, 1030, 1130, 1330, 1500, 2100, 2400 };//au,ag
         public int[] WorkingTime_Commodity_0100 = { 0, 100, 900, 1015, 1030, 1130, 1330, 1500, 2100, 2400 };//铜、铝、铅、锌
 
-        private int EndOfDay_Financial = 1515; //IF
-        private int EndOfDay_Commodity = 1500; //商品
+        private int EndOfDay_Financial = 1515; //IF 结束时间
+        private int EndOfDay_Commodity = 1500; //商品结束时间
 
-        private int BeginOfDay_Financial = 915;
-        private int BeginOfDay_Commodity = 900;
+        private int BeginOfDay_Financial = 915;//上期所的开始时间
+        private int BeginOfDay_Commodity = 900;//商品的开始时间
         private int BeginOfDay_Commodity_0230 = 2100;
         private int BeginOfDay_Commodity_0100 = 2100;
         /// <summary>
@@ -73,9 +81,10 @@ namespace QuantBox.OQ.Demo.Helper
         {
         }
         /// <summary>
-        /// 构造函数：设置开盘、收盘、交易时间
         /// </summary>
         /// <param name="instrument"></param>
+        /// <param name="beginOfDay">开始时间</param>
+        /// <param name="ennOfDay">结束时间</param>
         public TimeHelper(int[] workingTime,int beginOfDay,int ennOfDay)
         {
             WorkingTime = workingTime;
@@ -83,13 +92,13 @@ namespace QuantBox.OQ.Demo.Helper
             EndOfDay = ennOfDay;
         }
         /// <summary>
-        /// 获取指定合约的Trading时间
+        /// 合约号前缀获取交易所时间
         /// </summary>
         /// <param name="instrument">合约</param>
         /// <returns>返回合约属性</returns>
         public static EnumTradingTime GetTradingTime(string instrument)
         {
-            string prefix = instrument.Substring(0, 2);
+            string prefix = instrument.Substring(0, 2);//得到前缀2个字符
             switch(prefix)
             {
                 case "IF":
@@ -152,14 +161,14 @@ namespace QuantBox.OQ.Demo.Helper
         /// <summary>
         /// 确定是否Trading时间
         /// </summary>
-        /// <param name="dt"></param>
+        /// <param name="dt">时间参数</param>
         /// <returns></returns>
         public bool IsTradingTime(DateTime dt)
         {
             return IsTradingTime(GetTime(dt));
         }
         /// <summary>
-        /// 确定是否Trading时间
+        /// 是否交易时间
         /// </summary>
         /// <returns></returns>
         public bool IsTradingTime()
