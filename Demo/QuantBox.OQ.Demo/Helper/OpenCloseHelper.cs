@@ -6,7 +6,7 @@ using QuantBox.OQ.Extensions.OrderText;
 namespace QuantBox.OQ.Demo.Helper
 {
     /// <summary>
-    /// 开平仓助手
+    /// 开平仓助手123
     /// </summary>
     public class OpenCloseHelper
     {
