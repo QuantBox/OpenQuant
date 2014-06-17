@@ -20,9 +20,9 @@ namespace QuantBox.OQ.Demo.Indicator
         public DPO1(ISeries series, int length, BarData barData)
             : base(series)
         {
-            this.length = length;
-            this.option = barData;
-            this.Name = "DPO";
+            this.length = length;//长度
+            this.option = barData;//bar类型
+            this.Name = "DPO";//名称
         }
 
         public override double Calculate(int index)
