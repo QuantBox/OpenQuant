@@ -5,6 +5,9 @@ using QuantBox.OQ.Extensions.OrderText;
 
 namespace QuantBox.OQ.Demo.Helper
 {
+    /// <summary>
+    /// 开平仓助手
+    /// </summary>
     public class OpenCloseHelper
     {
         public static EnumOpenClose CheckOpenClose(Order order)

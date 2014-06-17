@@ -33,7 +33,7 @@ namespace QuantBox.OQ.Demo.Strategys
         // 直接使用这种static比使用Global要快
         static PairTrading2_code S1;
         static PairTrading2_code S2;
-
+        
         public override void OnStrategyStart()
         {
             base.OnStrategyStart();

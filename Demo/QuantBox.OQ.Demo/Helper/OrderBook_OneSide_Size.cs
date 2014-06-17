@@ -6,6 +6,9 @@ using System.Text;
 
 namespace QuantBox.OQ.Demo.Helper
 {
+    /// <summary>
+    /// 单向挂单管理
+    /// </summary>
     public class OrderBook_OneSide_Size : IComparer<int>
     {
         public OrderSide Side;

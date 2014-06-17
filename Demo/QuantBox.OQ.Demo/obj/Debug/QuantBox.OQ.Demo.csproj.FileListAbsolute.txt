@@ -1,0 +1,5 @@
+D:\Program Files (x86)\SmartQuant Ltd\OpenQuant\Bin\QuantBox.OQ.Demo.dll
+D:\Program Files (x86)\SmartQuant Ltd\OpenQuant\Bin\QuantBox.OQ.Demo.pdb
+D:\用户目录\Documents\GitHub\OpenQuant\Demo\QuantBox.OQ.Demo\obj\Debug\QuantBox.OQ.Demo.csprojResolveAssemblyReference.cache
+D:\用户目录\Documents\GitHub\OpenQuant\Demo\QuantBox.OQ.Demo\obj\Debug\QuantBox.OQ.Demo.dll
+D:\用户目录\Documents\GitHub\OpenQuant\Demo\QuantBox.OQ.Demo\obj\Debug\QuantBox.OQ.Demo.pdb

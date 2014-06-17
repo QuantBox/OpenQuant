@@ -18,14 +18,24 @@ namespace QuantBox.OQ.Demo.Helper
     /// </summary>
     public class DualPosition
     {
-        
+        /// <summary>
+        /// //平今仓助手
+        /// </summary>
         public CloseTodayHelper CloseTodayHelper;
+        /// <summary>
+        /// //多头仓位记录
+        /// </summary>
         public PositionRecord Long = new PositionRecord();
+        /// <summary>
+        /// //空头仓位记录
+        /// </summary>
         public PositionRecord Short = new PositionRecord();
 
         public OrderBook_OneSide_Order Buy = new OrderBook_OneSide_Order(OrderSide.Buy);
         public OrderBook_OneSide_Order Sell = new OrderBook_OneSide_Order(OrderSide.Sell);
-
+        /// <summary>
+        /// 订单的开平仓字典
+        /// </summary>
         public Dictionary<Order, EnumOpenClose> Order_OpenClose = new Dictionary<Order, EnumOpenClose>();
 
         public DualPosition(string symbol)
@@ -34,27 +44,37 @@ namespace QuantBox.OQ.Demo.Helper
         }
 
         public string Symbol { get; private set; }
-
+        /// <summary>
+        /// 多头持仓量
+        /// </summary>
         public double LongQty
         {
             get { return Long.Qty; }
         }
-
+        /// <summary>
+        /// 空头持仓量
+        /// </summary>
         public double ShortQty
         {
             get { return Short.Qty; }
         }
-
+        /// <summary>
+        /// 得到买入数量
+        /// </summary>
         public double BidQty
         {
             get { return Buy.Size(); }
         }
-
+        /// <summary>
+        /// 得到卖出数量
+        /// </summary>
         public double AskQty
         {
             get { return Sell.Size(); }
         }
-
+        /// <summary>
+        /// 得到买入价位文本信息
+        /// </summary>
         public string BidString
         {
             get
@@ -65,7 +85,9 @@ namespace QuantBox.OQ.Demo.Helper
                     Buy.PriceByIndex(0));
             }
         }
-
+        /// <summary>
+        /// 得到卖出价位文本信息
+        /// </summary>
         public string AskString
         {
             get
@@ -89,16 +111,20 @@ namespace QuantBox.OQ.Demo.Helper
                 Buy.Clear();
                 Sell.Clear();
 
-                Long.ChangeTradingDay();
-                Short.ChangeTradingDay();
+                Long.ChangeTradingDay();//多头换日
+                Short.ChangeTradingDay();//空头换日
             }
         }
-
+        /// <summary>
+        /// 实际持仓
+        /// </summary>
         public double NetQty
         {
-            get { return Long.Qty - Short.Qty; }
+            get { return Long.Qty - Short.Qty; }//多头仓 - 空头仓
         }
-
+        /// <summary>
+        /// 是否等待
+        /// </summary>
         public bool IsPending
         {
             get { return Buy.IsPending || Sell.IsPending; }
@@ -185,9 +211,9 @@ namespace QuantBox.OQ.Demo.Helper
         {
             lock (this)
             {
-                double LastQty = order.LastQty;
-                double LastPrice = order.LastPrice;
-                bool IsDone = order.IsDone;
+                double LastQty = order.LastQty;//得到最后的填充(部分填充)此订单的数量
+                double LastPrice = order.LastPrice;//得到最后的填充(部分填充)此订单价格
+                bool IsDone = order.IsDone;//返回true,如果这个订单最终状态(填充,拒绝或取消)
 
                 EnumOpenClose OpenClose = GetOpenClose(order);
 
@@ -322,22 +348,32 @@ namespace QuantBox.OQ.Demo.Helper
                 return OpenClose;
             }
         }
-
+        /// <summary>
+        /// 得到订单的开平标志
+        /// </summary>
+        /// <param name="order">订单</param>
+        /// <returns>返回值：开平仓标记</returns>
         public EnumOpenClose GetOpenClose(Order order)
         {
-            EnumOpenClose OpenClose = EnumOpenClose.OPEN;
+            EnumOpenClose OpenClose = EnumOpenClose.OPEN;//开平仓标记
+            //得到指定order订单的开平仓标记，TryGetValue函数找到时则返回TURE,并返回指定的OpenClose开平仓标记
             if(Order_OpenClose.TryGetValue(order, out OpenClose))
                 return OpenClose;
+            //没有找到则返回OPEN标记
             return EnumOpenClose.OPEN;
         }
-
+        /// <summary>
+        /// 订单被拒绝
+        /// </summary>
+        /// <param name="order"></param>
+        /// <returns></returns>
         public EnumOpenClose OrderRejected(Order order)
         {
             lock (this)
             {
-                double LeavesQty = order.LeavesQty;
+                double LeavesQty = order.LeavesQty;//得到剩余的订单数量
 
-                EnumOpenClose OpenClose = GetOpenClose(order);
+                EnumOpenClose OpenClose = GetOpenClose(order);//开平标记
 
                 switch (OpenClose)
                 {

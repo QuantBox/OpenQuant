@@ -8,6 +8,9 @@ using System.Linq;
 
 namespace QuantBox.OQ.Demo.Module
 {
+    /// <summary>
+    /// 目标挂单助手
+    /// </summary>
     public class TargetOrderBookModule : TargetPositionModule
     {
         class CopyOrder

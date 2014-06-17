@@ -27,7 +27,7 @@ namespace QuantBox.OQ.Demo.Strategys
         {
             if (bar.DateTime.Day != day)
             {
-                day = bar.DateTime.Day;
+                day = bar.DateTime.Day;//获取bqr序列的日期
                 ts.Add(bar.DateTime, bar.High + 1);
             }
         }
